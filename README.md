@@ -1,4 +1,4 @@
-# FBR34KER usbliter8 Integration
+# B34ST - usbliter8 + FBR34KER
 
 This directory contains the integration of usbliter8 with FBR34kER to create a checkra1n/palera1n-like jailbreak and bootflow for A12/A13 iPhones.
 

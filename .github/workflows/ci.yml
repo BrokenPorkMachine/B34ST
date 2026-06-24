@@ -1,0 +1,75 @@
+name: FBR34KER 0.2.3 Physical Validation Candidate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  arm64-monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install build and emulation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang lld llvm make qemu-system-arm
+
+      - name: Restore executable permissions
+        run: make permissions
+
+      - name: Run QEMU and physical-validation candidate gate
+        run: ./fbr34ker --gate
+
+      - name: Build deterministic release archives
+        if: success()
+        run: ./fbr34ker --package
+
+      - name: Upload release-gate evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fbr34ker-${{ github.sha }}-physical-validation-candidate
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            runtime-artifacts/
+            build/*.bin
+            build/*.elf
+            build/*.map
+            build/modules/*.fmod
+            build/loader-simulation/**
+            build/deployment-simulation/**
+            build-generic/*.bin
+            build-generic/*.elf
+            build-generic/*.map
+            build-loader/*.bin
+            build-loader/*.elf
+            build-loader/*.map
+            build-hardware-probe/*.bin
+            build-hardware-probe/*.elf
+            build-hardware-probe/*.map
+            build-sdk/*.a
+            build-integration/*.bin
+            build-integration/*.elf
+            build-integration/*.map
+            build-integration/modules/*.fmod
+            build-apple/**
+            build-apple/physical-validation-candidate/**
+            RELEASE_MANIFEST.json
+            CHECKSUMS.sha256
+            dist/FBR34KER_0.2.3_Physical_Validation_Candidate_*.zip
+            dist/FBR34KER_0.2.3_Physical_Validation_Candidate_*.zip.sha256

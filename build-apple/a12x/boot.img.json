@@ -1,0 +1,46 @@
+{
+  "alignment": 4096,
+  "components": [
+    {
+      "entry_address": 2147483648,
+      "load_address": 2147483648,
+      "name": "fbr34ker-generic.bin",
+      "offset": 20480,
+      "role": "monitor",
+      "sha256": "3e56c50cca629e5508927be79c04d7858240a732a8865901906334fdcd87afaf",
+      "size": 123240
+    },
+    {
+      "entry_address": 0,
+      "load_address": 0,
+      "name": "handoff-v4.fbhb",
+      "offset": 147456,
+      "role": "handoff",
+      "sha256": "6e9e0455b5b66c8aa595457a7dd6b408ff0998b55e6e46419022af0f5a4c8a76",
+      "size": 1072
+    },
+    {
+      "entry_address": 0,
+      "load_address": 0,
+      "name": "hello-dynamic.fmod",
+      "offset": 151552,
+      "role": "module",
+      "sha256": "882a7c0792b4482920e420acf23dbb245e2d3c306f1ca0a70f25a9d2f6bdc8f1",
+      "size": 299
+    }
+  ],
+  "cpids": [
+    "0x8027"
+  ],
+  "direct_stock_iboot_compatible": false,
+  "execution_contract": "external-authorized-loader",
+  "family": "a12x",
+  "format": "fbri-v1",
+  "image_sha256": "68d7a588c6b7ee435ccacde9ba9e4ece0ba26db8baa4a22ea343bc8d09422784",
+  "image_size": 155648,
+  "profile_id": "apple-a12x-a12z-recovery-experimental",
+  "profile_sha256": "a45140f23f775c9de80f57b84a6c1cc8c83bd38249feedcff4c910f306bc3596",
+  "project": "FBR34KER",
+  "release_version": "0.2.3",
+  "schema_version": 1
+}

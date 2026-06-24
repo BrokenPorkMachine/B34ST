@@ -1,0 +1,13 @@
+{
+  "direct_stock_iboot_compatible": false,
+  "entry_address": 2147483648,
+  "execution_contract": "external-authorized-loader",
+  "family": "a12x",
+  "format": "raw-aarch64-payload",
+  "load_address": 2147483648,
+  "payload": "boot.raw",
+  "profile_id": "apple-a12x-a12z-recovery-experimental",
+  "schema_version": 1,
+  "sha256": "3e56c50cca629e5508927be79c04d7858240a732a8865901906334fdcd87afaf",
+  "size": 123240
+}

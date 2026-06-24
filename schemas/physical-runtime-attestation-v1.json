@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fbr34ker.invalid/schemas/physical-runtime-attestation-v1.json",
+  "title": "FBR34KER physical runtime attestation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "operator", "evidence_bundle_sha256",
+    "operator_authorized", "device_owned_or_authorized", "observed_console",
+    "observed_boot_evidence", "observed_safe_reset"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "operator": {"type": "string", "minLength": 1, "maxLength": 128},
+    "evidence_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "operator_authorized": {"const": true},
+    "device_owned_or_authorized": {"const": true},
+    "observed_console": {"const": true},
+    "observed_boot_evidence": {"const": true},
+    "observed_safe_reset": {"const": true},
+    "notes": {"type": "string", "maxLength": 2048}
+  }
+}

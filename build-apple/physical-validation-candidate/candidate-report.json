@@ -1,0 +1,114 @@
+{
+  "candidate_ready": true,
+  "limitations": [
+    "QEMU runtime proof is not present.",
+    "Physical-device execution proof is not present."
+  ],
+  "physical_validation_complete": false,
+  "project": "FBR34KER",
+  "proof": {
+    "authorization_invalidated_after_reset": true,
+    "bridge_console": true,
+    "failure_observed": true,
+    "physical_runtime": false,
+    "qemu_runtime": false,
+    "recovered_after_reauthorization": true
+  },
+  "qemu": {
+    "detail": "qemu-system-aarch64 is not installed",
+    "passed": false,
+    "project": "FBR34KER",
+    "schema_version": 1,
+    "status": "unavailable",
+    "version": "0.2.3"
+  },
+  "recovered": {
+    "adapter_id": "fbr34ker-simulator",
+    "adapter_transport": "persistent-bridge",
+    "bundle": "build-apple/physical-validation-candidate/recovered-session.zip",
+    "checks": {
+      "boot_evidence_present": true,
+      "boot_evidence_stage_passed": true,
+      "bridge_backed": true,
+      "bundle_integrity": true,
+      "console_entry_observed": true,
+      "console_stage_passed": true,
+      "exact_product_profile": true,
+      "physical_execution_claim": false,
+      "required_stages_passed": true,
+      "session_passed": true
+    },
+    "integrity": {
+      "checksum_failures": [],
+      "members": [
+        "boot-evidence.json",
+        "checksums.sha256",
+        "console.log",
+        "crash-report.json",
+        "device.json",
+        "image-manifest.json",
+        "profile.json",
+        "session.json",
+        "summary.json",
+        "trace.json",
+        "transfer.log"
+      ],
+      "missing": [],
+      "valid": true
+    },
+    "missing_required_stages": [],
+    "profile_id": "apple-a13-iphone-recovery",
+    "project": "FBR34KER",
+    "proof_class": "bridge",
+    "release_version": "0.2.3",
+    "schema_version": 1,
+    "session_id": "b33e2cf42dde97d6e10e1c68",
+    "valid": true
+  },
+  "release_name": "Physical Validation Candidate",
+  "release_version": "0.2.3",
+  "schema_version": 1,
+  "success": {
+    "adapter_id": "fbr34ker-simulator",
+    "adapter_transport": "persistent-bridge",
+    "bundle": "build-apple/physical-validation-candidate/success-session.zip",
+    "checks": {
+      "boot_evidence_present": true,
+      "boot_evidence_stage_passed": true,
+      "bridge_backed": true,
+      "bundle_integrity": true,
+      "console_entry_observed": true,
+      "console_stage_passed": true,
+      "exact_product_profile": true,
+      "physical_execution_claim": false,
+      "required_stages_passed": true,
+      "session_passed": true
+    },
+    "integrity": {
+      "checksum_failures": [],
+      "members": [
+        "boot-evidence.json",
+        "checksums.sha256",
+        "console.log",
+        "crash-report.json",
+        "device.json",
+        "image-manifest.json",
+        "profile.json",
+        "session.json",
+        "summary.json",
+        "trace.json",
+        "transfer.log"
+      ],
+      "missing": [],
+      "valid": true
+    },
+    "missing_required_stages": [],
+    "profile_id": "apple-a13-iphone-recovery",
+    "project": "FBR34KER",
+    "proof_class": "bridge",
+    "release_version": "0.2.3",
+    "schema_version": 1,
+    "session_id": "218e3a0c724f1d497840be2d",
+    "valid": true
+  }
+}

@@ -1,84 +1,24 @@
 #!/usr/bin/env python3
-"""B34ST (B34KER/STAR) - Project Documentation
+"""B34ST Setup and Usage Guide
 
-This document provides comprehensive documentation for the B34ST (B34KER/STAR)
-runtime authentication tool, part of the FBR34KER 0.2.3 Physical Validation Candidate.
+This guide provides comprehensive setup and usage instructions for the B34ST
+(B34KER/STAR) runtime authentication tool.
 
-## Overview
+## Quick Start
 
-B34ST is a runtime authentication tool for FBR34KER that provides:
+### Installation
 
-- Deterministic physical validation for A12/A13 iPhone hardware bring-up
-- Evidence-based maturity enforcement (simulated → physical-runtime-verified)
-- Persistent bridge authorization management
-- Controlled failure injection and recovery testing
-- Structured hardware bring-up workflows
+```bash
+# Add B34ST to your Python path
+cd /path/to/FBR34KER-0.2.3-Physical-Validation-Candidate
+pip install -e ./b34st
+```
 
-## Architecture Overview
-
-B34ST follows a layered architecture combining:
-
-### Core Components
-
-1. **Physical Validation Pipeline**
-   - Evidence collection and verification
-   - Profile maturity enforcement
-   - Deterministic candidate generation
-   - Failure matrix testing
-
-2. **Bridge Protocol Management**
-   - Persistent, sequence-checked transport layer
-   - Authorization and reauthorization handling
-   - Reset-driven recovery
-
-3. **Hardware Profile Validation**
-   - Exact-product matching for A12/A13
-   - Required-stage enforcement
-   - Console, memory-map, timer, boot-evidence testing
-
-4. **Error Handling Framework**
-   - Deterministic failure injection
-   - Recovery sequence testing
-   - Evidence-based failure analysis
-
-### Evidence Classes
-
-B34ST generates provable evidence classes:
-
-1. **Simulator Evidence**
-   - Deterministic simulator execution
-   - Bridge contract proof
-   - No physical device required
-
-2. **Bridge Evidence**
-   - Persistent bridge operation
-   - Sequence number verification
-   - Authorization proof
-
-3. **Console Evidence**
-   - Console capture and verification
-   - Entry observation
-   - Bound detection
-
-4. **Boot-Evidence**
-   - Boot-stage evidence collection
-   - Stage verification
-   - Evidence integrity
-
-5. **Physical-Runtime Evidence**
-   - Physical device execution proof
-   - Memory map validation
-   - Real hardware testing
-
-## User Guide
-
-### Quick Start
+### Basic Usage
 
 ```bash
 # Validate a session bundle
-b34st validate-session \
-  --bundle runtime-artifacts/success-session.zip \
-  --profile profiles/apple-a13-iphone-recovery.json
+b34st validate-session --bundle runtime-artifacts/success-session.zip
 
 # Generate a candidate report
 b34st physical-validation candidate-report \
@@ -91,109 +31,356 @@ b34st physical-validation candidate-report \
 b34st hardware-prepare --save-checklists ./checklists/
 ```
 
-### Command Reference
+### Advanced Usage
 
-#### `b34st validate-session`
-
-**Purpose**: Validate a session bundle against profile maturity gates.
-
-**Arguments**:
-- `--bundle`: Path to session bundle (ZIP file)
-- `--profile`: Device profile JSON file (default: apple-a13-iphone-recovery.json)
-- `--validate-only`: Only validate, don't require full maturity
-
-**Example**:
 ```bash
+# Using PongoOS integration
+./scripts/usbliter8_workflow.py --use-pongoos
+
+# Dry run validation
+./scripts/usbliterapp.py --use-pongoos --dry-run
+
+# Custom PongoOS path
+./scripts/usbliter8_workflow.py --use-pongoos --pongoos-path /path/to/pongoos
+```
+
+## Installation Instructions
+
+### System Requirements
+
+- **Operating System**: Linux or macOS
+- **Python**: 3.13 or later
+- **Build Tools**: Clang 14+, GNU Make
+- **Hardware**: A12/A13 iPhone support (A4/A13 chips)
+
+### Installation Steps
+
+1. **Clone the Repository**
+
+```bash
+git clone https://github.com/yourusername/fbr34ker-0.2.3-private.git
+```
+
+2. **Install Dependencies**
+
+```bash
+cd FBR34KER-0.2.3-Physical-Validation-Candidate
+pip install -r requirements.txt
+```
+
+3. **Install B34ST**
+
+```bash
+pip install -e ./b34st
+```
+
+4. **Verify Installation**
+
+```bash
+# Test B34ST installation
+b34st --version
+
+# Test B34ST help
+b34st --help
+```
+
+## Configuration
+
+### Default Configuration
+
+B34ST uses the following default configuration:
+
+- **Profile**: `profiles/apple-a13-iphone-recovery.json`
+- **Device Info**: `examples/a13-device-info.json`
+- **Runtime Directory**: `runtime-artifacts/b34st`
+- **Build Directory**: `build-b34st`
+- **Package Directory**: `dist`
+
+### Custom Configuration
+
+You can customize B34ST configuration by creating a `~/.b34st-config` file:
+
+```bash
+cat << EOF > ~/.b34st-config
+[Default]
+Profile = "profiles/apple-a13-iphone-recovery.json"
+DeviceInfo = "examples/a13-device-info.json"
+RuntimeDir = "/custom/path/runtime-artifacts/b34st"
+BuildDir = "/custom/path/build-b34st"
+
+[Security]
+NoExploit = true
+NoPhysicalDevice = true
+SourcePrivate = true
+EOF
+```
+
+### Environment Variables
+
+B34ST supports the following environment variables:
+
+- `B34ST_ENABLED`: Enable/disable B34ST validation (default: true)
+- `B34ST_VALIDATION_ONLY`: Only run validation, don't compile (default: false)
+- `B34ST_DRY_RUN`: Dry run mode (check paths, validate) (default: false)
+- `B34ST_LOG_LEVEL`: Logging verbosity (DEBUG, INFO, WARN, ERROR) (default: INFO)
+- `B34ST_VALIDATION_TIMEOUT`: Validation timeout in seconds (default: 300)
+- `B34ST_EVIDENCE_TIMEOUT`: Evidence generation timeout (default: 120)
+- `B34ST_STRICT_MATURITY`: Strict profile maturity enforcement (default: true)
+- `B34ST_ALLOW_SIMULATOR_ONLY`: Allow simulator-only validation (default: false)
+- `B34ST_REQUIRE_PHYSICAL`: Require physical device proof (default: false)
+
+```bash
+export B34ST_LOG_LEVEL=DEBUG
+export B34ST_VALIDATION_TIMEOUT=600
+```
+
+## Usage Examples
+
+### Session Validation
+
+#### Validate a Successful Session
+
+```bash
+# Validate a successful validation session
 b34st validate-session \
-  --bundle runtime-artifacts/success-session.zip \
+  --bundle runtime-artifacts/b34st/success-session \
   --profile profiles/apple-a13-iphone-recovery.json
+
+# Output includes:
+# - Bundle integrity verification
+# - Profile maturity validation
+# - Console entry observation
+# - Required stages validation
 ```
 
-#### `b34st physical-validation candidate-report`
+#### Validate a Failure Session
 
-**Purpose**: Generate a deterministic physical validation candidate report.
-
-**Arguments**:
-- `--success`: Path to successful validation bundle
-- `--failure`: Path to failure validation bundle
-- `--recovered`: Path to recovered validation bundle
-- `--qemu-summary`: Path to QEMU gate summary (optional)
-- `--output`: Path to save the candidate report
-
-**Example**:
 ```bash
+# Validate a failure session with automatic recovery
+b34st validate-session \
+  --bundle runtime-artifacts/b34st/failure-session \
+  --profile profiles/apple-a13-iphone-recovery.json \
+  --validate-only
+```
+
+### Candidate Report Generation
+
+#### Generate a Physical Validation Candidate Report
+
+```bash
+# Complete validation cycle: success → failure → recovered
 b34st physical-validation candidate-report \
-  --success success.zip \
-  --failure failure.zip \
-  --recovered recovered.zip \
-  --output candidate-report.json
+  --success runtime-artifacts/b34st/success-session \
+  --failure runtime-artifacts/b34st/failure-session \
+  --recovered runtime-artifacts/b34st/recovered-session \
+  --qemu-summary runtime-artifacts/gate/summary.json \
+  --output runtime-artifacts/b34st/candidate-report.json
+
+# Output includes:
+# - Candidate ready status
+# - Physical validation completion
+# - Failure observed validation
+# - Auth invalidation after recovery
 ```
 
-#### `b34st hardware-prepare`
+#### Dry Run Validation
 
-**Purpose**: Read-only hardware preparation with checklists.
-
-**Subcommands**:
-
-**`--list-categories`**: List available hardware preparation categories
-
-**`--save-checklists <dir>`**: Generate hardware preparation checklists
-
-**`--validate-bundle <file>`**: Validate an existing checklist bundle
-
-**Example (list categories)**:
 ```bash
+# Dry run to check paths and requirements without execution
+b34st validate-session \
+  --bundle runtime-artifacts/b34st/success-session \
+  --profile profiles/apple-a13-ip
+
+# Dry run with PongoOS
+b34st validate-session \
+  --bundle runtime-artifacts/b34st/pongoos-session \
+  --profile profiles/apple-a13-iphone-recovery.json \
+  --use-pongoos \
+  --dry-run
+```
+
+### Hardware Preparation
+
+#### List Available Hardware Preparation Categories
+
+```bash
+# List available hardware preparation categories
 b34st hardware-prepare --list-categories
 ```
 
-**Example (save checklists)**:
-```bash
-b34st hardware-prepare --save-checklists ./checklists/
+Output:
 ```
+Available hardware preparation categories:
+  - console
+  - board-inventory
+  - memory-map
+  - timer
+  - interrupts
+  - watchdog
+  - boot-evidence
+```
+
+#### Generate Hardware Preparation Checklists
+
+```bash
+# Generate hardware preparation checklists
+b34st hardware-prepare --save-checklists ./checklists/
+
+# Validate existing checklist
+b34st hardware-prepare --validate-bundle ./checklists/hardware_checklist.json
+```
+
+### PongoOS Integration
+
+#### Basic PongoOS Usage
+
+```bash
+# Use PongoOS as the operating system
+./scripts/usbliter8_workflow.py --use-pongoos
+
+# Custom PongoOS path
+./scripts/usbliter8_workflow.py --use-pongoos --pongoos-path /path/to/pongoos
+
+# PongoOS dry run
+./scripts/usbliter8_workflow.py --use-pongoos --dry-run
+```
+
+#### PongoOS CLI Commands
+
+When in PongoOS mode, B34ST supports additional PongoOS-specific commands:
+
+```bash
+# Initialize PongoOS development environment
+b34st pongoos-init
+
+# List available PongoOS modules
+b34st pongoos-modules
+
+# Install PongoOS packages
+b34st pongoos-packages install python3 linux-headers
+
+# Configure network settings
+b34st pongoos-network setup usb-tethering
+
+# Hardware diagnostics in PongoOS
+b34st pongoos-hardware scan
+
+# List PongoOS services
+b34st pongoos-services list
+```
+
+## Error Handling
+
+B34ST provides comprehensive error handling with descriptive error messages:
+
+### Common Errors and Solutions
+
+1. **Bundle File Not Found**
+
+```bash
+# Error: Bundle file not found: runtime-artifacts/b34st/session.zip
+# Solution: Verify the file path and ensure the bundle exists
+b34st validate-session --bundle runtime-artifacts/b34st/success-session
+```
+
+2. **Invalid Profile**
+
+```bash
+# Error: Invalid profile: profiles/invalid.json
+# Solution: Use a valid profile from the profiles directory
+b34st validate-session --bundle runtime-artifacts/b34st/success-session \
+  --profile profiles/apple-a13-iphone-recovery.json
+```
+
+3. **Missing Required Arguments**
+
+```bash
+# Error: the following arguments are required: --bundle
+# Solution: Provide all required arguments
+b34st validate-session --bundle runtime-artifacts/b34st/success-session
+```
+
+4. **Permission Denied**
+
+```bash
+# Error: Permission denied: ./checklists/
+# Solution: Ensure the directory is writable
+b34st hardware-prepare --save-checklists ./checklists/
+chmod 755 ./checklists/
+```
+
+## Troubleshooting
+
+### B34ST Validation Errors
+
+1. **Validation Failed**
+   - Check the bundle integrity and format
+   - Verify the profile matches the device
+   - Ensure all required stages are passed
+
+2. **Profile Maturity Validation Failed**
+   - Check the evidence class for the requested maturity level
+   - Ensure all required evidence is available
+   - Verify the profile maturity mapping
+
+3. **Candidate Report Generation Failed**
+   - Ensure all three bundles (success, failure, recovered) are available
+   - Check the output directory permissions
+   - Verify the QEMU summary file if required
+
+### Hardware Preparation Issues
+
+1. **Checklists Generation Failed**
+   - Ensure the output directory exists and is writable
+   - Check the available disk space
+   - Verify the system resources
+
+2. **Invalid Checklist**
+   - Load the checklist using JSON parser
+   - Verify the checklist structure
+   - Ensure all required fields are present
+
+### PongoOS Integration Issues
+
+1. **PongoOS Not Found**
+   - Ensure PongoOS is installed and accessible
+   - Check the PongoOS path using `--pongoos-path`
+   - Install PongoOS if necessary
+
+2. **PongoOS Validation Failed**
+   - Check the PongoOS mode compatibility
+   - Verify the PongoOS version matches the requirements
+   - Ensure the PongoOS configuration is correct
+
+## Advanced Topics
 
 ### Profile Maturity Enforcement
 
-B34ST enforces profile maturity based on evidence. The maturity order is:
+B34ST enforces profile maturity through evidence-gated promotion:
 
-1. **Simulated**: Bridge-backed simulator execution
-2. **Bridge-verified**: Persistent bridge authorization proof
-3. **Console-verified**: Console capture and entry observation
-4. **Boot-evidence-verified**: Boot-stage evidence collection
-5. **Physical-runtime-verified**: Physical device execution proof
-
-#### Maturity Promotion Rules
-
-A profile can be promoted to the next maturity level only if the required evidence is supplied:
-
-- **Simulated → Bridge-verified**: Requires bridge evidence
-- **Bridge-verified → Console-verified**: Requires console evidence
-- **Console-verified → Boot-evidence-verified**: Requires boot-evidence
-- **Boot-evidence-verified → Physical-runtime-verified**: Requires physical-runtime evidence
-
-#### Evidence Requirements
-
-```json
-{
-  "simulated": {
-    "required_evidence": ["simulator"],
-    "description": "Bridge-backed simulator execution"
-  },
-  "bridge-verified": {
-    "required_evidence": ["bridge", "simulator"],
-    "description": "Persistent bridge authorization"
-  },
-  "console-verified": {
-    "required_evidence": ["bridge", "simulator", "console"],
-    "description": "Console capture and verification"
-  },
-  "boot-evidence-verified": {
-    "required_evidence": ["bridge", "simulator", "boot-evidence"],
-    "description": "Boot-stage evidence collection"
-  },
-  "physical-runtime-verified": {
-    "required_evidence": ["bridge", "simulator", "physical-runtime"],
-    "description": "Physical device execution proof"
-  }
+```python
+# Example maturity promotion logic
+MaturityManager = {
+    "simulated": {
+        "required_evidence": ["simulator"],
+        "description": "Bridge-backed simulator execution"
+    },
+    "bridge-verified": {
+        "required_evidence": ["bridge", "simulator"],
+        "description": "Persistent bridge authorization"
+    },
+    "console-verified": {
+        "required_evidence": ["bridge", "simulator", "console"],
+        "description": "Console capture and verification"
+    },
+    "boot-evidence-verified": {
+        "required_evidence": ["bridge", "simulator", "boot-evidence"],
+        "description": "Boot-stage evidence collection"
+    },
+    "physical-runtime-verified": {
+        "required_evidence": ["bridge", "simulator", "physical-runtime"],
+        "description": "Physical device execution proof"
+    }
 }
 ```
 
@@ -218,6 +405,7 @@ Session bundles are ZIP files containing:
 - (Other evidence files as needed)
 
 Example `session.json`:
+
 ```json
 {
   "schema_version": 1,
@@ -240,362 +428,31 @@ Example `session.json`:
 }
 ```
 
-## Device Support
+## Support
 
-B34ST supports the following Apple devices:
+### Getting Help
 
-### A12 iPhones
+1. **Documentation**: Refer to this guide and the b34st/README.md file
+2. **GitHub Issues**: Create GitHub issues at https://github.com/yourusername/fbr34ker
+3. **Community**: Join the FBR34KER community for discussions
+4. **Bug Reports**: Report bugs with detailed error messages and steps to reproduce
 
-- **CPID**: 0x8020
-- **Products**: 
-  - iPhone12,1
-  - iPhone12,3,
-  - iPhone12,5,
-  - iPhone12,8
-- **Profile**: `profiles/apple-a12-iphone-recovery.json`
+### Contact Information
 
-### A13 iPhones
+- **GitHub**: https://github.com/yourusername/fbr34ker
+- **Documentation**: https://github.com/yourusername/fbr34ker/blob/main/b34st/README.md
+- **Issues**: https://github.com/yourusername/fbr34ker/issues
 
-- **CPID**: 0x8030
-- **Products**:
-  - iPhone12,1,
-  - iPhone12,3,
-  - iPhone12,5,
-  - iPhone12,8
-- **Profile**: `profiles/apple-a13-iphone-recovery.json`
+### Reporting Issues
 
-### A13 iPads
+When reporting issues, please include:
 
-- **CPID**: 0x8030
-- **Products**:
-  - iPad7,1,
-  - iPad7,2,
-  - iPad7,3,
-  - iPad7,4
-- **Profile**: `profiles/apple-a13-ipad-recovery.json`
-
-## Configuration
-
-### Project Configuration (`b34st/.b34st-config`)
-
-The B34ST project uses a configuration file (`.b34st-config`) with the following settings:
-
-```toml
-# B34ST Project Configuration
-
-[B34ST]
-Name = "B34ST (B34KER/STAR)"
-Version = "0.2.3"
-Status = "Physical Validation Candidate"
-ReleaseChannel = "validation-candidate"
-ReleaseName = "B34ST_0.2.3_Physical_Validation_Candidate"
-
-[Build]
-BuildDir = "build-b34st"
-RuntimeArtifactDir = "runtime-artifacts/b34st"
-PackageDir = "dist"
-SourceId = "0.2.3-validation-candidate"
-
-[Runtime]
-DefaultProfile = "profiles/apple-a13-iphone-recovery.json"
-DefaultDeviceInfo = "examples/a13-device-info.json"
-DefaultQEMURequired = false
-
-[Evidence]
-MaturityOrder = ["simulated", "bridge-verified", "console-verified", "boot-evidence-verified", "physical-runtime-verified"]
-FailureStages = ["console", "memory-map", "timer", "boot-evidence"]
-
-[Security]
-NoExploit = true
-NoPhysicalDevice = true
-SourcePrivate = true
-AuthenticationRequired = true
-
-[CI/CD]
-CIRunsOn = "ubuntu-latest"
-CITimeoutMinutes = 30
-```
-
-## Technical Specifications
-
-### Evidence-Based Maturity Enforcement
-
-B34ST enforces profile maturity through evidence-gated promotion:
-
-1. **Simulated Maturity**: Requires simulator evidence only
-2. **Bridge-verified Maturity**: Requires simulator and bridge evidence
-3. **Console-verified Maturity**: Requires simulator, bridge, and console evidence
-4. **Boot-evidence-verified Maturity**: Requires simulator, bridge, console, and boot-evidence
-5. **Physical-runtime-verified Maturity**: Requires simulator, bridge, console, boot-evidence, and physical-runtime evidence
-
-**Promotion Rules**:
-- Profiles cannot be promoted beyond their evidence level
-- Claims beyond supplied evidence are rejected
-- Maturity promotion is deterministic and repeatable
-
-### Profile Maturity Mapping
-
-Each maturity level requires specific evidence:
-
-| Maturity Level | Required Evidence | Description |
-|----------------|-------------------|-------------|
-| Simulated | simulator | Bridge-backed simulator execution |
-| Bridge-verified | simulator, bridge | Persistent bridge authorization |
-| Console-verified | simulator, bridge, console | Console capture and verification |
-| Boot-evidence-verified | simulator, bridge, console, boot-evidence | Boot-stage evidence collection |
-| Physical-runtime-verified | simulator, bridge, console, boot-evidence, physical-runtime | Physical device execution proof |
-
-### Validation Pipeline
-
-The B34ST validation process follows this pipeline:
-
-1. **Input Validation**
-   - Session bundle integrity verification
-   - Profile validation against schema
-   - Required stage verification
-
-2. **Evidence Collection**
-   - Console capture validation
-   - Boot-evidence collection and verification
-   - Failure injection and evidence generation
-
-3. **Maturity Enforcement**
-   - Profile maturity validation
-   - Evidence requirement checking
-   - Promotion eligibility determination
-
-4. **Report Generation**
-   - Candidate report creation
-   - Success/failure analysis
-   - Validation results summary
-
-## Security and Safety
-
-### Operational Boundaries
-
-B34ST is designed with strict security boundaries:
-
-1. **No Exploit Delivery**
-   - No SecureROM exploit
-   - No signature bypass
-   - No iBoot patches
-   - No DFU-entry mechanisms
-
-2. **Controlled Environment**
-   - Simulator and QEMU-based testing only
-   - Simulated hardware environment
-   - No physical device testing
-
-3. **Evidence Bound**
-   - Claims restricted to supplied evidence classes
-   - No unverified assertions
-   - Deterministic validation
-
-4. **Read-Only Operations**
-   - Hardware preparation is explicitly read-only
-   - Mutation requires explicit authorization
-   - Bounded external command interface
-
-5. **Authorization Required**
-   - All mutation requires authorization
-   - Signed recovery sessions
-   - Reset-driven reauthorization
-
-## Usage Examples
-
-### Basic Usage
-
-```bash
-# Install B34ST
-pip install -e b34st/
-
-# Validate a session bundle
-b34st validate-session \
-  --bundle runtime-artifacts/success-session.zip
-
-# Generate hardware preparation checklists
-b34st hardware-prepare --save-checklists ./checklists/
-```
-
-### Advanced Usage
-
-```bash
-# Run a complete validation workflow
-b34st physical-validation candidate-report \
-  --success runtime-artifacts/b34st/success-session.zip \
-  --failure runtime-artifacts/b34st/failure-session.zip \
-  --recovered runtime-artifacts/b34st/recovered-session.zip \
-  --output runtime-artifacts/b34st/candidate-report.json \
-  --qemu-summary runtime-artifacts/gate/summary.json
-```
-
-### Integration with CI/CD
-
-B34ST integrates with CI/CD pipelines for automated validation:
-
-```yaml
-# GitHub Actions example
-- name: Run B34ST validation
-  run: |
-    b34st physical-validation candidate-report \
-      --success runtime-artifacts/b34st/success-session.zip \
-      --failure runtime-artifacts/b34st/failure-session.zip \
-      --recovered runtime-artifacts/b34st/recovered-session.zip \
-      --output runtime-artifacts/b34st/candidate-report.json
-```
-
-## Command Line Interface
-
-### Global Options
-
-- `--version`: Show version information and exit
-- `--quiet`: Suppress non-essential output
-- `--verbose`: Enable verbose output
-
-### Subcommands
-
-- `validate-session`: Validate a session bundle
-- `physical-validation candidate-report`: Generate candidate report
-- `hardware-prepare`: Handle hardware preparation
-
-### Help Information
-
-Each command provides help information with:
-
-- Required and optional arguments
-- Usage examples
-- Description of functionality
-
-```bash
-# Show general help
-b34st --help
-
-# Show command-specific help
-b34st validate-session --help
-
-# Show physical-validation help
-b34st physical-validation --help
-```
-
-## Integration with FBR34KER
-
-B34ST is fully integrated with the FBR34KER framework:
-
-### Dependencies
-
-- **Core FBR34KER**: Monitor and loader builds
-- **Host Tools**: fbr34kctl, fbr34ker, physical validation scripts
-- **Profiles**: Apple A12/A13 recovery profiles
-- **Device Info**: A12/A13 device information examples
-
-### Build System Integration
-
-B34ST extends the FBR34KER Makefile with additional targets:
-
-```makefile
-# B34ST targets
-b34st: $(B34ST_TARGET).bin
-
-# Runtime artifacts
-b34st-runtime: runtime-artifacts/b34st
-
-# Validation candidate generation
-b34st-candidate: runtime-artifacts/b34st-candidate
-
-# Evidence validation
-b34st-validate: runtime-artifacts/b34st-validation-summary
-
-# Clean B34ST artifacts
-clean-b34st:
-	$(RM) -r $(B34ST_BUILD_DIR) $(RUNTIME_ARTIFACT_DIR)/b34st
-```
-
-### Release Process
-
-1. **Source Repository**: Source code maintained in private GitHub repository
-2. **Release Building**: Automated build process with CI/CD
-3. **Package Creation**: Source or artifact-only packages based on kind
-4. **Distribution**: Public releases contain only compiled artifacts
-
-## Release Pipeline
-
-### Source Repository (Private)
-
-- Branch: `main` for stable releases
-- Branch: `develop` for development
-- Pull requests require review and approval
-- Protected branches for main
-
-### CI/CD Pipeline
-
-1. **Build Stage**: Compile source code
-2. **Test Stage**: Run unit and integration tests
-3. **Validation Stage**: Run B34ST validation workflows
-4. **Package Stage**: Create release artifacts
-5. **Security Scan**: Validate security boundaries
-6. **Deploy Stage**: Publish to artifact repository
-
-### Release Distribution
-
-Public releases include:
-
-- **Executable Binaries**: `b34st` runtime authentication tool
-- **Validation Evidence**: Deterministic session bundles
-- **Documentation**: User guides and technical references
-- **Configuration Files**: Project settings
-- **Release Manifest**: Artifact inventory and checksums
-
-**Source code is excluded** from public releases - distributed artifacts contain only compiled binaries and validation evidence.
-
-## Development
-
-### Building from Source
-
-```bash
-# Clone the private repository
-cd /path/to/FBR34KER-0.2.3-Physical-Validation-Candidate
-
-# Build B34ST
-cd b34st
-python -m pip install -e .
-```
-
-### Running Tests
-
-```bash
-# Run B34ST validation tests
-make b34st-runtime
-
-# Run FBR34KER test suite
-./fbr34ker test
-
-# Validate physical validation candidate workflow
-./scripts/run_physical_validation_candidate.py --output runtime-artifacts/test
-```
-
-### Testing Requirements
-
-- Validate bundle integrity for all evidence classes
-- Test profile maturity enforcement with different evidence sets
-- Verify failure injection and recovery sequences
-- Ensure controlled failure matrix coverage
-- Test CLI interface against all B34ST operations
-
-## Contributing
-
-### How to Contribute
-
-1. **Report Issues**: Create GitHub issues for bugs or feature requests
-2. **Submit Pull Requests**: Fork the repository and submit PRs
-3. **Improve Documentation**: Update or add documentation
-4. **Enhance Testing**: Add new test cases and improve coverage
-
-### Code Style
-
-- Follow existing FBR34KER code style
-- Write comprehensive tests
-- Ensure documentation is complete and accurate
-- Implement proper error handling
+1. **Error messages**: Full error output
+2. **Command used**: Exact command that caused the issue
+3. **Environment**: Python version, OS, hardware
+4. **Steps to reproduce**: Clear steps to reproduce the issue
+5. **Expected behavior**: What you expected to happen
+6. **Actual behavior**: What actually happened
 
 ## License
 
@@ -603,46 +460,31 @@ B34ST is part of the FBR34KER project and is licensed under the same terms.
 
 For details, see the LICENSE file in the root of this repository.
 
-## Status
+## Version
 
-B34ST is a **Physical Validation Candidate** release with the following characteristics:
+- **Version**: 0.2.3
+- **Release Name**: B34ST_0.2.3_Physical_Validation_Candidate
+- **Status**: Physical Validation Candidate
+- **Source Repository**: Private GitHub repository
+- **Public Releases**: Artifact-only distribution
 
-- Deterministic candidate generation for bridge validation
-- QEMU-capable CI for automated testing
-- Evidence integrity and profile maturity enforcement
-- Controlled failure and recovery testing
-- Public ABI for validation claims (32-byte structure)
-- No physical device execution proof included
+## Release Notes
 
-Physical validation is complete only when both:
+### Current Version
 
-1. **A passing QEMU gate** is supplied
-2. **Non-simulator physical-runtime evidence** is provided
+- **Initial Release**: B34ST v0.2.3
+- **Framework**: Deterministic runtime authentication for FBR34KER
+- **Integration**: PongoOS support with FBR34KER validation workflows
+- **Security**: Strict evidence-based validation with no exploit delivery
 
-## Contact
+### Future Planned Features
 
-For questions or issues, please refer to the FBR34KER documentation or create a GitHub issue.
+1. **Enhanced PongoOS Integration**: Deeper PongoOS features and services
+2. **Cloud Validation**: Cloud-based validation testing
+3. **Attestation**: Remote attestation service integration
+4. **Monitoring**: Real-time validation monitoring and alerting
+5. **Automation**: CI/CD pipeline integration for continuous validation
 
-### Documentation Resources
+## Contributors
 
-- **Primary Documentation**: b34st/README.md
-- **Architecture**: docs/ARCHITECTURE.md
-- **Validation**: docs/PHYSICAL_VALIDATION_CANDIDATE.md
-- **API Reference**: docs/PROFILE_MATURITY.md
-- **Security**: docs/THREAT_MODEL.md
-
-### Examples
-
-- **Physical Validation**: scripts/run_physical_validation_candidate.py
-- **Runtime Validation**: host/physical_validation.py
-- **Bundle Generation**: host/session_bundle.py
-- **Bridge Management**: host/bridge_protocol.py
-
-## Acknowledgments
-
-B34ST builds upon the following projects:
-
-- **FBR34KER**: By FBR34kER team (clean-room ARM64 preboot monitor)
-- **A12/A13 Developer Preview**: Foundation for hardware bring-up
-- **Physical Device Integration Preview**: Persistent bridge protocol
-- **Physical Validation Candidate**: Evidence-gated validation framework
+This implementation is based on the original FBR34KER project and contributes to the broader FBR34KER ecosystem. Special thanks to the FBR34KER community for their contributions and support.

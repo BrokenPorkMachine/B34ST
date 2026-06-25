@@ -2,9 +2,14 @@ build/
 build-generic/
 build-integration/
 build-b34st/
+build-apple/
+build-hardware-probe/
+build-loader/
+build-sdk/
 runtime-artifacts/
 diagnostics/
 dist/
+idevicerestore_verbose.log
 RELEASE_MANIFEST.json
 RELEASE_MANIFEST.json.sig
 CHECKSUMS.sha256

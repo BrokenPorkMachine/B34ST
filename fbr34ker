@@ -23,6 +23,8 @@ Commands:
   control-panel        B34ST operator control panel
   b34st [args...]      Run a B34ST command
   research-runtime [args...]  Evidence-gated runtime orchestrator
+  ipsw [args...]       Targeted firmware download/restore workflows
+  device-dashboard [args...]  Device-specific capability snapshot
   menu                 Interactive, goal-driven interface
   interactive          Same as menu
    run [direct|generic|probe]  Run in QEMU emulation
@@ -1021,6 +1023,8 @@ def cmd_delegated(args):
         "verify-release": ["scripts/release_verify.py"],
         "compare-releases": ["scripts/compare_releases.py"],
         "evidence-compare": ["host/evidence_compare.py"],
+        "ipsw": ["host/ipsw_manager.py"],
+        "device-dashboard": ["host/device_dashboard.py"],
     }
     cmd = args.command
     extra = getattr(args, "arguments", [])
@@ -1053,6 +1057,8 @@ def build_parser():
               exploit | pwndfu | load-monitor | console | device | detect
               control-panel | b34st | menu
               research-runtime
+              ipsw
+              device-dashboard
 
             Delegated subcommands (pass-through to host/ scripts):
               deploy | module | boot-image | irecovery | bringup | bridge
@@ -1130,7 +1136,7 @@ def build_parser():
                  "bringup", "bridge", "session", "crash", "trace",
                  "hardware", "physical-validation", "evidence", "inspect",
                  "abi-check", "verify-release", "compare-releases",
-                 "evidence-compare"):
+                 "evidence-compare", "ipsw", "device-dashboard"):
         x = sub.add_parser(name)
         x.add_argument("arguments", nargs=argparse.REMAINDER)
 
@@ -1153,6 +1159,12 @@ def main(argv=None):
     if raw[0] == "research-runtime":
         from b34st.research_runtime import main as research_runtime_main
         return research_runtime_main(raw[1:])
+    if raw[0] == "ipsw":
+        from host.ipsw_manager import main as ipsw_main
+        return ipsw_main(raw[1:])
+    if raw[0] == "device-dashboard":
+        from host.device_dashboard import main as device_dashboard_main
+        return device_dashboard_main(raw[1:])
 
     # Legacy flag aliases (before argparse)
     legacy = {

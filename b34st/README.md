@@ -46,6 +46,27 @@ It prompts for target-specific inputs and external evidence. The files
 `scripts/run_exploit.py` are automatically recorded in a legacy-component
 audit and are not accepted as runtime proof.
 
+## IPSW management
+
+The control panel includes:
+
+- product-targeted firmware catalogs;
+- currently signed firmware filtering;
+- resumable Apple-CDN IPSW downloads;
+- `BuildManifest.plist` and `Restore.plist` inspection;
+- signed data-preserving upgrades and explicit erase restores;
+- unsigned tethered-downgrade plans;
+- bounded external tether-adapter execution.
+
+Stock upgrades require a catalog record marked as signed and remain subject to
+Apple TSS acceptance. B34ST does not make unsigned restores persistent or
+bypass Apple signing.
+
+The control panel opens with a live connected-device dashboard. Each available
+action includes required materials, numbered steps, a how-to-proceed note,
+external command handoff, result capture, and an automatic return to the
+refreshed dashboard. See `docs/B34ST_DEVICE_WORKFLOW.md`.
+
 ## Environment manifests
 
 Create an auditable simulation plan:

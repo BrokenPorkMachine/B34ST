@@ -4,9 +4,13 @@
 from __future__ import annotations
 
 import datetime as dt
+import argparse
+import json
 import os
 import pathlib
+import re
 import shlex
+import shutil
 import subprocess
 import sys
 
@@ -42,7 +46,18 @@ class Session:
         print(f"$ {printable}\n")
         try:
             if interactive:
-                return_code = subprocess.run(command, cwd=ROOT, check=False).returncode
+                script_tool = shutil.which("script")
+                if script_tool:
+                    safe_label = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
+                    transcript = self.directory / f"{safe_label or 'interactive'}.typescript"
+                    return_code = subprocess.run(
+                        [script_tool, "-q", str(transcript), *command],
+                        cwd=ROOT,
+                        check=False,
+                    ).returncode
+                    self.record(f"Interactive transcript: {transcript.relative_to(ROOT)}")
+                else:
+                    return_code = subprocess.run(command, cwd=ROOT, check=False).returncode
             else:
                 process = subprocess.Popen(
                     command,
@@ -321,6 +336,107 @@ def _next_stages(session: Session) -> None:
             return
 
 
+def _ipsw_workflows(session: Session) -> None:
+    while True:
+        _clear()
+        _header(session, "Targeted IPSW and restore workflows")
+        print("  1. List firmware for a product")
+        print("  2. List currently signed firmware")
+        print("  3. Download a targeted IPSW")
+        print("  4. Inspect and verify a local IPSW")
+        print("  5. Plan a signed update preserving data")
+        print("  6. Execute a signed update preserving data")
+        print("  7. Plan or execute an erase restore")
+        print("  8. Plan a tethered downgrade")
+        print("  9. Execute through an external tether adapter")
+        print("  0. Back")
+        choice = _prompt("Selection", "1")
+        if choice in {"1", "2"}:
+            product = _prompt("Apple product identifier", "iPhone12,1")
+            command = ["ipsw", "catalog", "--product", product]
+            if choice == "2":
+                command.append("--signed-only")
+            session.run(command, label="IPSW firmware catalog")
+            _pause()
+        elif choice == "3":
+            product = _prompt("Apple product identifier", "iPhone12,1")
+            version = _prompt("Exact iOS version (blank to select by build)")
+            build = _prompt("Exact build (blank if version is unique)")
+            command = ["ipsw", "download", "--product", product]
+            if version:
+                command += ["--version", version]
+            if build:
+                command += ["--build", build]
+            if _confirm("Require currently signed firmware"):
+                command.append("--signed-only")
+            command += [
+                "--output-dir",
+                str(session.directory / "ipsw"),
+                "--manifest",
+                str(session.directory / "ipsw-download.json"),
+            ]
+            session.run(command, label="Targeted IPSW download", interactive=True)
+            _pause()
+        elif choice == "4":
+            _run_prompted(
+                session,
+                ["ipsw", "inspect"],
+                label="Inspect IPSW",
+                example="downloads/ipsw/file.ipsw --product iPhone12,1",
+            )
+        elif choice in {"5", "6", "7"}:
+            product = _prompt("Apple product identifier", "iPhone12,1")
+            path = _prompt("Local IPSW path")
+            command = ["ipsw", "upgrade", "--product", product, "--ipsw", path]
+            if choice == "7" and _confirm("Erase all device data"):
+                command.append("--erase")
+            if choice in {"6", "7"}:
+                print("Back up the device first. Restore operations can cause irreversible data loss.")
+                owner = _prompt(f'Type "{AUTHORIZATION_TEXT.replace("TEST", "RESTORE")}"')
+                confirm = _prompt('Type "START SIGNED IPSW RESTORE"')
+                command += [
+                    "--execute",
+                    "--owner-authorization",
+                    owner,
+                    "--confirm",
+                    confirm,
+                    "--evidence",
+                    str(session.directory / "signed-restore.json"),
+                ]
+            session.run(command, label="Signed IPSW restore", interactive=True)
+            _pause()
+        elif choice in {"8", "9"}:
+            product = _prompt("Apple product identifier", "iPhone12,1")
+            path = _prompt("Unsigned target IPSW path")
+            command = [
+                "ipsw",
+                "tethered-downgrade",
+                "--product",
+                product,
+                "--ipsw",
+                path,
+                "--evidence",
+                str(session.directory / "tethered-downgrade.json"),
+            ]
+            if choice == "9":
+                adapter = _prompt("External tether adapter command")
+                owner = _prompt(f'Type "{AUTHORIZATION_TEXT.replace("TEST", "RESTORE")}"')
+                confirm = _prompt('Type "START TETHERED DOWNGRADE"')
+                command += [
+                    "--adapter-command",
+                    adapter,
+                    "--execute",
+                    "--owner-authorization",
+                    owner,
+                    "--confirm",
+                    confirm,
+                ]
+            session.run(command, label="Tethered downgrade", interactive=True)
+            _pause()
+        elif choice in {"0", "q", ""}:
+            return
+
+
 def _modification_workflows(session: Session) -> None:
     while True:
         _clear()
@@ -444,12 +560,219 @@ def _show_log(session: Session) -> None:
     _pause()
 
 
+def _device_snapshot(session: Session) -> dict:
+    from host.device_dashboard import build_snapshot
+
+    args = argparse.Namespace(
+        device_info=pathlib.Path(os.environ["B34ST_DEVICE_INFO"])
+        if os.environ.get("B34ST_DEVICE_INFO") else None,
+        recovery_only=False,
+        udid=None,
+        ecid=None,
+        ideviceinfo="ideviceinfo",
+        idevice_id="idevice_id",
+        irecovery="irecovery",
+        catalog=os.environ.get(
+            "B34ST_IPSW_CATALOG",
+            "https://api.ipsw.me/v4/device/{product}?type=ipsw",
+        ),
+        timeout=8.0,
+        catalog_timeout=5.0,
+    )
+    try:
+        snapshot = build_snapshot(args)
+    except Exception as exc:
+        session.record(f"Dashboard refresh failed: {exc}")
+        return {
+            "connected": False,
+            "device": None,
+            "firmware": {"available": False, "error": str(exc)},
+            "profiles": [],
+            "actions": [],
+        }
+    path = session.directory / "device-dashboard.json"
+    path.write_text(json.dumps(snapshot, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    session.record(f"Dashboard refreshed: connected={snapshot.get('connected')}")
+    return snapshot
+
+
+def _print_dashboard(snapshot: dict) -> None:
+    if not snapshot.get("connected"):
+        print("Device: not detected")
+        print("Connect an unlocked normal-mode device, or place it in Recovery/DFU.")
+        error = snapshot.get("firmware", {}).get("error")
+        if error:
+            print(f"Catalog/device note: {error}")
+        return
+    device = snapshot["device"]
+    firmware = snapshot.get("firmware", {})
+    latest = firmware.get("latest_signed") or {}
+    latest_build = f" ({latest['build']})" if latest.get("build") else ""
+    print(f"Device:          {device.get('name') or device.get('device_name') or 'Unknown'}")
+    print(f"Product:         {device.get('product') or 'Unknown'}")
+    print(f"Mode:            {device.get('mode') or 'Unknown'}")
+    print(f"Board/model:     {device.get('model') or 'Unknown'}")
+    print(f"Launch firmware: {device.get('launch_version') or 'Not in reviewed database'}")
+    print(f"Current version: {device.get('current_version') or 'Unavailable in this mode'}")
+    print(f"Current build:   {device.get('current_build') or 'Unavailable in this mode'}")
+    print(f"Latest signed:   {latest.get('version') or 'Catalog unavailable'}{latest_build}")
+    print(f"Exact profiles:  {sum(1 for item in snapshot.get('profiles', []) if item.get('exact'))}")
+    if not firmware.get("available") and firmware.get("error"):
+        print(f"Firmware note:   {firmware['error']}")
+
+
+def _action_details(action: dict) -> None:
+    from host.device_dashboard import procedure, required_materials
+
+    print(action["title"])
+    print("-" * 64)
+    print(f"Available: {'YES' if action['available'] else 'NO'}")
+    print(f"Reason: {action['reason']}")
+    print("\nRequired materials:")
+    for item in required_materials(action["id"]):
+        print(f"  - {item}")
+    print("\nStep-by-step:")
+    for index, step in enumerate(procedure(action["id"]), 1):
+        print(f"  {index}. {step}")
+    print("\nHow to proceed:")
+    if action["available"]:
+        print("  Confirm the prerequisites, continue below, and B34ST will launch")
+        print("  the external operation. When it exits, B34ST records the result")
+        print("  and returns to the refreshed device dashboard.")
+    else:
+        print("  Resolve the stated requirement, then refresh the dashboard.")
+
+
+def _run_device_action(session: Session, snapshot: dict, action: dict) -> None:
+    _clear()
+    _header(session, "Device-specific workflow")
+    _action_details(action)
+    if not action["available"] or not _confirm("Proceed with this workflow"):
+        _pause()
+        return
+    device = snapshot["device"]
+    product = device.get("product")
+    firmware = snapshot.get("firmware", {})
+    latest = firmware.get("latest_signed") or {}
+    action_id = action["id"]
+    if action_id == "inspect":
+        print(json.dumps(snapshot, indent=2, sort_keys=True))
+        _pause()
+        return
+    if action_id == "download-latest":
+        command = [
+            "ipsw", "download", "--product", product,
+            "--version", latest["version"], "--build", latest["build"],
+            "--signed-only",
+            "--output-dir", str(session.directory / "ipsw"),
+            "--manifest", str(session.directory / "latest-ipsw.json"),
+        ]
+        session.run(command, label="Download latest signed IPSW", interactive=True)
+        _pause()
+        return
+    if action_id in {"upgrade", "signed-restore"}:
+        path = _prompt("Verified local IPSW path")
+        if not path:
+            return
+        command = ["ipsw", "upgrade", "--product", product, "--ipsw", path]
+        if action_id == "signed-restore":
+            command.append("--erase")
+        print("\nB34ST will first run idevicerestore in no-action planning mode.")
+        plan_result = session.run(command, label="Restore preflight", interactive=True)
+        if plan_result != 0 or not _confirm("Preflight completed. Execute the restore"):
+            _pause()
+            return
+        owner = _prompt('Type "I OWN OR AM AUTHORIZED TO RESTORE THIS DEVICE"')
+        confirm = _prompt('Type "START SIGNED IPSW RESTORE"')
+        command += [
+            "--execute",
+            "--owner-authorization", owner,
+            "--confirm", confirm,
+            "--evidence", str(session.directory / "signed-restore.json"),
+        ]
+        session.run(command, label="Signed IPSW restore", interactive=True)
+        _pause()
+        return
+    if action_id == "research-runtime":
+        _physical_flow(session)
+        return
+    if action_id == "tethered-downgrade":
+        path = _prompt("Verified unsigned target IPSW path")
+        if not path:
+            return
+        plan = [
+            "ipsw", "tethered-downgrade",
+            "--product", product,
+            "--ipsw", path,
+            "--evidence", str(session.directory / "tethered-downgrade.json"),
+        ]
+        if session.run(plan, label="Tethered downgrade plan") != 0:
+            _pause()
+            return
+        if not _confirm("Plan reviewed. Continue to external tether adapter"):
+            _pause()
+            return
+        adapter = _prompt("External tether adapter command")
+        owner = _prompt('Type "I OWN OR AM AUTHORIZED TO RESTORE THIS DEVICE"')
+        confirm = _prompt('Type "START TETHERED DOWNGRADE"')
+        session.run(
+            plan + [
+                "--adapter-command", adapter,
+                "--execute",
+                "--owner-authorization", owner,
+                "--confirm", confirm,
+            ],
+            label="External tethered downgrade",
+            interactive=True,
+        )
+        _pause()
+        return
+    if action_id == "runtime-console":
+        _runtime_console(session)
+
+
+def _device_dashboard(session: Session) -> None:
+    snapshot = _device_snapshot(session)
+    while True:
+        _clear()
+        _header(session, "Connected device dashboard")
+        _print_dashboard(snapshot)
+        print("\nAvailable device-specific actions:")
+        actions = snapshot.get("actions", [])
+        for index, action in enumerate(actions, 1):
+            marker = "READY" if action["available"] else "BLOCKED"
+            print(f"  {index}. [{marker}] {action['title']}")
+        print("  R. Refresh device and firmware information")
+        print("  T. Open all project tools")
+        print("  L. View B34ST session log")
+        print("  0. Exit")
+        default = "1" if actions else "T"
+        choice = _prompt("Selection", default)
+        if choice.lower() == "r":
+            snapshot = _device_snapshot(session)
+        elif choice.lower() == "t":
+            return
+        elif choice.lower() == "l":
+            _show_log(session)
+        elif choice in {"0", "q", ""}:
+            raise SystemExit(0)
+        elif choice.isdigit() and 1 <= int(choice) <= len(actions):
+            _run_device_action(session, snapshot, actions[int(choice) - 1])
+            snapshot = _device_snapshot(session)
+
+
 def run_control_panel() -> int:
     if not os.isatty(sys.stdin.fileno()) or not os.isatty(sys.stdout.fileno()):
         print("B34ST control panel requires an interactive TTY", file=sys.stderr)
         return 1
 
     session = Session()
+    try:
+        _device_dashboard(session)
+    except SystemExit:
+        session.record("B34ST control-panel session ended")
+        print(f"Session log: {session.log_path.relative_to(ROOT)}")
+        return 0
     while True:
         _clear()
         _header(session)
@@ -460,9 +783,10 @@ def run_control_panel() -> int:
         print("  4. Build, test, and QEMU simulation")
         print("  5. Runtime console / logger / shell")
         print("  6. Evidence, validation, and release")
-        print("  7. Create a bounded environment plan")
-        print("  8. Open the FBR34KER maintenance menu")
-        print("  9. View this B34ST session log")
+        print("  7. Targeted IPSW downloads, upgrades, and tethered downgrades")
+        print("  8. Create a bounded environment plan")
+        print("  9. Open the FBR34KER maintenance menu")
+        print(" 10. View this B34ST session log")
         print("  0. Exit")
         choice = _prompt("Selection", "1")
         if choice == "1":
@@ -478,6 +802,8 @@ def run_control_panel() -> int:
         elif choice == "6":
             _evidence_and_release(session)
         elif choice == "7":
+            _ipsw_workflows(session)
+        elif choice == "8":
             _clear()
             _header(session, "Environment planning")
             mode = _prompt("Mode (simulation/research-runtime)", "simulation")
@@ -486,13 +812,13 @@ def run_control_panel() -> int:
             else:
                 _environment_plan(session, mode)
             _pause()
-        elif choice == "8":
+        elif choice == "9":
             session.run(
                 ["menu"],
                 label="FBR34KER maintenance menu",
                 interactive=True,
             )
-        elif choice == "9":
+        elif choice == "10":
             _show_log(session)
         elif choice in {"0", "q", ""}:
             session.record("B34ST control-panel session ended")

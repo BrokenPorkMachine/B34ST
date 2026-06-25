@@ -52,6 +52,34 @@ bootstrap archive, first-stage evidence, safe reset, and independently produced
 runtime-stage evidence. It does not generate an exploit or accept the legacy
 mutation-labelled state models as proof.
 
+## Targeted IPSW workflows
+
+B34ST includes targeted firmware discovery, Apple-CDN downloads, IPSW manifest
+inspection, signed upgrades/restores, and tethered downgrade planning:
+
+```sh
+B34ST
+# Select: Targeted IPSW downloads, upgrades, and tethered downgrades
+```
+
+The lower-level interface is:
+
+```sh
+fbr34ker ipsw catalog --product iPhone12,1 --signed-only
+fbr34ker ipsw download --product iPhone12,1 --version 17.6.1
+fbr34ker ipsw upgrade --product iPhone12,1 --ipsw file.ipsw
+fbr34ker ipsw tethered-downgrade --product iPhone12,1 --ipsw old.ipsw
+```
+
+Unsigned firmware is never passed to the stock restore path. Tethered
+downgrades require an external authorized adapter and must be booted again
+after every restart.
+
+When B34ST starts, its first screen is a connected-device dashboard showing
+mode, model, reviewed launch firmware, current firmware where detectable,
+latest signed firmware, matching profiles, and device-specific available or
+blocked actions. See [docs/B34ST_DEVICE_WORKFLOW.md](docs/B34ST_DEVICE_WORKFLOW.md).
+
 ```sh
 # Full monitor build
 make

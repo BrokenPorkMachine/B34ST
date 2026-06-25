@@ -21,6 +21,13 @@ This workflow requires an operator-supplied first-stage adapter or bridge and
 exact-kernel evidence. It does not synthesize an exploit payload or infer a
 jailbreak from textual command success.
 
+For targeted IPSW workflows, launch B34ST and select option 7. Downloads are
+restricted to HTTPS Apple domains. Signed upgrades use `idevicerestore`;
+unsigned downgrade targets require an external tether adapter.
+
+The initial B34ST screen automatically inspects the connected device and shows
+only actions valid for its current mode and available evidence.
+
 ## 1. Check the host
 
 ```sh

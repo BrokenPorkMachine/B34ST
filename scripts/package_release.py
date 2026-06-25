@@ -19,7 +19,7 @@ SOURCE_EXCLUDED_DIRS = {
 }
 SOURCE_EXCLUDED_NAMES = {
     ".DS_Store", "RELEASE_MANIFEST.json", "CHECKSUMS.sha256",
-    "b34st_complete.tar.gz",
+    "b34st_complete.tar.gz", "idevicerestore_verbose.log",
 }
 COMPLETE_ARTIFACTS = (
     pathlib.Path("build/fbr34ker.bin"),
@@ -83,6 +83,8 @@ COMPLETE_ARTIFACTS = (
 )
 EXECUTABLE_PATHS = {
     pathlib.Path("fbr34ker"),
+    pathlib.Path("b34stctl"),
+    pathlib.Path("scripts/B34ST"),
     pathlib.Path("host/fbr34kctl"),
     pathlib.Path("host/forgectl"),
     pathlib.Path("host/fbr34kdeploy"),

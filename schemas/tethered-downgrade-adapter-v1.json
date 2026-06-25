@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fbr34ker.invalid/schemas/tethered-downgrade-adapter-v1.json",
+  "title": "B34ST tethered downgrade adapter request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "operation", "arguments"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "operation": {"const": "tethered-downgrade"},
+    "arguments": {
+      "type": "object",
+      "required": [
+        "product",
+        "ipsw_path",
+        "ipsw_sha256",
+        "version",
+        "build",
+        "tethered"
+      ],
+      "properties": {
+        "product": {"type": "string", "minLength": 1},
+        "ipsw_path": {"type": "string", "minLength": 1},
+        "ipsw_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "version": {"type": ["string", "null"]},
+        "build": {"type": ["string", "null"]},
+        "ecid": {"type": ["string", "null"]},
+        "tethered": {"const": true}
+      }
+    }
+  }
+}

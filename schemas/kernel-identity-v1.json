@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fbr34ker.invalid/schemas/kernel-identity-v1.json",
+  "title": "B34ST reviewed kernel identity v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "product",
+    "ios_version",
+    "build",
+    "kernelcache_sha256",
+    "macho_uuid",
+    "review"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "kind": {"const": "b34st-reviewed-kernel-identity"},
+    "product": {"type": "string", "minLength": 1},
+    "ios_version": {"type": "string", "minLength": 1},
+    "build": {"type": "string", "minLength": 1},
+    "kernelcache_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "macho_uuid": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer", "source", "approved"],
+      "properties": {
+        "reviewer": {"type": "string", "minLength": 1},
+        "source": {"type": "string", "minLength": 1},
+        "approved": {"const": true}
+      }
+    }
+  }
+}

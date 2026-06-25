@@ -1,10 +1,11 @@
+make[1]: warning: jobserver unavailable: using -j1.  Add `+' to parent make rule.
 /Applications/Xcode.app/Contents/Developer/usr/bin/make FBR34KER_PLATFORM=generic_arm64 BUILD_DIR=build-generic \
 		TARGET=build-generic/fbr34ker-generic all
-make[3]: Nothing to be done for `all'.
+make[2]: Nothing to be done for `all'.
 /Applications/Xcode.app/Contents/Developer/usr/bin/make FBR34KER_PLATFORM=generic_arm64 BUILD_DIR=build-hardware-probe \
 		TARGET=build-hardware-probe/fbr34ker-hardware-probe \
 		EXTRA_CFLAGS=-DFBR34KER_PHYSICAL_PROBE_IMAGE=1 all
-make[3]: Nothing to be done for `all'.
+make[2]: Nothing to be done for `all'.
 rm -rf build/loader-simulation
 python3 host/fbr34kctl.py loader-simulate examples/handoff-v4.json \
 		--image build-generic/fbr34ker-generic.elf \
@@ -58,14 +59,14 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "a113e0a94332705e163c47296efb79006efb35d5e81cf7413b0ffaf5bd74a294",
-        "size": 184720
+        "sha256": "429905eacf70331e491a72044e1d9d1d27536a0c7ed91d5ea1643d4f0f7b04f8",
+        "size": 194080
       },
       {
         "entry_address": 0,
         "load_address": 0,
         "name": "handoff-v4.fbhb",
-        "offset": 208896,
+        "offset": 217088,
         "role": "handoff",
         "sha256": "6e9e0455b5b66c8aa595457a7dd6b408ff0998b55e6e46419022af0f5a4c8a76",
         "size": 1072
@@ -74,7 +75,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
         "entry_address": 0,
         "load_address": 0,
         "name": "hello-dynamic.fmod",
-        "offset": 212992,
+        "offset": 221184,
         "role": "module",
         "sha256": "882a7c0792b4482920e420acf23dbb245e2d3c306f1ca0a70f25a9d2f6bdc8f1",
         "size": 299
@@ -87,15 +88,15 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
     "execution_contract": "external-authorized-loader",
     "family": "a12",
     "format": "fbri-v1",
-    "image_size": 217088,
+    "image_size": 225280,
     "profile_id": "apple-a12-recovery",
     "project": "FBR34KER",
     "release_version": "0.2.3",
     "schema_version": 1
   },
   "path": "build-apple/a12/boot.img",
-  "sha256": "04bb765e87322a69686849be6f821437a58aa1356d3bbc901f244120c431168a",
-  "size": 217088
+  "sha256": "9e7d315d17f737c44461702619d43a6627ca75c630aa0da3055a14ddd4d847be",
+  "size": 225280
 }
 python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
 		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/loader-simulation/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/a12x/boot.img \
@@ -112,14 +113,14 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "a113e0a94332705e163c47296efb79006efb35d5e81cf7413b0ffaf5bd74a294",
-        "size": 184720
+        "sha256": "429905eacf70331e491a72044e1d9d1d27536a0c7ed91d5ea1643d4f0f7b04f8",
+        "size": 194080
       },
       {
         "entry_address": 0,
         "load_address": 0,
         "name": "handoff-v4.fbhb",
-        "offset": 208896,
+        "offset": 217088,
         "role": "handoff",
         "sha256": "6e9e0455b5b66c8aa595457a7dd6b408ff0998b55e6e46419022af0f5a4c8a76",
         "size": 1072
@@ -128,7 +129,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
         "entry_address": 0,
         "load_address": 0,
         "name": "hello-dynamic.fmod",
-        "offset": 212992,
+        "offset": 221184,
         "role": "module",
         "sha256": "882a7c0792b4482920e420acf23dbb245e2d3c306f1ca0a70f25a9d2f6bdc8f1",
         "size": 299
@@ -141,15 +142,15 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
     "execution_contract": "external-authorized-loader",
     "family": "a12x",
     "format": "fbri-v1",
-    "image_size": 217088,
+    "image_size": 225280,
     "profile_id": "apple-a12x-a12z-recovery-experimental",
     "project": "FBR34KER",
     "release_version": "0.2.3",
     "schema_version": 1
   },
   "path": "build-apple/a12x/boot.img",
-  "sha256": "c9ab213a6d83c08234d5f1e87eea20e9ac8fc322e916da53283d5640b7542f56",
-  "size": 217088
+  "sha256": "d05acb064d61685c401b085bd66982e6803f37b789a8dfe3cac6d967e0a0268f",
+  "size": 225280
 }
 python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
 		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/loader-simulation/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/a13/boot.img \
@@ -166,14 +167,14 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "a113e0a94332705e163c47296efb79006efb35d5e81cf7413b0ffaf5bd74a294",
-        "size": 184720
+        "sha256": "429905eacf70331e491a72044e1d9d1d27536a0c7ed91d5ea1643d4f0f7b04f8",
+        "size": 194080
       },
       {
         "entry_address": 0,
         "load_address": 0,
         "name": "handoff-v4.fbhb",
-        "offset": 208896,
+        "offset": 217088,
         "role": "handoff",
         "sha256": "6e9e0455b5b66c8aa595457a7dd6b408ff0998b55e6e46419022af0f5a4c8a76",
         "size": 1072
@@ -182,7 +183,7 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
         "entry_address": 0,
         "load_address": 0,
         "name": "hello-dynamic.fmod",
-        "offset": 212992,
+        "offset": 221184,
         "role": "module",
         "sha256": "882a7c0792b4482920e420acf23dbb245e2d3c306f1ca0a70f25a9d2f6bdc8f1",
         "size": 299
@@ -195,15 +196,15 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
     "execution_contract": "external-authorized-loader",
     "family": "a13",
     "format": "fbri-v1",
-    "image_size": 217088,
+    "image_size": 225280,
     "profile_id": "apple-a13-recovery",
     "project": "FBR34KER",
     "release_version": "0.2.3",
     "schema_version": 1
   },
   "path": "build-apple/a13/boot.img",
-  "sha256": "d34efd6c59ef269f75203044878a0bd8db1d7d32117bc7de967f4d60e0641a95",
-  "size": 217088
+  "sha256": "a8d51a94f034b1ca2ab856041ff3fc4b6c34efc736612c1e52a82492d0c16928",
+  "size": 225280
 }
 python3 host/boot_image.py inspect build-apple/a12/boot.img --json >/dev/null
 python3 host/boot_image.py inspect build-apple/a12x/boot.img --json >/dev/null
@@ -228,7 +229,7 @@ python3 scripts/run_physical_validation_candidate.py \
 		--image build-apple/a13/boot.img \
 		--profile profiles/apple-a13-iphone-recovery.json \
 		--device-info examples/a13-device-info.json \
-		
+		--qemu-summary runtime-artifacts/gate/summary.json
 build-apple/physical-validation-candidate/summary.json
 python3 host/physical_validation.py validate-session \
 		build-apple/physical-validation-candidate/success-session.zip >/dev/null

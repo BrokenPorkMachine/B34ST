@@ -8,8 +8,43 @@ user-data access.
 Run it from the repository root:
 
 ```sh
-python3 -m b34st.b34st --help
+./scripts/B34ST
 ```
+
+After installation:
+
+```sh
+B34ST
+```
+
+The control panel provides a logged, guided path through host readiness,
+environment planning, safe QEMU simulation, authorized USBliter8 execution,
+and the FBR34KER runtime console. A successful transport step is not presented
+as proof that stock iOS is patched or jailbroken; that claim remains
+evidence-gated.
+
+## Guided research-runtime orchestration
+
+```sh
+B34ST research-runtime guided
+```
+
+The orchestrator automates:
+
+- host readiness and exact profile/device validation;
+- kernelcache SHA-256 and Mach-O UUID inventory;
+- deterministic FBRI boot-image verification;
+- authorized external adapter or persistent-bridge execution;
+- safe-reset authorization invalidation and reauthorization;
+- trusted bootstrap archive hash verification;
+- runtime evidence templates and exact-kernel evidence validation;
+- final `RESEARCH_RUNTIME_READY` and `JAILBREAK_ATTESTED` computation.
+
+It prompts for target-specific inputs and external evidence. The files
+`kernel/kernel_patches.c`, `kernel/secure_boot_bypass.c`,
+`kernel/persistence.c`, `kernel/usbliter8_exploit.c`, and
+`scripts/run_exploit.py` are automatically recorded in a legacy-component
+audit and are not accepted as runtime proof.
 
 ## Environment manifests
 

@@ -38,6 +38,22 @@ const apple_soc_config_t apple_a12x_config = {
     .gic_version = 3U,
 };
 
+const apple_soc_config_t apple_a12z_config = {
+    .cpid = APPLE_A12Z_CPID,
+    .board_id = 0x0U,
+    .soc_name = APPLE_A12Z_SOC,
+    .device_type = APPLE_DEVICE_IPAD,
+    .product_type = "iPad8,9",
+    .dram_base = 0x800000000ULL,
+    .dram_size = 0x800000000ULL,
+    .usb_dwc3_base = 0x860000000ULL,
+    .uart_base = 0x823000000ULL,
+    .gic_base = 0x82F100000ULL,
+    .i2c_base = 0x83500000ULL,
+    .pmgr_base = 0x83D000000ULL,
+    .gic_version = 3U,
+};
+
 const apple_soc_config_t apple_a13_config = {
     .cpid = APPLE_A13_CPID,
     .board_id = 0x0U,
@@ -54,6 +70,70 @@ const apple_soc_config_t apple_a13_config = {
     .gic_version = 3U,
 };
 
+const apple_soc_config_t apple_a14_config = {
+    .cpid = APPLE_A14_CPID,
+    .board_id = 0x0U,
+    .soc_name = APPLE_A14_SOC,
+    .device_type = APPLE_DEVICE_IPHONE,
+    .product_type = "iPhone13,1",
+    .dram_base = 0x800000000ULL,
+    .dram_size = 0x400000000ULL,
+    .usb_dwc3_base = 0x860000000ULL,
+    .uart_base = 0x823000000ULL,
+    .gic_base = 0x82F100000ULL,
+    .i2c_base = 0x83500000ULL,
+    .pmgr_base = 0x83D000000ULL,
+    .gic_version = 3U,
+};
+
+const apple_soc_config_t apple_m1_config = {
+    .cpid = APPLE_M1_CPID,
+    .board_id = 0x0U,
+    .soc_name = APPLE_M1_SOC,
+    .device_type = APPLE_DEVICE_IPAD,
+    .product_type = "iPad13,4",
+    .dram_base = 0x800000000ULL,
+    .dram_size = 0x1000000000ULL,
+    .usb_dwc3_base = 0x860000000ULL,
+    .uart_base = 0x823000000ULL,
+    .gic_base = 0x82F100000ULL,
+    .i2c_base = 0x83500000ULL,
+    .pmgr_base = 0x83D000000ULL,
+    .gic_version = 3U,
+};
+
+const apple_soc_config_t apple_a15_config = {
+    .cpid = APPLE_A15_CPID,
+    .board_id = 0x0U,
+    .soc_name = APPLE_A15_SOC,
+    .device_type = APPLE_DEVICE_IPHONE,
+    .product_type = "iPhone14,2",
+    .dram_base = 0x800000000ULL,
+    .dram_size = 0x400000000ULL,
+    .usb_dwc3_base = 0x860000000ULL,
+    .uart_base = 0x823000000ULL,
+    .gic_base = 0x82F100000ULL,
+    .i2c_base = 0x83500000ULL,
+    .pmgr_base = 0x83D000000ULL,
+    .gic_version = 3U,
+};
+
+const apple_soc_config_t apple_m2_config = {
+    .cpid = APPLE_M2_CPID,
+    .board_id = 0x0U,
+    .soc_name = APPLE_M2_SOC,
+    .device_type = APPLE_DEVICE_IPAD,
+    .product_type = "iPad14,3",
+    .dram_base = 0x800000000ULL,
+    .dram_size = 0x1000000000ULL,
+    .usb_dwc3_base = 0x860000000ULL,
+    .uart_base = 0x823000000ULL,
+    .gic_base = 0x82F100000ULL,
+    .i2c_base = 0x83500000ULL,
+    .pmgr_base = 0x83D000000ULL,
+    .gic_version = 3U,
+};
+
 const apple_soc_config_t *apple_soc_for_cpid(u16 cpid)
 {
     switch (cpid) {
@@ -61,8 +141,18 @@ const apple_soc_config_t *apple_soc_for_cpid(u16 cpid)
         return &apple_a12_config;
     case APPLE_A12X_CPID:
         return &apple_a12x_config;
+    case APPLE_A12Z_CPID:
+        return &apple_a12z_config;
     case APPLE_A13_CPID:
         return &apple_a13_config;
+    case APPLE_A14_CPID:
+        return &apple_a14_config;
+    case APPLE_M1_CPID:
+        return &apple_m1_config;
+    case APPLE_A15_CPID:
+        return &apple_a15_config;
+    case APPLE_M2_CPID:
+        return &apple_m2_config;
     default:
         return NULL;
     }
@@ -87,7 +177,12 @@ bool apple_is_pongo_compatible(u16 cpid)
     switch (cpid) {
     case APPLE_A12_CPID:
     case APPLE_A12X_CPID:
+    case APPLE_A12Z_CPID:
     case APPLE_A13_CPID:
+    case APPLE_A14_CPID:
+    case APPLE_M1_CPID:
+    case APPLE_A15_CPID:
+    case APPLE_M2_CPID:
         return true;
     default:
         return false;

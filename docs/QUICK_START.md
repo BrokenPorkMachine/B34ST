@@ -1,5 +1,26 @@
 # Quick start
 
+## Guided execution
+
+From the project root, launch the goal-driven menu:
+
+```sh
+./scripts/B34ST
+```
+
+After installation, run `B34ST`. The lower-level `./fbr34ker` commands below
+remain suitable for scripts and repeatable automation.
+
+For an authorized, evidence-gated physical research-runtime workflow:
+
+```sh
+./scripts/B34ST research-runtime guided
+```
+
+This workflow requires an operator-supplied first-stage adapter or bridge and
+exact-kernel evidence. It does not synthesize an exploit payload or infer a
+jailbreak from textual command success.
+
 ## 1. Check the host
 
 ```sh

@@ -21,6 +21,37 @@ mutation paths disabled.
 
 ## Canonical build and test
 
+The canonical installed command is:
+
+```sh
+B34ST
+```
+
+From the source-tree root, use:
+
+```sh
+./scripts/B34ST
+```
+
+The B34ST control panel wraps FBR34KER build, validation, USBliter8 orchestration,
+session logging, and runtime-console access. Physical execution requires explicit
+owner authorization and a second execution confirmation. Direct subcommands
+remain available through `fbr34ker` for automation. `./fbr34ker` and
+`./b34stctl` remain compatibility entry points.
+
+For the evidence-gated research-runtime workflow directly:
+
+```sh
+B34ST research-runtime guided
+# or
+python3 scripts/guided_research_runtime.py guided
+```
+
+The orchestrator inventories the exact kernelcache, profile, device, boot image,
+bootstrap archive, first-stage evidence, safe reset, and independently produced
+runtime-stage evidence. It does not generate an exploit or accept the legacy
+mutation-labelled state models as proof.
+
 ```sh
 # Full monitor build
 make

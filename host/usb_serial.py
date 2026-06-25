@@ -29,6 +29,23 @@ FBR34KER_VID = 0x05AC
 FBR34KER_PID = 0x1227
 FBR34KER_PONGO_PID = 0x1227
 USB_TIMEOUT_MS = 5000
+CHIPSET_DB: dict | None = None
+ChipsetInfo: type | None = None
+chipset_for_cpid = None
+chipset_for_device_string = None
+
+def _load_chipset_db():
+    global CHIPSET_DB, ChipsetInfo, chipset_for_cpid, chipset_for_device_string
+    if CHIPSET_DB is not None:
+        return
+    from host.chipset_db import CHIPSET_DB as _DB, chipset_for_cpid as _cfc, \
+        chipset_for_device_string as _cfds, ChipsetInfo as _CI
+    CHIPSET_DB = _DB
+    ChipsetInfo = _CI
+    chipset_for_cpid = _cfc
+    chipset_for_device_string = _cfds
+
+_load_chipset_db()
 BULK_EP_OUT = 0x01
 BULK_EP_IN = 0x82
 NOTIFICATION_EP = 0x83
@@ -267,62 +284,94 @@ class USBConsole:
         self.close()
 
 
-DFU_REQ_DNLOAD = 1
-DFU_REQ_UPLOAD = 2
-DFU_REQ_GETSTATUS = 3
-DFU_REQ_CLRSTATUS = 4
-DFU_REQ_GETSTATE = 5
-DFU_REQ_ABORT = 6
+class USBDevice:
+    """A12+ device access via DWC3 vendor-specific control requests.
 
-DFU_BM_REQUEST_OUT = 0x21
-DFU_BM_REQUEST_IN = 0xA1
-DFU_IFACE = 2
+    On A12+ devices (T8015/T8020/T8030), after the DWC3 USB controller
+    is exploited via USBliter8, the device accepts vendor-specific control
+    requests on EP0 that provide physical memory read/write and code execution.
 
-DFU_XFER_SIZE = 4096
+    This class sends those vendor requests and orchestrates the exploit chain:
 
-DFU_STATE_dfuIDLE = 2
-DFU_STATE_dfuDNLOAD_IDLE = 5
-DFU_STATE_dfuMANIFEST = 7
-DFU_STATE_dfuERROR = 10
+    1. Find the device (in DFU mode via buttons, or already-booted iOS)
+    2. Send DWC3 firmware exploit payload (USBliter8) as USB control transfers
+    3. Load FBR34KER monitor image via vendor MEM_WRITE to physical DRAM
+    4. Execute FBR34KER via vendor EXECUTE request
+    5. Device re-enumerates as composite CDC ACM + DFU (PID 0x1227)
 
+    The exploit payload must be supplied externally via the 'exploit_payload'
+    attribute as a list of USB control transfer tuples:
 
-class Checkm8DFU:
-    """Host-side DFU/PWNDFU interface for A12/A13 device exploitation.
+        [(bmRequestType, bRequest, wValue, wIndex, data_or_length), ...]
 
-    Communicates with the DWC3-based DFU device (PID 0x1227) using USB
-    control transfers (class-specific requests on EP0).
-
-    NOTE: enter_pwndfu() is a placeholder. A real checkm8 exploit payload
-    (not included per security boundary) must be supplied externally via a
-    custom mechanism before send_payload() will work.
+    representing the DWC3 firmware exploit control transfers.
     """
 
-    CHECKM8_VID = 0x05AC
-    DFU_PIDS = [0x1227, 0x1222, 0x1220]
+    APPLE_VID = 0x05AC
+    DEVICE_PIDS = [0x1227, 0x1222, 0x1220]
 
-    def __init__(self, serial: str | None = None):
+    VENDOR_OUT = 0x40
+    VENDOR_IN = 0xC0
+    VENDOR_REQ_SET_ADDR = 0x01
+    VENDOR_REQ_MEM_READ = 0x02
+    VENDOR_REQ_MEM_WRITE = 0x03
+    VENDOR_REQ_EXECUTE = 0x04
+
+    MAX_XFER_SIZE = 0x8000
+
+    def __init__(self, serial: str | None = None,
+                 vid: int = APPLE_VID, pid: int | None = None):
         if not HAS_PYUSB:
             raise TransportError("pyusb is required (pip install pyusb)")
         self.serial = serial
+        self.vid = vid
+        self.pid = pid
         self.device: usb.core.Device | None = None
-        self.in_dfu = False
+        self.chipset: ChipsetInfo | None = None
         self.pwned = False
         self._claimed = False
         self._detach_drivers: list[int] = []
 
-    def find_dfu_device(self) -> bool:
-        for pid in self.DFU_PIDS:
-            dev = find_monitor(self.CHECKM8_VID, pid, self.serial)
-            if dev is not None:
-                self.device = dev
-                self.in_dfu = True
+    def find_device(self) -> bool:
+        for d in self._enumerate():
+            self.device = d
+            self.chipset = detect_device_chipset(d)
+            if self.chipset is not None:
                 return True
+            self.device = None
+        self.device = None
         return False
 
-    def wait_for_dfu(self, timeout: float = 30.0) -> bool:
+    @property
+    def chipset_name(self) -> str:
+        if self.chipset is None:
+            return "unknown"
+        return f"{self.chipset['name']} ({self.chipset['model']})"
+
+    def _enumerate(self):
+        seen = set()
+        if self.pid is not None:
+            d = find_monitor(self.vid, self.pid, self.serial)
+            if d is not None:
+                seen.add(d.bus * 1000 + d.address)
+                yield d
+        for pid in self.DEVICE_PIDS:
+            d = find_monitor(self.vid, pid, self.serial)
+            if d is not None and (d.bus * 1000 + d.address) not in seen:
+                seen.add(d.bus * 1000 + d.address)
+                yield d
+        if self.serial is None:
+            for d in usb.core.find(find_all=True):
+                if d.idVendor == self.vid:
+                    key = d.bus * 1000 + d.address
+                    if key not in seen:
+                        seen.add(key)
+                        yield d
+
+    def wait_for_device(self, timeout: float = 30.0) -> bool:
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
-            if self.find_dfu_device():
+            if self.find_device():
                 return True
             time.sleep(0.5)
         return False
@@ -340,132 +389,128 @@ class Checkm8DFU:
             self.device.set_configuration()
         except usb.core.USBError:
             pass
-        try:
-            usb.util.claim_interface(self.device, 0)
-            self._claimed = True
-        except usb.core.USBError as exc:
-            raise TransportError(f"failed to claim interface: {exc}")
+        self._claimed = True
 
     def _release(self) -> None:
-        if self._claimed and self.device is not None:
-            try:
-                usb.util.release_interface(self.device, 0)
-            except Exception:
-                pass
-            self._claimed = False
-        for iface_num in self._detach_drivers:
-            try:
-                self.device.attach_kernel_driver(iface_num)
-            except Exception:
-                pass
-        self._detach_drivers.clear()
+        if self.device is not None:
+            for iface_num in self._detach_drivers:
+                try:
+                    self.device.attach_kernel_driver(iface_num)
+                except Exception:
+                    pass
+            self._detach_drivers.clear()
+        self._claimed = False
 
-    def _ctrl_transfer(self, bm_request_type: int, b_request: int,
-                       w_value: int = 0, w_index: int = 0,
-                       data_or_w_length: bytes | int = 0) -> bytes:
+    def _ctrl_xfer(self, bmrt: int, breq: int,
+                   wval: int = 0, widx: int = 0,
+                   data: bytes | int = b"") -> bytes | int:
         if self.device is None:
-            raise TransportError("no DFU device")
-        timeout_ms = 5000
-        if isinstance(data_or_w_length, bytes):
-            return self.device.ctrl_transfer(
-                bm_request_type, b_request, w_value, w_index,
-                data_or_w_length, timeout=timeout_ms)
-        else:
-            return self.device.ctrl_transfer(
-                bm_request_type, b_request, w_value, w_index,
-                data_or_w_length, timeout=timeout_ms)
+            raise TransportError("no device")
+        return self.device.ctrl_transfer(bmrt, breq, wval, widx, data,
+                                         timeout=5000)
 
-    def _dfu_get_status(self) -> tuple[int, int]:
-        resp = self._ctrl_transfer(DFU_BM_REQUEST_IN, DFU_REQ_GETSTATUS,
-                                   0, DFU_IFACE, 6)
-        status = resp[0]
-        state = resp[4]
-        return state, status
+    def vendor_set_addr(self, addr: int) -> None:
+        self._ctrl_xfer(self.VENDOR_OUT, self.VENDOR_REQ_SET_ADDR,
+                        0, 0, struct.pack('<Q', addr))
 
-    def _send_dfu_dnload(self, data: bytes) -> bool:
-        """Send a block of data via DFU DNLOAD protocol."""
-        if self.device is None:
-            return False
-        offset = 0
-        block_num = 0
-        total = len(data)
-        while offset < total:
-            chunk = data[offset:offset + DFU_XFER_SIZE]
-            self._ctrl_transfer(DFU_BM_REQUEST_OUT, DFU_REQ_DNLOAD,
-                                block_num, DFU_IFACE, chunk)
-            state, status = self._dfu_get_status()
-            if state == DFU_STATE_dfuERROR:
-                raise TransportError(f"DFU error at block {block_num}: status={status}")
-            offset += len(chunk)
-            block_num += 1
-        self._ctrl_transfer(DFU_BM_REQUEST_OUT, DFU_REQ_DNLOAD,
-                            block_num, DFU_IFACE, b"")
-        deadline = time.monotonic() + 5.0
-        while time.monotonic() < deadline:
-            state, status = self._dfu_get_status()
-            if state in (DFU_STATE_dfuIDLE, DFU_STATE_dfuMANIFEST):
-                break
-            time.sleep(0.1)
-        return True
+    def vendor_read(self, size: int) -> bytes:
+        result = self._ctrl_xfer(self.VENDOR_IN, self.VENDOR_REQ_MEM_READ,
+                                 0, 0, size)
+        assert isinstance(result, bytes)
+        return result
 
-    def enter_pwndfu(self) -> bool:
-        """Execute checkm8 exploit to enter PWNDFU mode.
+    def vendor_write(self, data: bytes) -> None:
+        self._ctrl_xfer(self.VENDOR_OUT, self.VENDOR_REQ_MEM_WRITE,
+                        0, 0, data)
 
-        When exploit_payload is provided, sends it via DFU DNLOAD protocol.
-        When no payload is set, operates in stub mode (self.pwned = True)
-        for testing without physical hardware.
-        """
-        if not self.in_dfu or self.device is None:
-            return False
-        payload = getattr(self, 'exploit_payload', None)
-        if payload is None:
-            self.pwned = True
-            return True
-        self._claim()
+    def verify_vendor_requests(self) -> bool:
+        dram = (self.chipset or {}).get("dram_base", 0x800000000)
         try:
-            self._send_dfu_dnload(payload)
+            self.vendor_set_addr(dram)
+            self.vendor_read(4)
             self.pwned = True
             return True
         except Exception:
             return False
 
-    def send_payload(self, payload_path: str, load_addr: int = 0x8000_0000) -> bool:
-        """Send a binary image via DFU DNLOAD protocol.
+    def enter_pwndfu(self) -> bool:
+        """Send the DWC3 firmware exploit (USBliter8) over USB control transfers.
 
-        Uses class-specific control transfers to send the image in
-        DFU_XFER_SIZE blocks. After each block, polls DFU_GETSTATUS.
+        The exploit_payload attribute must be a list of USB control transfer
+        tuples: [(bmRequestType, bRequest, wValue, wIndex, data), ...].
+        After all transfers are sent, vendor request capability is verified.
+        """
+        if self.device is None:
+            return False
+        payload = getattr(self, 'exploit_payload', None)
+        if payload is None:
+            raise TransportError("exploit_payload not set; "
+                                 "a DWC3 USBliter8 exploit payload is required")
+        self._claim()
+        try:
+            for xfer in payload:
+                self._ctrl_xfer(*xfer)
+            if not self.verify_vendor_requests():
+                return False
+            self.pwned = True
+            return True
+        except Exception:
+            return False
+
+    def send_payload(self, payload_path: str,
+                     load_addr: int | None = None) -> bool:
+        """Send a binary image via vendor MEM_WRITE requests.
+
+        Uses SET_ADDR + repeated MEM_WRITE to write the image to physical
+        DRAM. The firmware auto-increments the target address after each write.
+        If load_addr is None, uses chipset's default load_addr.
         """
         if not self.pwned or self.device is None:
             return False
+        if load_addr is None:
+            load_addr = (self.chipset or {}).get("load_addr", 0x800000000)
         payload = _read_binary(payload_path)
         self._claim()
-        return self._send_dfu_dnload(payload)
+        try:
+            self.vendor_set_addr(load_addr)
+            offset = 0
+            total = len(payload)
+            while offset < total:
+                chunk = payload[offset:offset + self.MAX_XFER_SIZE]
+                self.vendor_write(chunk)
+                offset += len(chunk)
+            return True
+        except Exception:
+            return False
 
-    def execute(self, entry: int = 0x8000_0000) -> bool:
-        """Trigger execution of the loaded image and wait for reconnect.
+    def execute(self, entry: int | None = None) -> bool:
+        """Execute code at entry via vendor EXECUTE request.
 
-        Sends DFU_DETACH to signal the device to exit DFU mode and
-        execute the loaded firmware. Waits for device disconnect and
-        reconnect as the FBR34KER monitor.
+        The device jumps to entry and begins running FBR34KER, which
+        re-enumerates as a composite CDC ACM + DFU device (PID 0x1227).
+        If entry is None, uses chipset's default load_addr.
         """
         if not self.pwned:
             return False
+        if entry is None:
+            entry = (self.chipset or {}).get("load_addr", 0x800000000)
         try:
-            self._ctrl_transfer(DFU_BM_REQUEST_OUT, DFU_REQ_DETACH,
-                                0, DFU_IFACE, b"")
+            self.vendor_set_addr(entry)
+            self._ctrl_xfer(self.VENDOR_OUT, self.VENDOR_REQ_EXECUTE,
+                            0, 0, b"")
         except Exception:
             pass
         deadline = time.monotonic() + 15.0
         while time.monotonic() < deadline:
             try:
-                self._ctrl_transfer(DFU_BM_REQUEST_IN, DFU_REQ_GETSTATUS,
-                                    0, DFU_IFACE, 6)
+                self._ctrl_xfer(self.VENDOR_IN, self.VENDOR_REQ_MEM_READ,
+                                0, 0, 4)
             except Exception:
                 break
             time.sleep(0.2)
         time.sleep(2.0)
         self.device = None
-        self.in_dfu = False
+        self.pwned = False
         return True
 
     def close(self) -> None:
@@ -477,5 +522,39 @@ def _read_binary(path: str) -> bytes:
         return f.read()
 
 
-def find_checkm8_device(serial: str | None = None) -> usb.core.Device | None:
-    return find_monitor(Checkm8DFU.CHECKM8_VID, Checkm8DFU.DFU_PIDS[0], serial)
+def find_a12_device(serial: str | None = None) -> usb.core.Device | None:
+    return find_monitor(USBDevice.APPLE_VID, USBDevice.DEVICE_PIDS[0], serial)
+
+
+def _readable_cpid(device: usb.core.Device) -> int | None:
+    try:
+        import subprocess
+        r = subprocess.run(["irecovery", "-q"], capture_output=True,
+                           text=True, timeout=5)
+        for line in r.stdout.splitlines():
+            if "CPID" in line:
+                return int(line.split(":")[1].strip(), 16)
+    except Exception:
+        pass
+    return None
+
+
+def detect_device_chipset(device: usb.core.Device) -> ChipsetInfo | None:
+    try:
+        prod = str(device.product or "")
+    except Exception:
+        prod = ""
+    cpid = _readable_cpid(device)
+    if cpid is not None:
+        ci = chipset_for_cpid(cpid)
+        if ci is not None:
+            return ci
+    if prod:
+        ci = chipset_for_device_string(prod)
+        if ci is not None:
+            return ci
+        for ci in CHIPSET_DB.values():
+            for ps in ci.get("_product_strings", []):
+                if ps.lower() in prod.lower():
+                    return ci
+    return chipset_for_cpid(0x8015)

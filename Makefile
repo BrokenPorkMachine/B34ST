@@ -206,6 +206,8 @@ check-host:
 
 check-launcher:
 	@test -x fbr34ker
+	@test -x b34stctl
+	@test -x scripts/B34ST
 	@test -x scripts/fbr34ker.sh
 	@./fbr34ker --help >/dev/null
 	@./fbr34ker --version >/dev/null
@@ -239,11 +241,13 @@ check-install:
 	./scripts/install.sh --prefix /usr/local --destdir $(CURDIR)/$(BUILD_DIR)/install-test
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker version >/dev/null
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker abi-check >/dev/null
+	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/B34ST --version >/dev/null
 	./scripts/uninstall.sh --prefix /usr/local --destdir $(CURDIR)/$(BUILD_DIR)/install-test
 	@test ! -e $(BUILD_DIR)/install-test/usr/local/bin/fbr34ker
+	@test ! -e $(BUILD_DIR)/install-test/usr/local/bin/B34ST
 
 permissions:
-	chmod +x fbr34ker host/fbr34kctl host/forgectl host/fbr34kdeploy host/fbr34kdeploy-target host/fbr34kbootimg host/fbr34kirecovery host/fbr34kbringup host/fbr34kdevice host/fbr34kbridge host/fbr34ksession host/fbr34khardware host/*.py scripts/*.py scripts/*.sh
+	chmod +x fbr34ker b34stctl scripts/B34ST host/fbr34kctl host/forgectl host/fbr34kdeploy host/fbr34kdeploy-target host/fbr34kbootimg host/fbr34kirecovery host/fbr34kbringup host/fbr34kdevice host/fbr34kbridge host/fbr34ksession host/fbr34khardware host/*.py scripts/*.py scripts/*.sh
 
 check-native:
 	@mkdir -p $(BUILD_DIR)/tests

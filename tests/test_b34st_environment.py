@@ -24,7 +24,7 @@ class EnvironmentPlanTests(unittest.TestCase):
         self.assertIn("B34ST 0.2.3", result.stdout)
 
     def test_subcommand_help_is_displayed(self) -> None:
-        for subcommand in ("validate-session", "physical-validation", "hardware-prepare", "environment-plan", "environment-validate"):
+        for subcommand in ("validate-session", "physical-validation", "hardware-prepare", "environment-plan", "environment-validate", "research-runtime"):
             with self.subTest(subcommand=subcommand):
                 result = subprocess.run(
                     [sys.executable, "-m", "b34st.b34st", subcommand, "--help"],

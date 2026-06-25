@@ -5,7 +5,7 @@ usage() {
     cat <<'USAGE'
 Usage: scripts/install.sh [--prefix PATH] [--destdir PATH]
 
-Install the FBR34KER source/tool tree, command wrapper, manual page, and shell
+Install the B34ST/FBR34KER source tree, command wrappers, manual page, and shell
 completions. PREFIX defaults to /usr/local. DESTDIR is intended for package
 staging and defaults to empty.
 USAGE
@@ -58,10 +58,20 @@ BIN_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 exec python3 "$BIN_ROOT/share/fbr34ker/host/fbr34ker_cli.py" "$@"
 EOF_WRAPPER
 chmod 0755 "$BIN_DIR/fbr34ker"
-chmod 0755 "$SHARE_DIR/fbr34ker" "$SHARE_DIR"/host/fbr34k* "$SHARE_DIR"/scripts/*.sh "$SHARE_DIR"/scripts/*.py 2>/dev/null || true
+cat > "$BIN_DIR/B34ST" <<'EOF_WRAPPER'
+#!/usr/bin/env sh
+set -eu
+BIN_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$BIN_ROOT/share/fbr34ker"
+exec python3 -m b34st.b34st "$@"
+EOF_WRAPPER
+chmod 0755 "$BIN_DIR/B34ST"
+ln -sf B34ST "$BIN_DIR/b34stctl"
+chmod 0755 "$SHARE_DIR/fbr34ker" "$SHARE_DIR"/host/fbr34k* "$SHARE_DIR"/scripts/*.sh "$SHARE_DIR"/scripts/*.py "$SHARE_DIR/scripts/B34ST" 2>/dev/null || true
 install -m 0644 "$ROOT/man/fbr34ker.1" "$MAN_DIR/fbr34ker.1"
+install -m 0644 "$ROOT/man/B34ST.1" "$MAN_DIR/B34ST.1"
 install -m 0644 "$ROOT/completions/fbr34ker.bash" "$BASH_DIR/fbr34ker"
 install -m 0644 "$ROOT/completions/_fbr34ker" "$ZSH_DIR/_fbr34ker"
 
 printf 'installed FBR34KER under %s\n' "$DESTDIR$PREFIX"
-printf 'run: %s/fbr34ker doctor\n' "$PREFIX/bin"
+printf 'run: %s/B34ST\n' "$PREFIX/bin"

@@ -3,11 +3,21 @@
 
 #define APPLE_A12_CPID 0x8015U
 #define APPLE_A12X_CPID 0x8027U
+#define APPLE_A12Z_CPID 0x8028U
 #define APPLE_A13_CPID 0x8020U
+#define APPLE_A14_CPID 0x8030U
+#define APPLE_M1_CPID 0x8103U
+#define APPLE_A15_CPID 0x8110U
+#define APPLE_M2_CPID 0x8112U
 
 #define APPLE_A12_SOC "T8015"
 #define APPLE_A12X_SOC "T8027"
+#define APPLE_A12Z_SOC "T8028"
 #define APPLE_A13_SOC "T8020"
+#define APPLE_A14_SOC "T8030"
+#define APPLE_M1_SOC "T8103"
+#define APPLE_A15_SOC "T8110"
+#define APPLE_M2_SOC "T8112"
 
 #define APPLE_IOS_KERNEL_BASE 0xfffffff007004000ULL
 #define APPLE_KERNEL_PRELOAD_BASE 0x800000000ULL
@@ -90,7 +100,12 @@ typedef struct {
 
 extern const apple_soc_config_t apple_a12_config;
 extern const apple_soc_config_t apple_a12x_config;
+extern const apple_soc_config_t apple_a12z_config;
 extern const apple_soc_config_t apple_a13_config;
+extern const apple_soc_config_t apple_a14_config;
+extern const apple_soc_config_t apple_m1_config;
+extern const apple_soc_config_t apple_a15_config;
+extern const apple_soc_config_t apple_m2_config;
 
 const apple_soc_config_t *apple_soc_for_cpid(u16 cpid);
 const char *apple_boot_stage_name(apple_boot_stage_t stage);

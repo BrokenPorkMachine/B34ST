@@ -55,6 +55,46 @@ static const soc_patch_offsets_t soc_offsets[] = {
         .codesign_offset =    0x00A00040ULL,
         .sandbox_offset =     0x00B00000ULL,
     },
+    {
+        .cpid = 0x8028,
+        .name = "T8028 (A12Z)",
+        .amfi_offset =        0x00A00000ULL,
+        .task_for_pid_offset = 0x00500000ULL,
+        .privilege_offset =   0x00E00000ULL,
+        .mount_root_offset =  0x00C00000ULL,
+        .codesign_offset =    0x00A00040ULL,
+        .sandbox_offset =     0x00B00000ULL,
+    },
+    {
+        .cpid = 0x8103,
+        .name = "T8103 (M1)",
+        .amfi_offset =        0x00A00000ULL,
+        .task_for_pid_offset = 0x00500000ULL,
+        .privilege_offset =   0x00E00000ULL,
+        .mount_root_offset =  0x00C00000ULL,
+        .codesign_offset =    0x00A00040ULL,
+        .sandbox_offset =     0x00B00000ULL,
+    },
+    {
+        .cpid = 0x8110,
+        .name = "T8110 (A15)",
+        .amfi_offset =        0x00A00000ULL,
+        .task_for_pid_offset = 0x00500000ULL,
+        .privilege_offset =   0x00E00000ULL,
+        .mount_root_offset =  0x00C00000ULL,
+        .codesign_offset =    0x00A00040ULL,
+        .sandbox_offset =     0x00B00000ULL,
+    },
+    {
+        .cpid = 0x8112,
+        .name = "T8112 (M2)",
+        .amfi_offset =        0x00A00000ULL,
+        .task_for_pid_offset = 0x00500000ULL,
+        .privilege_offset =   0x00E00000ULL,
+        .mount_root_offset =  0x00C00000ULL,
+        .codesign_offset =    0x00A00040ULL,
+        .sandbox_offset =     0x00B00000ULL,
+    },
 };
 
 static const soc_patch_offsets_t *find_soc_offsets(u16 cpid)
@@ -266,6 +306,7 @@ bool kernel_patches_apply_by_type(kernel_patch_type_t type)
     bool all_success = true;
     for (u32 i = 0U; i < state.patch_count; ++i) {
         if (state.patches[i].type == type &&
+            !state.patches[i].applied &&
             !apply_patch_entry(&state.patches[i])) {
             all_success = false;
         }

@@ -1,0 +1,54 @@
+.TH B34ST 1 "June 2026" "B34ST 0.2.3" "Operator Tools"
+.SH NAME
+B34ST \- guided control plane for FBR34KER research workflows
+.SH SYNOPSIS
+.B B34ST
+.RI [ command ]
+.RI [ arguments ]
+.SH DESCRIPTION
+.B B34ST
+is the canonical operator entry point for the project. With no arguments it
+opens a session-logged guided control panel covering builds, tests, QEMU,
+external authorized first-stage execution, FBRI images, next-stage loading,
+deployment, modules, runtime console access, modification evidence, physical
+validation, and release packaging.
+.PP
+Target-changing operations require explicit authorization. Runtime
+modification and jailbreak states are evidence-gated and are not inferred
+from transport success or textual monitor output.
+.PP
+The installed executable uses uppercase
+.B B34ST
+because the source package directory is named
+.IR b34st ;
+case-insensitive filesystems cannot safely provide both names.
+.SH COMMANDS
+.TP
+.B control-panel
+Open the guided operator interface.
+.TP
+.B research-runtime
+Run the exact-target, evidence-gated physical research-runtime orchestrator.
+.TP
+.B environment-plan
+Create a bounded simulation or research-runtime plan.
+.TP
+.B validate-session
+Validate a recorded session bundle.
+.TP
+.B physical-validation
+Generate or inspect physical-validation evidence.
+.TP
+.B hardware-prepare
+Generate read-only hardware preparation material.
+.TP
+.BI "fbr34ker " arguments
+Run a lower-level FBR34KER backend command.
+.SH SOURCE TREE
+From the unpacked source tree, run:
+.PP
+.RS
+.B ./scripts/B34ST
+.RE
+.SH SEE ALSO
+.BR fbr34ker (1)

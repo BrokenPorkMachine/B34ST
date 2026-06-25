@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -175,13 +176,23 @@ class ReleaseToolTests(unittest.TestCase):
             with zipfile.ZipFile(first) as bundle:
                 bundle.extractall(extracted)
             project = extracted / "FBR34KER_test"
+            launcher = project / "fbr34ker"
+            shebang = launcher.read_text().splitlines()[0]
+            if shebang.startswith("#!"):
+                parts = shebang[2:].split()
+                if parts[0].endswith("/env") and len(parts) > 1:
+                    interpreter = shutil.which(parts[1]) or parts[1]
+                else:
+                    interpreter = parts[0]
+            else:
+                interpreter = shutil.which("sh") or "sh"
             completed = subprocess.run(
-                ["sh", str(project / "fbr34ker"), "--permissions"],
+                [interpreter, str(launcher), "--permissions"],
                 cwd=project, text=True, stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT, check=False,
             )
             self.assertEqual(completed.returncode, 0, completed.stdout)
-            self.assertTrue(os.access(project / "fbr34ker", os.X_OK))
+            self.assertTrue(os.access(launcher, os.X_OK))
             self.assertTrue(os.access(project / "scripts" / "fbr34ker.sh", os.X_OK))
 
     def test_gate_summary_requires_every_release_stage(self) -> None:

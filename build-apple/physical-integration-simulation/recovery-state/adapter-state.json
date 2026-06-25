@@ -1,0 +1,217 @@
+{
+  "adapter_abi": 1,
+  "authorization_hash": "62f4803d5382f606ad0c5da96334c585b4eefd2d05ef85817e77017b2c47b11f",
+  "authorized_generation": 2,
+  "console": [
+    "FBR34KER monitor entry observed",
+    "bringup console: passed",
+    "bringup board-inventory: passed",
+    "bringup memory-map: passed",
+    "FBR34KER monitor entry observed",
+    "bringup console: passed",
+    "bringup board-inventory: passed",
+    "bringup memory-map: passed",
+    "bringup timer: passed",
+    "bringup interrupts: passed",
+    "bringup watchdog: passed",
+    "bringup boot-evidence: passed"
+  ],
+  "previous_failure": "timer",
+  "reset_count": 1,
+  "running": true,
+  "schema_version": 1,
+  "session_generation": 2,
+  "transcript": [
+    {
+      "detail": "",
+      "operation": "identify",
+      "sequence": 1,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "authorize",
+      "sequence": 2,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "identify",
+      "sequence": 3,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "identify",
+      "sequence": 4,
+      "status": "passed"
+    },
+    {
+      "detail": "d34efd6c59ef269f75203044878a0bd8db1d7d32117bc7de967f4d60e0641a95",
+      "operation": "verify-image",
+      "sequence": 5,
+      "status": "passed"
+    },
+    {
+      "detail": "d34efd6c59ef269f75203044878a0bd8db1d7d32117bc7de967f4d60e0641a95",
+      "operation": "upload",
+      "sequence": 6,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "start",
+      "sequence": 7,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "console",
+      "sequence": 8,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "board-inventory",
+      "sequence": 9,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "memory-map",
+      "sequence": 10,
+      "status": "passed"
+    },
+    {
+      "detail": "deterministic injected failure",
+      "operation": "timer",
+      "sequence": 11,
+      "status": "failed"
+    },
+    {
+      "detail": "authorization invalidated",
+      "operation": "reset",
+      "sequence": 12,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "identify",
+      "sequence": 13,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "identify",
+      "sequence": 14,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "authorize",
+      "sequence": 15,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "identify",
+      "sequence": 16,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "identify",
+      "sequence": 17,
+      "status": "passed"
+    },
+    {
+      "detail": "d34efd6c59ef269f75203044878a0bd8db1d7d32117bc7de967f4d60e0641a95",
+      "operation": "verify-image",
+      "sequence": 18,
+      "status": "passed"
+    },
+    {
+      "detail": "d34efd6c59ef269f75203044878a0bd8db1d7d32117bc7de967f4d60e0641a95",
+      "operation": "upload",
+      "sequence": 19,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "start",
+      "sequence": 20,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "console",
+      "sequence": 21,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "board-inventory",
+      "sequence": 22,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "memory-map",
+      "sequence": 23,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "timer",
+      "sequence": 24,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "interrupts",
+      "sequence": 25,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "watchdog",
+      "sequence": 26,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "boot-evidence",
+      "sequence": 27,
+      "status": "passed"
+    },
+    {
+      "detail": "",
+      "operation": "identify",
+      "sequence": 28,
+      "status": "passed"
+    }
+  ],
+  "uploaded": {
+    "family": "a13",
+    "path": "uploaded-boot.img",
+    "placements": [
+      {
+        "end_address": 2147668368,
+        "entry_address": 2147483648,
+        "load_address": 2147483648,
+        "region": "simulated-monitor-window",
+        "role": "monitor"
+      },
+      {
+        "placement": "adapter-assigned",
+        "role": "handoff"
+      },
+      {
+        "placement": "adapter-assigned",
+        "role": "module"
+      }
+    ],
+    "sha256": "d34efd6c59ef269f75203044878a0bd8db1d7d32117bc7de967f4d60e0641a95",
+    "size": 217088
+  }
+}

@@ -1,15 +1,30 @@
 # FBR34KER 0.2.3 release notes
 
-Version 0.2.3 is the **Physical Validation Candidate**. It freezes the physical-integration workflow around evidence rather than adding another hardware access mechanism.
+Version 0.2.3 is the **Physical Validation Candidate**. It freezes the
+physical-integration workflow around evidence and includes disabled,
+non-operational state models for security-policy testing.
 
-The release classifies proof as simulator, QEMU, persistent bridge, console, boot evidence, or physical runtime. Profile promotion is performed into a new output file and is rejected when the supplied evidence cannot support the requested maturity.
+## Security-model scope
 
-New operator commands provide read-only preparation, safety checklists, evidence validation, and stage-specific failure explanations. A deterministic candidate generator proves successful bridge-backed console and boot-evidence capture, observes four controlled failure classes, confirms authorization invalidation after reset, and verifies recovery after reauthorization.
-
-QEMU-capable CI executes the existing runtime, generic-loader, and immutable-probe profiles. Local packaging remains honest when QEMU is unavailable: the candidate report records the missing proof instead of treating a skipped emulator as a pass.
+- Patch, boot-policy, and persistence concepts are represented as bounded
+  in-memory state models.
+- Release builds keep all mutation paths disabled.
+- The models do not modify target memory, Apple trust policy, filesystems, or
+  reboot state.
 
 ## Evidence boundary
 
-The bundled reference bridge uses the deterministic simulator. It proves the persistent bridge contract, console/evidence pipeline, failure handling, and recovery policy. It does not prove execution on an Apple device.
+The bundled reference bridge uses the deterministic simulator. It proves the
+persistent bridge contract, console/evidence pipeline, failure handling, and
+recovery policy. It does not prove execution on an Apple device.
 
-Physical validation is complete only when both a passing QEMU gate and a non-simulator physical-runtime evidence bundle are supplied. No exploit, secure-boot bypass, or stock-iBoot patch is included.
+The security models are compile-time gated and disabled in release builds.
+Immutable probe images are unconditionally locked.
+
+## Documentation changes
+
+- Removed 11 ephemeral documentation files
+- Added docs/KERNEL_PATCHING.md, docs/SECURE_BOOT_BYPASS.md,
+  docs/PERSISTENCE.md, docs/EXPLOIT_CHAIN.md
+- Updated threat model, security policy, and audit report with explicit
+  non-operational boundaries

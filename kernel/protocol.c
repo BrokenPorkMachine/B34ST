@@ -341,6 +341,7 @@ static void dispatch_request(u8 type, u32 sequence, const u8 *payload,
         }
         send_text(type, sequence, false, "rebooting\n");
         platform_reboot();
+        break;
     case FBR34KER_PROTOCOL_HALT:
         if (!hardware_probe_power_actions_allowed()) {
             send_text(type, sequence, true, "power action locked by defensive hardware mode\n");
@@ -348,6 +349,7 @@ static void dispatch_request(u8 type, u32 sequence, const u8 *payload,
         }
         send_text(type, sequence, false, "halting\n");
         platform_halt();
+        break;
     default:
         send_text(type, sequence, true, "unsupported request type\n");
         return;

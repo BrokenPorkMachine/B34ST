@@ -252,7 +252,7 @@ def run_normal(
         results.step("modules", lambda: client.command("modules"),
                      b"hello-dynamic", b"command: hello-dynamic-run")
         results.step("module-unload", lambda: client.module_unload("hello-dynamic"),
-                     b"ok")
+                     b"unloaded dynamic module hello-dynamic")
         results.step("logs", client.logs, b"booted at EL")
     finally:
         endpoint.close()
@@ -276,7 +276,7 @@ def run_runtime_validation(
         )
         client = fbr34kctl.FramedClient(endpoint, timeout=request_timeout, retries=2)
         results.step("architecture-baseline", lambda: client.command("architecture"),
-                     b"ready / healthy", b"Components: 5")
+                     b"ready / healthy", b"Components: 9")
         results.step("trace-json", lambda: client.command("trace-json"),
                      b'"schema":1', b'"records"')
         results.step("fault-status", lambda: client.command("fault-status"),
@@ -305,7 +305,7 @@ def run_runtime_validation(
                      b"architecture restart: passed")
         results.step("architecture-post-recovery",
                      lambda: client.command("architecture"),
-                     b"ready / healthy", b"Components: 5")
+                     b"ready / healthy", b"Components: 9")
         results.step("service-version-contracts",
                      lambda: client.command("drivers"),
                      b"depends=console.output", b"depends=timer.monotonic")

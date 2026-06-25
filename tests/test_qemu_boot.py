@@ -18,11 +18,13 @@ import fbr34kctl  # noqa: E402
 
 QEMU = shutil.which("qemu-system-aarch64")
 REQUIRED = os.environ.get("FBR34KER_QEMU_REQUIRED") == "1"
+SKIP_QEMU = os.environ.get("FBR34KER_SKIP_QEMU_TESTS") == "1"
 EXPECTED_VERSION = os.environ.get("FBR34KER_EXPECTED_VERSION", "0.2.3")
 IMAGE = pathlib.Path(os.environ.get(
     "FBR34KER_QEMU_IMAGE", str(ROOT / "build" / "fbr34ker.bin")
 )).resolve()
 CRASH_TEST_ENABLED = os.environ.get("FBR34KER_ENABLE_CRASH_TEST") == "1"
+AVAILABLE = not SKIP_QEMU and QEMU is not None and IMAGE.is_file()
 
 
 class QemuSession:
@@ -83,9 +85,16 @@ class QemuSession:
         except subprocess.TimeoutExpired:
             self.process.kill()
             self.process.wait(timeout=2.0)
+        if self.process.stdin is not None:
+            self.process.stdin.close()
+        if self.process.stdout is not None:
+            self.process.stdout.close()
 
 
-@unittest.skipUnless(QEMU is not None or REQUIRED, "qemu-system-aarch64 not installed")
+@unittest.skipUnless(
+    AVAILABLE or REQUIRED,
+    "QEMU runtime image is unavailable; run make integration-build",
+)
 class QemuBootTests(unittest.TestCase):
     def setUp(self) -> None:
         if QEMU is None:
@@ -153,7 +162,7 @@ class QemuBootTests(unittest.TestCase):
             listed = self.client.command("modules")
             self.assertIn(b"command: integration-run", listed)
             unloaded = self.client.module_unload("integration")
-            self.assertIn(b"ok", unloaded)
+            self.assertIn(b"unloaded dynamic module integration", unloaded)
 
 
     def test_transactional_rollback_fault_injection_and_recovery(self) -> None:

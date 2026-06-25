@@ -15,11 +15,11 @@
     "recovered_after_reauthorization": true
   },
   "qemu": {
-    "detail": "qemu-system-aarch64 is not installed",
+    "detail": "QEMU emulator version 11.0.0",
     "passed": false,
     "project": "FBR34KER",
     "schema_version": 1,
-    "status": "unavailable",
+    "status": "available-not-run",
     "version": "0.2.3"
   },
   "recovered": {
@@ -62,7 +62,7 @@
     "proof_class": "bridge",
     "release_version": "0.2.3",
     "schema_version": 1,
-    "session_id": "b33e2cf42dde97d6e10e1c68",
+    "session_id": "1c7836ff171a1fcbdda6650c",
     "valid": true
   },
   "release_name": "Physical Validation Candidate",
@@ -108,7 +108,7 @@
     "proof_class": "bridge",
     "release_version": "0.2.3",
     "schema_version": 1,
-    "session_id": "218e3a0c724f1d497840be2d",
+    "session_id": "b3262276405532e1b5cf4380",
     "valid": true
   }
 }

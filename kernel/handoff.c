@@ -276,6 +276,18 @@ static bool callback_address_valid(const fbr34ker_handoff_t *handoff,
             FBR34KER_REGION_ATTR_READ | FBR34KER_REGION_ATTR_EXECUTE);
 }
 
+static bool context_pointer_valid(const fbr34ker_handoff_t *handoff,
+                                  u64 address)
+{
+    return address == 0U ||
+        fbr34ker_handoff_describes_range(
+            handoff, address, 1U,
+            TYPE_BIT(FBR34KER_HANDOFF_REGION_USABLE) |
+            TYPE_BIT(FBR34KER_HANDOFF_REGION_RESERVED) |
+            TYPE_BIT(FBR34KER_HANDOFF_REGION_MONITOR),
+            FBR34KER_REGION_ATTR_READ);
+}
+
 static bool callback_set_v4_valid(const fbr34ker_handoff_t *handoff)
 {
 #define VALID_OPTIONAL(callback) \
@@ -408,6 +420,16 @@ static bool v4_valid(const fbr34ker_handoff_t *handoff)
         if (platform_services == NULL ||
             !service_table_valid(platform_services,
                                  handoff->platform_services_size)) {
+            return false;
+        }
+        if (!context_pointer_valid(handoff,
+                                   (u64)(usize)platform_services->console_context) ||
+            !context_pointer_valid(handoff,
+                                   (u64)(usize)platform_services->framebuffer_context) ||
+            !context_pointer_valid(handoff,
+                                   (u64)(usize)platform_services->interrupt_context) ||
+            !context_pointer_valid(handoff,
+                                   (u64)(usize)platform_services->watchdog_context)) {
             return false;
         }
         if ((platform_services->capabilities &

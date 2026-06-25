@@ -1,0 +1,102 @@
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/sha256.c kernel/string.c tests/sha256_harness.c \
+		-o build/tests/sha256_harness
+build/tests/sha256_harness
+SHA-256 vectors passed
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/crc32.c tests/crc32_harness.c -o build/tests/crc32_harness
+build/tests/crc32_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		tests/boot_image_format_harness.c -o build/tests/boot_image_format_harness
+build/tests/boot_image_format_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		tests/first_stage_adapter_format_harness.c -o build/tests/first_stage_adapter_format_harness
+build/tests/first_stage_adapter_format_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/device_tree.c kernel/string.c tests/device_tree_harness.c \
+		-o build/tests/device_tree_harness
+build/tests/device_tree_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/allocator.c kernel/string.c tests/allocator_harness.c \
+		-o build/tests/allocator_harness
+build/tests/allocator_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/handoff.c kernel/string.c tests/handoff_harness.c \
+		-o build/tests/handoff_harness
+build/tests/handoff_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/bringup.c kernel/event.c kernel/fault.c kernel/handoff.c kernel/string.c tests/bringup_harness.c \
+		-o build/tests/bringup_harness
+build/tests/bringup_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/framebuffer_console.c kernel/string.c tests/framebuffer_console_harness.c \
+		-o build/tests/framebuffer_console_harness
+build/tests/framebuffer_console_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/watchdog.c kernel/string.c tests/watchdog_harness.c \
+		-o build/tests/watchdog_harness
+build/tests/watchdog_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		-DFBR34KER_PHYSICAL_PROBE_IMAGE=1 kernel/hardware_probe.c \
+		tests/hardware_probe_harness.c -o build/tests/hardware_probe_harness
+build/tests/hardware_probe_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/service_guard.c kernel/string.c tests/service_guard_harness.c \
+		-o build/tests/service_guard_harness
+build/tests/service_guard_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/lifecycle.c kernel/fault.c kernel/trace.c kernel/format.c kernel/string.c tests/format_console_stub.c tests/lifecycle_harness.c -o build/tests/lifecycle_harness
+build/tests/lifecycle_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/event.c kernel/fault.c kernel/string.c tests/event_harness.c -o build/tests/event_harness
+build/tests/event_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/event.c kernel/fault.c kernel/service_registry.c kernel/string.c tests/service_registry_harness.c -o build/tests/service_registry_harness
+build/tests/service_registry_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/event.c kernel/fault.c kernel/service_registry.c kernel/driver.c kernel/string.c tests/driver_harness.c -o build/tests/driver_harness
+build/tests/driver_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/board.c kernel/format.c kernel/string.c tests/format_console_stub.c tests/board_harness.c -o build/tests/board_harness
+build/tests/board_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/mmio.c kernel/string.c tests/mmio_harness.c -o build/tests/mmio_harness
+build/tests/mmio_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/physical_memory.c kernel/string.c tests/physical_memory_harness.c -o build/tests/physical_memory_harness
+build/tests/physical_memory_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		-DFBR34KER_HOST_TEST=1 kernel/boot_evidence.c kernel/crc32.c kernel/format.c kernel/string.c tests/format_console_stub.c tests/boot_evidence_harness.c -o build/tests/boot_evidence_harness
+build/tests/boot_evidence_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/lifecycle.c kernel/event.c kernel/fault.c kernel/trace.c kernel/format.c kernel/service_registry.c kernel/driver.c kernel/architecture.c kernel/board.c kernel/mmio.c kernel/physical_memory.c kernel/bringup_report.c kernel/string.c tests/format_console_stub.c tests/architecture_harness.c -o build/tests/architecture_harness
+build/tests/architecture_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/trace.c kernel/format.c kernel/string.c tests/format_console_stub.c tests/trace_harness.c -o build/tests/trace_harness
+build/tests/trace_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		-DFBR34KER_ENABLE_FAULT_INJECTION=1 kernel/fault.c kernel/trace.c kernel/format.c kernel/string.c tests/format_console_stub.c tests/fault_harness.c -o build/tests/fault_harness
+build/tests/fault_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/hal_sim.c kernel/string.c tests/hal_sim_harness.c -o build/tests/hal_sim_harness
+build/tests/hal_sim_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		-DFBR34KER_ENABLE_FAULT_INJECTION=1 kernel/event.c kernel/fault.c kernel/trace.c kernel/format.c kernel/service_registry.c kernel/driver.c kernel/string.c tests/format_console_stub.c tests/runtime_validation_harness.c -o build/tests/runtime_validation_harness
+build/tests/runtime_validation_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		tests/deployment_protocol_harness.c -o build/tests/deployment_protocol_harness
+build/tests/deployment_protocol_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		tests/bridge_protocol_format_harness.c -o build/tests/bridge_protocol_format_harness
+build/tests/bridge_protocol_format_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		tests/physical_validation_format_harness.c -o build/tests/physical_validation_format_harness
+build/tests/physical_validation_format_harness
+clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/kernel_patches.c kernel/secure_boot_bypass.c kernel/persistence.c \
+		kernel/string.c tests/security_model_harness.c \
+		-o build/tests/security_model_harness
+build/tests/security_model_harness
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"qemu_virt\" -DFBR34KER_SOURCE_ID=\"0.2.3-validation-candidate\"  -Wall -Wextra -Werror -Iinclude -Iexamples/generic_loader -c \
+		examples/generic_loader/loader_adapter.c \
+		-o build/examples/loader_adapter.o

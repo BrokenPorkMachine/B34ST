@@ -265,6 +265,7 @@ const char *lifecycle_phase_name(fbr34ker_lifecycle_phase_t phase)
     case FBR34KER_PHASE_SERVICES: return "services";
     case FBR34KER_PHASE_EXTENSIONS: return "extensions";
     case FBR34KER_PHASE_INTERACTIVE: return "interactive";
+    case FBR34KER_PHASE_COUNT: return "count";
     default: return "unknown";
     }
 }

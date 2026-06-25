@@ -1,8 +1,8 @@
 {
-  "detail": "qemu-system-aarch64 is not installed",
+  "detail": "QEMU emulator version 11.0.0",
   "passed": false,
   "project": "FBR34KER",
   "schema_version": 1,
-  "status": "unavailable",
+  "status": "available-not-run",
   "version": "0.2.3"
 }

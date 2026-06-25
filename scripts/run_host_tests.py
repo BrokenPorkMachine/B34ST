@@ -66,6 +66,7 @@ def main() -> int:
     environment = os.environ.copy()
     for key in ("MAKEFLAGS", "MFLAGS", "MAKELEVEL", "TARGET"):
         environment.pop(key, None)
+    environment["FBR34KER_SKIP_QEMU_TESTS"] = "1"
     started = time.monotonic()
     total = 0
     skipped = 0

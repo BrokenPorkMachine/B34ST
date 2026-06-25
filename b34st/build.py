@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Build script for B34ST artifacts
+"""Build script for B34ST artifacts.
 
-This script builds and packages B34ST artifacts for release.
-It handles the compilation of B34ST binaries and creation of release packages
-containing only compiled artifacts (no source code) for public distribution.
+This script creates a Python launcher, validation artifacts, and release
+packages. B34ST is Python source and is not represented as a compiled binary.
 """
 
 from __future__ import annotations
@@ -11,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import pathlib
 import shutil
 import subprocess
@@ -103,18 +103,20 @@ class B34STBuilder:
         wrapper_path = self.build_dir / "b34st"
         wrapper_path.write_text(
             f"""#!/usr/bin/env python3
-"""B34ST (B34KER/STAR) - Compiled Runtime Authentication Tool
+# B34ST (B34KER/STAR) runtime authentication launcher.
 
-This is the compiled version of B34ST for distribution.
-Version: {__version__}
-Release: {__release_name__}
+import pathlib
+import sys
 
-B34ST provides deterministic physical validation and bridge verification
-for A12/A13 iPhone hardware bring-up with evidence-based maturity enforcement.
+package_lib = pathlib.Path(__file__).resolve().parent.parent / "lib"
+if package_lib.is_dir():
+    sys.path.insert(0, str(package_lib))
 
-To use B34ST, run the script from the FBR34KER repository root.
-For documentation, see b34st/README.md and b34st/.b34st-config.
-""")
+from b34st.b34st import main
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+"""
         )
         wrapper_path.chmod(0o755)
 
@@ -344,11 +346,11 @@ For documentation, see b34st/README.md and b34st/.b34st-config.
                 "Python-3.13+",
             ],
             "requirements": [
-                "Runtime: Python 3.13+",
+                "Runtime: Python 3.10+",
                 "Build: Clang 14+, GNU Make",
             ],
             "security_notes": {
-                "source_private": True,
+                "source_private": False,
                 "exploit_delivery": False,
                 "signature_bypass": False,
                 "physical_device_testing": False,
@@ -409,20 +411,27 @@ For documentation, see b34st/README.md and b34st/.b34st-config.
             
             for dep in dependencies:
                 if pathlib.Path(dep).exists():
+                    (package_output / "host").mkdir(parents=True, exist_ok=True)
                     shutil.copy2(
                         dep,
                         package_output / "host" / pathlib.Path(dep).name,
                     )
         
-        else:  # All release - only compiled artifacts
+        else:
             self.log("Creating release artifacts package...")
-            
-            # Copy compiled B34ST binary
+
+            (package_output / "bin").mkdir(parents=True, exist_ok=True)
             if (self.build_dir / "b34st").exists():
                 shutil.copy2(
                     self.build_dir / "b34st",
                     package_output / "bin" / "b34st",
                 )
+
+            shutil.copytree(
+                "b34st",
+                package_output / "lib" / "b34st",
+                ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+            )
             
             # Copy runtime artifacts
             runtime_dest = package_output / "runtime-artifacts" / "b34st"
@@ -453,15 +462,16 @@ for A12/A13 iPhone hardware bring-up with evidence-based maturity enforcement.
 
 ## Release Description
 
-This release contains compiled artifacts and validation evidence for the
-B34ST (B34KER/STAR) runtime authentication framework. The source code is
-maintained in a private repository and is not included in this release.
+This release contains the B34ST Python launcher, its package sources, and
+validation evidence. Validation wrapper commands require a compatible
+FBR34KER 0.2.3 checkout or installation.
 
 ## Contents
 
-### Executable Binaries
+### Launcher
 
-- `bin/b34st` - B34ST runtime authentication tool
+- `bin/b34st` - B34ST command-line launcher
+- `lib/b34st/` - B34ST Python package
 
 ### Validation Artifacts
 
@@ -483,7 +493,7 @@ maintained in a private repository and is not included in this release.
 
 After extracting this package:
 
-1. Ensure you have Python 3.13+ installed
+1. Ensure you have Python 3.10+ installed
 2. Run the B34ST tool:
 
 ```bash
@@ -516,24 +526,6 @@ For questions or issues, refer to the FBR34KER documentation or create a GitHub 
 """
             )
 
-        # Create checksums file
-        checksums_path = package_output / "CHECKSUMS.sha256"
-        checksums_lines = []
-        
-        # Walk through package and calculate checksums
-        for root, dirs, files in os.walk(package_output):
-            for file in files:
-                file_path = pathlib.Path(root) / file
-                # Skip the checksums file itself
-                if file_path.name == "CHECKSUMS.sha256":
-                    continue
-                    
-                relative_path = file_path.relative_to(package_output)
-                checksum = self.calculate_checksums(file_path)
-                checksums_lines.append(f"{checksum}  {relative_path}")
-
-        checksums_path.write_text("\n".join(checksums_lines))
-
         # Create release information
         release_info = {
             "project": "B34ST",
@@ -548,6 +540,18 @@ For questions or issues, refer to the FBR34KER documentation or create a GitHub 
         (package_output / "RELEASE_INFO.json").write_text(
             json.dumps(release_info, indent=2)
         )
+
+        checksums_path = package_output / "CHECKSUMS.sha256"
+        checksums_lines = []
+        for root, _dirs, files in os.walk(package_output):
+            for file in files:
+                file_path = pathlib.Path(root) / file
+                if file_path.name == "CHECKSUMS.sha256":
+                    continue
+                relative_path = file_path.relative_to(package_output)
+                checksum = self.calculate_checksums(file_path)
+                checksums_lines.append(f"{checksum}  {relative_path}")
+        checksums_path.write_text("\n".join(sorted(checksums_lines)) + "\n")
 
         self.log(f"B34ST {kind} package created: {package_output}")
         return package_output

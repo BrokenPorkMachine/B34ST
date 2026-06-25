@@ -13,31 +13,39 @@
 ./fbr34ker test
 ```
 
-## 3. Build A12/A13 images
+## 3. Build and run the exploit chain
+
+```sh
+make exploit-chain
+```
+
+See `build-exploit/exploit-summary.txt` for the capability summary.
+
+## 4. Build A12/A13 images
 
 ```sh
 make apple-boot-images
 ```
 
-## 4. Inspect the selected image
+## 5. Inspect the selected image
 
 ```sh
 ./fbr34ker boot-image inspect build-apple/a12/boot.img --json
 ```
 
-## 5. Install optional iRecovery support
+## 6. Install optional iRecovery support
 
 ```sh
 brew install libirecovery
 ```
 
-## 6. Query the connected device
+## 7. Query the connected device
 
 ```sh
 ./fbr34ker irecovery query
 ```
 
-## 7. Dry-run the upload plan
+## 8. Dry-run the upload plan
 
 ```sh
 ./fbr34ker irecovery send \
@@ -46,7 +54,7 @@ brew install libirecovery
   --dry-run
 ```
 
-## 8. Upload in an authorized session
+## 9. Upload in an authorized session
 
 ```sh
 ./fbr34ker irecovery send \

@@ -3,8 +3,15 @@
 #include "fbr34ker/format.h"
 #include "fbr34ker/string.h"
 
+#if defined(FBR34KER_HOST_TEST)
+#define FBR34KER_BOOT_EVIDENCE_STORAGE __attribute__((aligned(16)))
+#else
+#define FBR34KER_BOOT_EVIDENCE_STORAGE \
+    __attribute__((section(".boot_evidence"), aligned(16)))
+#endif
+
 static fbr34ker_boot_evidence_t persistent_evidence
-    __attribute__((section(".boot_evidence"), aligned(16)));
+    FBR34KER_BOOT_EVIDENCE_STORAGE;
 
 static u32 evidence_checksum(const fbr34ker_boot_evidence_t *evidence)
 {

@@ -33,6 +33,7 @@ static void uart_write(u32 offset, u32 value)
     *uart_register(offset) = value;
 }
 
+void qemu_uart_init(void);
 void qemu_uart_init(void)
 {
     uart_write(UART_CR, 0U);

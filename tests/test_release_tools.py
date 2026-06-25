@@ -95,13 +95,11 @@ class ReleaseToolTests(unittest.TestCase):
 
     def test_environment_target_does_not_redirect_build_output(self) -> None:
         environment = {**os.environ, "TARGET": "poisoned-output"}
-        command = [
-            "make", "--no-print-directory", "-s",
-            "--eval", "print-target:;@echo $(TARGET)",
-            "print-target",
-        ]
         completed = subprocess.run(
-            command,
+            [
+                "make", "--no-print-directory", "-s", "-f", "Makefile",
+                "print-target",
+            ],
             cwd=ROOT,
             env=environment,
             text=True,
@@ -116,8 +114,8 @@ class ReleaseToolTests(unittest.TestCase):
     def test_command_line_target_override_is_supported(self) -> None:
         completed = subprocess.run(
             [
-                "make", "--no-print-directory", "-s", "TARGET=custom/image",
-                "--eval", "print-target:;@echo $(TARGET)", "print-target",
+                "make", "--no-print-directory", "-s", "-f", "Makefile",
+                "TARGET=custom/image", "print-target",
             ],
             cwd=ROOT,
             text=True,
@@ -170,6 +168,8 @@ class ReleaseToolTests(unittest.TestCase):
                 self.assertEqual((launcher.external_attr >> 16) & 0o777, 0o755)
                 self.assertFalse(any("/build/" in name for name in bundle.namelist()))
                 self.assertFalse(any("/validation-logs/" in name for name in bundle.namelist()))
+                self.assertFalse(any(name.endswith(".tmp") for name in bundle.namelist()))
+                self.assertFalse(any(name.endswith(".tar.gz") for name in bundle.namelist()))
 
             extracted = root / "extracted"
             with zipfile.ZipFile(first) as bundle:

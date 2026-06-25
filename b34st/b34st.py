@@ -9,15 +9,10 @@ This is the main entry point for the B34ST validation framework.
 
 from __future__ import annotations
 
-import argparse
-import json
-import pathlib
 import sys
-from typing import Any
 
-from b34st.api import B34STApi
 from b34st.version import __version__, __release_name__
-from b34st.engine import B34STError, B34STCLI
+from b34st.engine import B34STCLI
 
 
 def main() -> int:
@@ -36,6 +31,8 @@ def main() -> int:
         print("  b34st validate-session         Validate a session bundle")
         print("  b34st physical-validation       Perform physical validation operations")
         print("  b34st hardware-prepare         Read-only hardware preparation")
+        print("  b34st environment-plan         Plan an iOS 17+ research environment")
+        print("  b34st environment-validate     Validate an environment manifest")
         print("\nCommand-specific help:")
         print("  b34st <command> --help\n")
         print("Examples:")

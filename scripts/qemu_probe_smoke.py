@@ -63,7 +63,7 @@ def main() -> int:
         blocked = [
             ("unlock", "bringup-exit unlock", b"permanently read-only"),
             ("module", "module-run hello", b"blocked"),
-            ("framebuffer-write", "display-console on", b"blocked"),
+            ("framebuffer-write", "display-console on", b"locked"),
             ("irq-mutation", "irq-enable", b"blocked"),
             ("watchdog-mutation", "watchdog-arm 1000", b"blocked"),
         ]

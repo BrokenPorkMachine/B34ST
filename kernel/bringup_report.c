@@ -44,6 +44,7 @@ static void add_record(const char *name, fbr34ker_bringup_status_t status,
     case FBR34KER_BRINGUP_FAIL: ++summary.failed; break;
     case FBR34KER_BRINGUP_SKIPPED: ++summary.skipped; break;
     case FBR34KER_BRINGUP_BLOCKED: ++summary.blocked; break;
+    case FBR34KER_BRINGUP_NOT_RUN: break;
     default: break;
     }
 }

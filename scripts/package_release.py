@@ -19,6 +19,7 @@ SOURCE_EXCLUDED_DIRS = {
 }
 SOURCE_EXCLUDED_NAMES = {
     ".DS_Store", "RELEASE_MANIFEST.json", "CHECKSUMS.sha256",
+    "b34st_complete.tar.gz",
 }
 COMPLETE_ARTIFACTS = (
     pathlib.Path("build/fbr34ker.bin"),
@@ -128,7 +129,7 @@ def source_paths() -> list[pathlib.Path]:
             continue
         if path.name in SOURCE_EXCLUDED_NAMES:
             continue
-        if path.suffix in {".pyc", ".zip"}:
+        if path.suffix in {".pyc", ".tmp", ".zip"}:
             continue
         results.append(relative)
     return sorted(results, key=lambda value: value.as_posix())

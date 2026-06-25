@@ -107,6 +107,7 @@ const char *fault_point_name(fbr34ker_fault_point_t point)
     case FBR34KER_FAULT_SERVICE_REGISTER: return "service-register";
     case FBR34KER_FAULT_EVENT_PUBLISH: return "event-publish";
     case FBR34KER_FAULT_TIMEOUT: return "timeout";
+    case FBR34KER_FAULT_POINT_COUNT: return "count";
     default: return "unknown";
     }
 }

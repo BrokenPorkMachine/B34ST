@@ -1,6 +1,7 @@
 build/
 build-generic/
 build-integration/
+build-b34st/
 runtime-artifacts/
 diagnostics/
 dist/
@@ -9,6 +10,8 @@ RELEASE_MANIFEST.json.sig
 CHECKSUMS.sha256
 *.zip
 *.zip.sha256
+*.tar.gz
+*.tmp
 __pycache__/
 *.pyc
 .DS_Store

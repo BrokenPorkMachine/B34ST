@@ -673,10 +673,28 @@ static fbr34ker_module_result_t execute_slot(dynamic_module_slot_t *slot)
             if (depth < 2U) return MODULE_ERROR_RUNTIME;
             const u64 right = stack[--depth];
             u64 *left = &stack[depth - 1U];
-            if (opcode == FBR34KER_BC_ADD) *left += right;
-            else if (opcode == FBR34KER_BC_SUB) *left -= right;
-            else if (opcode == FBR34KER_BC_MUL) *left *= right;
-            else if (opcode == FBR34KER_BC_AND) *left &= right;
+            if (opcode == FBR34KER_BC_ADD) {
+                if (*left > U64_MAX_VALUE - right) {
+                    log_write(LOG_LEVEL_ERROR, "bytecode ADD overflow: %llu + %llu",
+                              *left, right);
+                    return MODULE_ERROR_RUNTIME;
+                }
+                *left += right;
+            } else if (opcode == FBR34KER_BC_SUB) {
+                if (*left < right) {
+                    log_write(LOG_LEVEL_ERROR, "bytecode SUB underflow: %llu - %llu",
+                              *left, right);
+                    return MODULE_ERROR_RUNTIME;
+                }
+                *left -= right;
+            } else if (opcode == FBR34KER_BC_MUL) {
+                if (right != 0U && *left > U64_MAX_VALUE / right) {
+                    log_write(LOG_LEVEL_ERROR, "bytecode MUL overflow: %llu * %llu",
+                              *left, right);
+                    return MODULE_ERROR_RUNTIME;
+                }
+                *left *= right;
+            } else if (opcode == FBR34KER_BC_AND) *left &= right;
             else if (opcode == FBR34KER_BC_OR) *left |= right;
             else if (opcode == FBR34KER_BC_XOR) *left ^= right;
             else *left = *left == right ? 1U : 0U;
@@ -732,7 +750,11 @@ static fbr34ker_module_result_t execute_slot(dynamic_module_slot_t *slot)
                 !inline_to_string(property, property_length, second, sizeof(second)) ||
                 depth >= BYTECODE_STACK_CAPACITY) return MODULE_ERROR_RUNTIME;
             u32 value = 0U;
-            (void)device_tree_get_u32(first, second, &value);
+            if (!device_tree_get_u32(first, second, &value)) {
+                log_write(LOG_LEVEL_ERROR, "bytecode dt-get-u32 failed: %s/%s",
+                          first, second);
+                return MODULE_ERROR_RUNTIME;
+            }
             stack[depth++] = value;
             break;
         }

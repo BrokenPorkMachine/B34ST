@@ -7,14 +7,14 @@
       "name": "fbr34ker-generic.bin",
       "offset": 20480,
       "role": "monitor",
-      "sha256": "3e56c50cca629e5508927be79c04d7858240a732a8865901906334fdcd87afaf",
-      "size": 123240
+      "sha256": "a113e0a94332705e163c47296efb79006efb35d5e81cf7413b0ffaf5bd74a294",
+      "size": 184720
     },
     {
       "entry_address": 0,
       "load_address": 0,
       "name": "handoff-v4.fbhb",
-      "offset": 147456,
+      "offset": 208896,
       "role": "handoff",
       "sha256": "6e9e0455b5b66c8aa595457a7dd6b408ff0998b55e6e46419022af0f5a4c8a76",
       "size": 1072
@@ -23,7 +23,7 @@
       "entry_address": 0,
       "load_address": 0,
       "name": "hello-dynamic.fmod",
-      "offset": 151552,
+      "offset": 212992,
       "role": "module",
       "sha256": "882a7c0792b4482920e420acf23dbb245e2d3c306f1ca0a70f25a9d2f6bdc8f1",
       "size": 299
@@ -36,8 +36,8 @@
   "execution_contract": "external-authorized-loader",
   "family": "a13",
   "format": "fbri-v1",
-  "image_sha256": "34bd22b0b45225b488c2da4d0ab5b02e0387ce05cc0724a79170b260cdf149f6",
-  "image_size": 155648,
+  "image_sha256": "d34efd6c59ef269f75203044878a0bd8db1d7d32117bc7de967f4d60e0641a95",
+  "image_size": 217088,
   "profile_id": "apple-a13-recovery",
   "profile_sha256": "b3ad8a4cdf56e72f8b0e97ea9b6a00e4732468964133f9782fe2f955c0704a94",
   "project": "FBR34KER",

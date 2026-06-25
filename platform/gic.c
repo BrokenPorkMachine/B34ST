@@ -168,6 +168,7 @@ gic_info_t gic_info(void)
 const char *gic_kind_name(gic_kind_t kind)
 {
     switch (kind) {
+    case GIC_KIND_NONE: return "none";
     case GIC_KIND_V2: return "GICv2";
     case GIC_KIND_V3: return "GICv3";
     default: return "none";

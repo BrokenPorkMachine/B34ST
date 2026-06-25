@@ -17,6 +17,7 @@ import fbr34kctl  # noqa: E402
 
 QEMU = shutil.which("qemu-system-aarch64")
 REQUIRED = os.environ.get("FBR34KER_QEMU_REQUIRED") == "1"
+SKIP_QEMU = os.environ.get("FBR34KER_SKIP_QEMU_TESTS") == "1"
 EXPECTED_VERSION = os.environ.get("FBR34KER_EXPECTED_VERSION", "0.2.3")
 LOADER = pathlib.Path(os.environ.get(
     "FBR34KER_GENERIC_LOADER_IMAGE",
@@ -26,6 +27,12 @@ MONITOR = pathlib.Path(os.environ.get(
     "FBR34KER_GENERIC_MONITOR_IMAGE",
     str(ROOT / "build-generic" / "fbr34ker-generic.bin"),
 )).resolve()
+AVAILABLE = (
+    not SKIP_QEMU
+    and QEMU is not None
+    and LOADER.is_file()
+    and MONITOR.is_file()
+)
 
 
 class GenericQemuSession:
@@ -90,9 +97,16 @@ class GenericQemuSession:
         except subprocess.TimeoutExpired:
             self.process.kill()
             self.process.wait(timeout=2.0)
+        if self.process.stdin is not None:
+            self.process.stdin.close()
+        if self.process.stdout is not None:
+            self.process.stdout.close()
 
 
-@unittest.skipUnless(QEMU is not None or REQUIRED, "qemu-system-aarch64 not installed")
+@unittest.skipUnless(
+    AVAILABLE or REQUIRED,
+    "QEMU generic-loader images are unavailable; run make generic-loader generic",
+)
 class GenericLoaderQemuTests(unittest.TestCase):
     def setUp(self) -> None:
         if QEMU is None:
@@ -111,11 +125,31 @@ class GenericLoaderQemuTests(unittest.TestCase):
         hello = self.client.hello()
         self.assertIn(b"target=generic_arm64", hello)
         handoff = self.client.command("handoff-info")
-        self.assertIn(b"version=4", handoff)
-        self.assertIn(b"regions=9", handoff)
+        self.assertIn(b"Version:        4", handoff)
+        self.assertIn(b"Memory regions: 9", handoff)
         features = self.client.command("platform-features")
         self.assertIn(b"framebuffer: yes", features)
         self.assertIn(b"direct GIC driver: yes", features)
+        self.assertIn(
+            b"passed",
+            self.client.command("probe-validate interrupts acknowledge"),
+        )
+        self.assertIn(
+            b"passed",
+            self.client.command("probe-validate framebuffer acknowledge"),
+        )
+        self.assertIn(
+            b"passed",
+            self.client.command("probe-validate watchdog acknowledge"),
+        )
+        self.assertIn(
+            b"accepted",
+            self.client.command("probe-validate power acknowledge"),
+        )
+        self.assertIn(
+            b"full shell commands",
+            self.client.command("bringup-exit unlock"),
+        )
         irq = self.client.command("irq-info")
         self.assertIn(b"GICv3", irq)
         self.assertIn(b"passed", self.client.command("irq-selftest"))
@@ -133,7 +167,6 @@ class GenericLoaderQemuTests(unittest.TestCase):
         self.assertIn(b"enabled", self.client.command("display-console on"))
         self.assertIn(b"rendered and flushed", self.client.command("display-test"))
         self.assertIn(b"console=ok", self.client.command("platform-selftest"))
-        self.assertIn(b"disabled", self.client.command("bringup-exit unlock"))
 
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)
@@ -152,7 +185,10 @@ class GenericLoaderQemuTests(unittest.TestCase):
             self.assertIn(b"OK generic-loader-test", self.client.upload(module.read_bytes()))
             self.assertIn(b"GENERIC-LOADER-MODULE-OK", self.client.module_run("generic-loader-test"))
             self.assertIn(b"generic loader module completed", self.client.events())
-            self.assertIn(b"ok", self.client.module_unload("generic-loader-test"))
+            self.assertIn(
+                b"unloaded dynamic module generic-loader-test",
+                self.client.module_unload("generic-loader-test"),
+            )
 
 
 if __name__ == "__main__":

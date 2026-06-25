@@ -1,0 +1,22 @@
+FBR34KER host readiness
+[PASS] python (required)
+       Python 3.13.4 (requires >= 3.10)
+[PASS] make (required)
+       GNU Make 3.81
+[PASS] clang (required)
+       Homebrew clang version 22.1.4
+[PASS] ld.lld (required)
+       Homebrew LLD 22.1.4 (compatible with GNU linkers)
+[PASS] llvm-objcopy (required)
+       llvm-objcopy, compatible with GNU objcopy
+[PASS] qemu-system-aarch64 (optional)
+       QEMU emulator version 11.0.0
+[PASS] openssl (optional)
+       LibreSSL 3.3.6
+[PASS] minisign (optional)
+       optional; not installed
+[PASS] irecovery (optional)
+       irecovery 1.3.1 (readline)
+[PASS] clang-aarch64-target (required)
+       aarch64-none-elf compile probe passed
+Host readiness: passed

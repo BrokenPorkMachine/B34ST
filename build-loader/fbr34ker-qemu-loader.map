@@ -1,107 +1,107 @@
              VMA              LMA     Size Align Out     In      Symbol
-               0                0 40080000     1 . = ORIGIN ( LOADER )
+               0                0 40080000     1 . = ORIGIN(LOADER)
         40080000                0        0     1 __loader_start = .
-        40080000         40080000      47c  4096 .text
+        40080000         40080000      4b0  4096 .text
         40080000         40080000       60   128         build-loader/start.o:(.text.boot)
         40080000         40080000        0     1                 $x
         40080000         40080000       60     1                 _start
-        40080060         40080060      2b4     4         build-loader/loader.o:(.text.qemu_loader_main)
+        40080060         40080060      2e8     4         build-loader/loader.o:(.text.qemu_loader_main)
         40080060         40080060        0     1                 $x
-        40080060         40080060      2b4     1                 qemu_loader_main
-        40080314         40080314       40     4         build-loader/loader.o:(.text.loader_console_write)
-        40080314         40080314       40     1                 loader_console_write
-        40080314         40080314        0     1                 $x
-        40080354         40080354       3c     4         build-loader/loader.o:(.text.loader_console_read)
-        40080354         40080354       3c     1                 loader_console_read
-        40080354         40080354        0     1                 $x
-        40080390         40080390        8     4         build-loader/loader.o:(.text.loader_console_flush)
-        40080390         40080390        8     1                 loader_console_flush
-        40080390         40080390        0     1                 $x
-        40080398         40080398        c     4         build-loader/loader.o:(.text.loader_framebuffer_flush)
-        40080398         40080398        c     1                 loader_framebuffer_flush
-        40080398         40080398        0     1                 $x
-        400803a4         400803a4       2c     4         build-loader/loader.o:(.text.loader_watchdog_configure)
-        400803a4         400803a4       2c     1                 loader_watchdog_configure
-        400803a4         400803a4        0     1                 $x
-        400803d0         400803d0       20     4         build-loader/loader.o:(.text.loader_watchdog_kick)
-        400803d0         400803d0       20     1                 loader_watchdog_kick
-        400803d0         400803d0        0     1                 $x
-        400803f0         400803f0       2c     4         build-loader/loader.o:(.text.loader_early_putc)
-        400803f0         400803f0       2c     1                 loader_early_putc
-        400803f0         400803f0        0     1                 $x
-        4008041c         4008041c       28     4         build-loader/loader.o:(.text.loader_runtime_getc)
-        4008041c         4008041c       28     1                 loader_runtime_getc
-        4008041c         4008041c        0     1                 $x
-        40080444         40080444        8     4         build-loader/loader.o:(.text.loader_timer_read)
-        40080444         40080444        8     1                 loader_timer_read
-        40080444         40080444        0     1                 $x
-        4008044c         4008044c        8     4         build-loader/loader.o:(.text.loader_timer_frequency)
-        4008044c         4008044c        8     1                 loader_timer_frequency
-        4008044c         4008044c        0     1                 $x
-        40080454         40080454       14     4         build-loader/loader.o:(.text.loader_reboot)
-        40080454         40080454       14     1                 loader_reboot
-        40080454         40080454        0     1                 $x
-        40080468         40080468       14     4         build-loader/loader.o:(.text.loader_halt)
-        40080468         40080468       14     1                 loader_halt
-        40080468         40080468        0     1                 $x
-        40080480         40080480      290    16 .bss
-        40080480         40080480        0     1         __loader_bss_start = .
-        40080480         40080480       80    16         build-loader/loader.o:(.bss.services)
-        40080480         40080480       80     1                 services
-        40080480         40080480        0     1                 $d
-        40080500         40080500      11c    16         build-loader/loader.o:(.bss.handoff)
-        40080500         40080500      11c     1                 handoff
-        40080500         40080500        0     1                 $d
-        40080620         40080620       d8    16         build-loader/loader.o:(.bss.regions)
-        40080620         40080620       d8     1                 regions
-        40080620         40080620        0     1                 $d
-        400806f8         400806f8        8     8         build-loader/loader.o:(.bss.watchdog_timeout_ms)
-        400806f8         400806f8        8     1                 watchdog_timeout_ms
-        400806f8         400806f8        0     1                 $d
-        40080700         40080700        8     8         build-loader/loader.o:(.bss.watchdog_kick_count)
-        40080700         40080700        8     1                 watchdog_kick_count
-        40080700         40080700        0     1                 $d
-        40080708         40080708        8     1         . = ALIGN ( 16 )
-        40080710         40080710        0     1         __loader_bss_end = .
+        40080060         40080060      2e8     1                 qemu_loader_main
+        40080348         40080348       40     4         build-loader/loader.o:(.text.loader_console_write)
+        40080348         40080348       40     1                 loader_console_write
+        40080348         40080348        0     1                 $x
+        40080388         40080388       3c     4         build-loader/loader.o:(.text.loader_console_read)
+        40080388         40080388       3c     1                 loader_console_read
+        40080388         40080388        0     1                 $x
+        400803c4         400803c4        8     4         build-loader/loader.o:(.text.loader_console_flush)
+        400803c4         400803c4        8     1                 loader_console_flush
+        400803c4         400803c4        0     1                 $x
+        400803cc         400803cc        c     4         build-loader/loader.o:(.text.loader_framebuffer_flush)
+        400803cc         400803cc        c     1                 loader_framebuffer_flush
+        400803cc         400803cc        0     1                 $x
+        400803d8         400803d8       2c     4         build-loader/loader.o:(.text.loader_watchdog_configure)
+        400803d8         400803d8       2c     1                 loader_watchdog_configure
+        400803d8         400803d8        0     1                 $x
+        40080404         40080404       20     4         build-loader/loader.o:(.text.loader_watchdog_kick)
+        40080404         40080404       20     1                 loader_watchdog_kick
+        40080404         40080404        0     1                 $x
+        40080424         40080424       2c     4         build-loader/loader.o:(.text.loader_early_putc)
+        40080424         40080424       2c     1                 loader_early_putc
+        40080424         40080424        0     1                 $x
+        40080450         40080450       28     4         build-loader/loader.o:(.text.loader_runtime_getc)
+        40080450         40080450       28     1                 loader_runtime_getc
+        40080450         40080450        0     1                 $x
+        40080478         40080478        8     4         build-loader/loader.o:(.text.loader_timer_read)
+        40080478         40080478        8     1                 loader_timer_read
+        40080478         40080478        0     1                 $x
+        40080480         40080480        8     4         build-loader/loader.o:(.text.loader_timer_frequency)
+        40080480         40080480        8     1                 loader_timer_frequency
+        40080480         40080480        0     1                 $x
+        40080488         40080488       14     4         build-loader/loader.o:(.text.loader_reboot)
+        40080488         40080488       14     1                 loader_reboot
+        40080488         40080488        0     1                 $x
+        4008049c         4008049c       14     4         build-loader/loader.o:(.text.loader_halt)
+        4008049c         4008049c       14     1                 loader_halt
+        4008049c         4008049c        0     1                 $x
+        400804b0         400804b0      290    16 .bss
+        400804b0         400804b0        0     1         __loader_bss_start = .
+        400804b0         400804b0       80    16         build-loader/loader.o:(.bss.services)
+        400804b0         400804b0       80     1                 services
+        400804b0         400804b0        0     1                 $d
+        40080530         40080530      11c    16         build-loader/loader.o:(.bss.handoff)
+        40080530         40080530      11c     1                 handoff
+        40080530         40080530        0     1                 $d
+        40080650         40080650       d8    16         build-loader/loader.o:(.bss.regions)
+        40080650         40080650       d8     1                 regions
+        40080650         40080650        0     1                 $d
+        40080728         40080728        8     8         build-loader/loader.o:(.bss.watchdog_timeout_ms)
+        40080728         40080728        8     1                 watchdog_timeout_ms
+        40080728         40080728        0     1                 $d
+        40080730         40080730        8     8         build-loader/loader.o:(.bss.watchdog_kick_count)
+        40080730         40080730        8     1                 watchdog_kick_count
+        40080730         40080730        0     1                 $d
+        40080738         40080738        8     1         . = ALIGN(16)
+        40080740         40080740        0     1         __loader_bss_end = .
         40081000         40081000     8000  4096 .stack
         40081000         40081000        0     1         __loader_stack_bottom = .
         40081000         40081000     8000     1         . += 32K
         40089000         40089000        0     1         __loader_stack_top = .
         40089000         40089000        0     1 __loader_end = .
         40089000         40089000        0     1 
-               0                0      958     1 .debug_info
-               0                0       c7     1         build-loader/start.o:(.debug_info)
+               0                0      914     1 .debug_info
+               0                0       87     1         build-loader/start.o:(.debug_info)
                0                0        0     1                 $d
-              c7               c7      891     1         build-loader/loader.o:(.debug_info)
-              c7               c7        0     1                 $d
-               0                0      270     1 .debug_abbrev
+              87               87      88d     1         build-loader/loader.o:(.debug_info)
+              87               87        0     1                 $d
+               0                0      25f     1 .debug_abbrev
                0                0       21     1         build-loader/start.o:(.debug_abbrev)
                0                0        0     1                 $d
-              21               21      24f     1         build-loader/loader.o:(.debug_abbrev)
+              21               21      23e     1         build-loader/loader.o:(.debug_abbrev)
               21               21        0     1                 $d
                0                0       30     1 .debug_aranges
                0                0       30     1         build-loader/start.o:(.debug_aranges)
                0                0        0     1                 $d
-               0                0      357     1 .debug_line
+               0                0      395     1 .debug_line
                0                0       5b     1         build-loader/start.o:(.debug_line)
                0                0        0     1                 $d
-              5b               5b      2fc     1         build-loader/loader.o:(.debug_line)
+              5b               5b      33a     1         build-loader/loader.o:(.debug_line)
               5b               5b        0     1                 $d
                0                0       5e     1 .debug_line_str
                0                0       5e     1         <internal>:(.debug_line_str)
                0                0      167     1 .debug_loclists
                0                0      167     1         build-loader/loader.o:(.debug_loclists)
                0                0        0     1                 $d
-               0                0       65     1 .debug_rnglists
-               0                0       65     1         build-loader/loader.o:(.debug_rnglists)
+               0                0       76     1 .debug_rnglists
+               0                0       76     1         build-loader/loader.o:(.debug_rnglists)
                0                0        0     1                 $d
                0                0      220     1 .debug_str_offsets
                0                0      220     1         build-loader/loader.o:(.debug_str_offsets)
                0                0        0     1                 $d
-               0                0      8a0     1 .debug_str
-               0                0      8a0     1         <internal>:(.debug_str)
-               0                0       e8     1 .debug_addr
-               0                0       e8     1         build-loader/loader.o:(.debug_addr)
+               0                0      860     1 .debug_str
+               0                0      860     1         <internal>:(.debug_str)
+               0                0       e0     1 .debug_addr
+               0                0       e0     1         build-loader/loader.o:(.debug_addr)
                0                0        0     1                 $d
                0                0      160     8 .debug_frame
                0                0      160     8         build-loader/loader.o:(.debug_frame)

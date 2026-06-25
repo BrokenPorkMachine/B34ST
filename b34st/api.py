@@ -13,7 +13,7 @@ import pathlib
 import sys
 from typing import Any
 
-from b34st.engine import B34STEngine
+from b34st.engine import B34STCLI
 
 
 class APIError(Exception):
@@ -24,20 +24,40 @@ class B34STApi:
     """B34ST API interface with FBR34KER compatibility."""
 
     def __init__(self, verbose: bool = False):
-        self.engine = B34STEngine(verbose=verbose)
+        self.engine = B34STCLI(verbose=verbose)
         self.verbose = verbose
 
     def validate_session(self, args: argparse.Namespace) -> int:
         """Validate a session bundle."""
-        return self.engine.handle_validate_session(args)
+        argv = ["--bundle", str(args.bundle)]
+        if getattr(args, "profile", None):
+            argv.extend(["--profile", str(args.profile)])
+        return self.engine._validate_session(argv)
 
     def physical_validation(self, args: argparse.Namespace) -> int:
         """Handle physical validation commands."""
-        return self.engine.handle_physical_validation(args)
+        argv = [
+            "candidate-report",
+            "--success", str(args.success),
+            "--failure", str(args.failure),
+            "--recovered", str(args.recovered),
+        ]
+        if getattr(args, "qemu_summary", None):
+            argv.extend(["--qemu-summary", str(args.qemu_summary)])
+        if getattr(args, "output", None):
+            argv.extend(["--output", str(args.output)])
+        return self.engine._physical_validation(argv)
 
     def hardware_prepare(self, args: argparse.Namespace) -> int:
         """Handle hardware preparation commands."""
-        return self.engine.handle_hardware_prepare(args)
+        argv: list[str] = []
+        if getattr(args, "list_categories", False):
+            argv.append("--list-categories")
+        if getattr(args, "save_checklists", None):
+            argv.extend(["--save-checklists", str(args.save_checklists)])
+        if getattr(args, "validate_bundle", None):
+            argv.extend(["--validate-bundle", str(args.validate_bundle)])
+        return self.engine._hardware_prepare(argv)
 
     def run_command(self, argv: list[str]) -> int:
         """Run B34ST command with API."""
@@ -98,7 +118,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     subparsers = parser.add_subparsers(
-        dest="command", help="fbr34kctl subcommand", required=True
+        dest="command", help="fbr34kctl subcommand"
     )
 
     # Validate bundle command
@@ -148,6 +168,9 @@ def main(argv: list[str] | None = None) -> int:
         print("B34ST 0.2.3 (FBR34KER Runtime Authentication Tool)")
         print("Physical Validation Candidate")
         return 0
+    if args.command is None:
+        parser.print_help()
+        return 1
 
     api = B34STApi(args.verbose)
 

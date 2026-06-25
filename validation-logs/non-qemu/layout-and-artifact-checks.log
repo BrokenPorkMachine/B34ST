@@ -1,0 +1,47 @@
+python3 scripts/verify_layout.py build/fbr34ker.elf --expected-entry 0x40080000
+layout verification passed
+  entry=0x0000000040080000
+  vectors=0x00000000400a2000 size=2048
+  stack=65536 bytes with 2x4096-byte guards
+  heap=4194304 bytes
+  build_info=0x00000000400a2800 size=148
+  crashlog=464 bytes
+  boot_evidence=0x00000000400acf80 size=56
+  relocations=none
+python3 scripts/verify_layout.py build-generic/fbr34ker-generic.elf --expected-entry 0x80000000
+layout verification passed
+  entry=0x0000000080000000
+  vectors=0x0000000080024800 size=2048
+  stack=65536 bytes with 2x4096-byte guards
+  heap=4194304 bytes
+  build_info=0x0000000080025000 size=148
+  crashlog=464 bytes
+  boot_evidence=0x000000008002f7f0 size=56
+  relocations=none
+python3 scripts/verify_layout.py build-loader/fbr34ker-qemu-loader.elf --expected-entry 0x40080000 --profile loader
+layout verification passed
+  entry=0x0000000040080000
+  text=0x0000000040080000 size=1200
+  stack=0x0000000040081000 size=32768
+  image_end=0x0000000040089000
+  window=524288 bytes
+  relocations=none
+python3 scripts/verify_layout.py build-hardware-probe/fbr34ker-hardware-probe.elf --expected-entry 0x80000000
+layout verification passed
+  entry=0x0000000080000000
+  vectors=0x0000000080024800 size=2048
+  stack=65536 bytes with 2x4096-byte guards
+  heap=4194304 bytes
+  build_info=0x0000000080025000 size=148
+  crashlog=464 bytes
+  boot_evidence=0x000000008002f7f0 size=56
+  relocations=none
+python3 host/fbr34kctl.py manifest build/fbr34ker.bin
+{
+  "file": "fbr34ker.bin",
+  "sha256": "567efc5df27cf6774d5f525b41f774e7b296fe651e763edc4ee4971c36162473",
+  "size": 183728
+}
+python3 host/boot_image.py inspect build-apple/a12/boot.img --json >/dev/null
+python3 host/boot_image.py inspect build-apple/a12x/boot.img --json >/dev/null
+python3 host/boot_image.py inspect build-apple/a13/boot.img --json >/dev/null

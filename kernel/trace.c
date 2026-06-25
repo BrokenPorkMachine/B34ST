@@ -80,6 +80,7 @@ const char *trace_category_name(fbr34ker_trace_category_t category)
     case FBR34KER_TRACE_FAULT: return "fault";
     case FBR34KER_TRACE_VALIDATION: return "validation";
     case FBR34KER_TRACE_PANIC: return "panic";
+    case FBR34KER_TRACE_COUNT: return "count";
     default: return "unknown";
     }
 }

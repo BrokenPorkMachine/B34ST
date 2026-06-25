@@ -81,6 +81,10 @@ bool event_bus_publish(fbr34ker_event_type_t type, const char *source,
         return true;
     }
     dispatching = true;
+    if (type >= 64U) {
+        dispatching = false;
+        return false;
+    }
     const u64 bit = 1ULL << (u32)type;
     for (usize index = 0U; index < statistics.subscriber_count; ++index) {
         if ((subscribers[index].mask & bit) == 0U) {
@@ -131,6 +135,11 @@ const char *event_type_name(fbr34ker_event_type_t type)
     case FBR34KER_EVENT_MODULE_UNLOADED: return "module-unloaded";
     case FBR34KER_EVENT_ROLLBACK: return "rollback";
     case FBR34KER_EVENT_VALIDATION: return "validation";
+    case FBR34KER_EVENT_KERNEL_PATCH: return "kernel-patch";
+    case FBR34KER_EVENT_SECURE_BOOT_BYPASS: return "secure-boot-bypass";
+    case FBR34KER_EVENT_PERSISTENCE: return "persistence";
+    case FBR34KER_EVENT_EXPLOIT_CHAIN: return "exploit-chain";
+    case FBR34KER_EVENT_COUNT: return "count";
     default: return "unknown";
     }
 }

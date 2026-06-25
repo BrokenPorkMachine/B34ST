@@ -116,6 +116,11 @@ def run_checks(require_qemu: bool) -> tuple[list[Check], dict[str, object]]:
         ("openssl", False, ("version",)),
         ("minisign", False, ("-v",)),
         ("irecovery", False, ("--version",)),
+        ("ideviceinfo", False, ("--version",)),
+        ("idevice_id", False, ("--version",)),
+        ("idevicerestore", False, ("--version",)),
+        ("ipsw", False, ("version",)),
+        ("curl", False, ("--version",)),
     )
     found: dict[str, str] = {}
     for name, required, arguments in specifications:

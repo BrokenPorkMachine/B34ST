@@ -11,6 +11,14 @@ changes, watchdog configuration, power actions, or reboot/halt callbacks.
 `bringup-exit unlock` is deliberately rejected. It does not provide arbitrary
 physical-memory reads or writes.
 
+Additionally, the probe image unconditionally locks all three exploit
+subsystems. The gating functions
+`hardware_probe_kernel_patching_allowed()`,
+`hardware_probe_secure_boot_bypass_allowed()`, and
+`hardware_probe_persistence_allowed()` always return false when
+compiled with `FBR34KER_PHYSICAL_PROBE_IMAGE=1`. Shell commands for
+all three subsystems remain visible but report the locked state.
+
 ## Read-only commands
 
 Useful commands include `probe-status`, `compatibility`, `exception-level`,

@@ -1,0 +1,136 @@
+{
+  "duration_ms": 35418,
+  "gate": "non-qemu",
+  "passed": true,
+  "project": "FBR34KER",
+  "schema_version": 1,
+  "stages": [
+    {
+      "command": [
+        "python3",
+        "scripts/doctor.py"
+      ],
+      "detail": "exit=0",
+      "duration_ms": 2044,
+      "log": "host-readiness.log",
+      "name": "host-readiness",
+      "returncode": 0,
+      "status": "passed"
+    },
+    {
+      "command": [
+        "make",
+        "check-launcher",
+        "check-scripts",
+        "check-install",
+        "abi-check",
+        "check-host"
+      ],
+      "detail": "exit=0",
+      "duration_ms": 9410,
+      "log": "host-tests.log",
+      "name": "host-tests",
+      "returncode": 0,
+      "status": "passed"
+    },
+    {
+      "command": [
+        "make",
+        "analyze"
+      ],
+      "detail": "exit=0",
+      "duration_ms": 5888,
+      "log": "monitor-analysis.log",
+      "name": "monitor-analysis",
+      "returncode": 0,
+      "status": "passed"
+    },
+    {
+      "command": [
+        "make",
+        "sdk-analyze"
+      ],
+      "detail": "exit=0",
+      "duration_ms": 860,
+      "log": "sdk-analysis.log",
+      "name": "sdk-analysis",
+      "returncode": 0,
+      "status": "passed"
+    },
+    {
+      "command": [
+        "make",
+        "check-native",
+        "check-loader-example"
+      ],
+      "detail": "exit=0",
+      "duration_ms": 9668,
+      "log": "native-tests.log",
+      "name": "native-tests",
+      "returncode": 0,
+      "status": "passed"
+    },
+    {
+      "command": [
+        "make",
+        "-j4",
+        "all",
+        "generic",
+        "hardware-probe",
+        "modules",
+        "sdk",
+        "generic-loader",
+        "apple-boot-images"
+      ],
+      "detail": "exit=0",
+      "duration_ms": 558,
+      "log": "release-build.log",
+      "name": "release-build",
+      "returncode": 0,
+      "status": "passed"
+    },
+    {
+      "command": [
+        "make",
+        "loader-check",
+        "loader-conformance-test",
+        "sdk-test",
+        "deployment-simulate",
+        "apple-bringup-simulate",
+        "physical-integration-simulate",
+        "physical-validation-candidate"
+      ],
+      "detail": "exit=0",
+      "duration_ms": 3863,
+      "log": "conformance.log",
+      "name": "conformance",
+      "returncode": 0,
+      "status": "passed"
+    },
+    {
+      "command": [
+        "make",
+        "manifest"
+      ],
+      "detail": "exit=0",
+      "duration_ms": 2642,
+      "log": "manifest.log",
+      "name": "manifest",
+      "returncode": 0,
+      "status": "passed"
+    },
+    {
+      "command": [
+        "make",
+        "verify-layouts"
+      ],
+      "detail": "exit=0",
+      "duration_ms": 479,
+      "log": "layout-and-artifact-checks.log",
+      "name": "layout-and-artifact-checks",
+      "returncode": 0,
+      "status": "passed"
+    }
+  ],
+  "version": "0.2.3"
+}

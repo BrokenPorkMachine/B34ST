@@ -1,5 +1,33 @@
 # Quick start
 
+## Guided execution
+
+From the project root, launch the goal-driven menu:
+
+```sh
+./scripts/B34ST
+```
+
+After installation, run `B34ST`. The lower-level `./fbr34ker` commands below
+remain suitable for scripts and repeatable automation.
+
+For an authorized, evidence-gated physical research-runtime workflow:
+
+```sh
+./scripts/B34ST research-runtime guided
+```
+
+This workflow requires an operator-supplied first-stage adapter or bridge and
+exact-kernel evidence. It does not synthesize an exploit payload or infer a
+jailbreak from textual command success.
+
+For targeted IPSW workflows, launch B34ST and select option 7. Downloads are
+restricted to HTTPS Apple domains. Signed upgrades use `idevicerestore`;
+unsigned downgrade targets require an external tether adapter.
+
+The initial B34ST screen automatically inspects the connected device and shows
+only actions valid for its current mode and available evidence.
+
 ## 1. Check the host
 
 ```sh
@@ -13,31 +41,39 @@
 ./fbr34ker test
 ```
 
-## 3. Build A12/A13 images
+## 3. Build and run the exploit chain
+
+```sh
+make exploit-chain
+```
+
+See `build-exploit/exploit-summary.txt` for the capability summary.
+
+## 4. Build A12/A13 images
 
 ```sh
 make apple-boot-images
 ```
 
-## 4. Inspect the selected image
+## 5. Inspect the selected image
 
 ```sh
 ./fbr34ker boot-image inspect build-apple/a12/boot.img --json
 ```
 
-## 5. Install optional iRecovery support
+## 6. Install optional iRecovery support
 
 ```sh
 brew install libirecovery
 ```
 
-## 6. Query the connected device
+## 7. Query the connected device
 
 ```sh
 ./fbr34ker irecovery query
 ```
 
-## 7. Dry-run the upload plan
+## 8. Dry-run the upload plan
 
 ```sh
 ./fbr34ker irecovery send \
@@ -46,7 +82,7 @@ brew install libirecovery
   --dry-run
 ```
 
-## 8. Upload in an authorized session
+## 9. Upload in an authorized session
 
 ```sh
 ./fbr34ker irecovery send \

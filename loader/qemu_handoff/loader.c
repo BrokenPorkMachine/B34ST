@@ -150,7 +150,7 @@ static u32 boot_cpu_id(void)
 {
     u64 value;
     __asm__ volatile("mrs %0, mpidr_el1" : "=r"(value));
-    return (u32)value;
+    return (u32)(value & 0xFFFFFFU);
 }
 
 static void initialize_uart(void)

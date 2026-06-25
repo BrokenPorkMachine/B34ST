@@ -21,15 +21,18 @@ def main() -> int:
         if not any(part in EXCLUDED_PARTS for part in path.relative_to(ROOT).parts)
         and not path.is_relative_to(ROOT / "sdk" / "templates")
     ]
+    root_script = ROOT / "fbr34ker"
+    if root_script.is_file() and root_script.read_text().startswith("#!/usr/bin/env python3"):
+        python_files.append(root_script)
     for path in sorted(python_files):
         try:
             compile(path.read_text(encoding="utf-8"), str(path), "exec")
         except (OSError, SyntaxError, UnicodeError) as exc:
             failures.append(f"{path.relative_to(ROOT)}: {exc}")
 
-    shell_files = [ROOT / "fbr34ker"]
-    shell_files.extend(sorted((ROOT / "scripts").glob("*.sh")))
+    shell_files = sorted((ROOT / "scripts").glob("*.sh"))
     shell_files.extend([ROOT / "host/fbr34kctl", ROOT / "host/forgectl",
+                        ROOT / "b34stctl", ROOT / "scripts/B34ST",
                         ROOT / "host/fbr34kdeploy",
                         ROOT / "host/fbr34kdeploy-target",
                         ROOT / "host/fbr34kbootimg", ROOT / "host/fbr34kirecovery",

@@ -1,6 +1,14 @@
 #include "fbr34ker/allocator.h"
 #include "fbr34ker/string.h"
 
+#ifdef FBR34KER_BUILD_TARGET
+#include "fbr34ker/log.h"
+#else
+#define log_trace(...)  ((void)0)
+#define log_warn(...)   ((void)0)
+#define log_error(...)  ((void)0)
+#endif
+
 #define ALLOCATION_MAGIC 0x46414c4c4f433031ULL
 #define ALLOCATION_STATE_ACTIVE 0xa110ca7eU
 #define ALLOCATION_STATE_FREED  0xfee1deadU
@@ -221,6 +229,9 @@ void *allocator_alloc(usize size, usize alignment)
     ++statistics.active_allocations;
     statistics.used = current_offset;
     statistics.remaining = statistics.capacity - current_offset;
+    log_trace("alloc %llu bytes -> %p (align %llu, hdr %p)",
+              (u64)size, (void *)payload, (u64)alignment,
+              (void *)header);
     return (void *)payload;
 }
 
@@ -233,16 +244,20 @@ bool allocator_free(void *pointer)
     }
     if (header->state == ALLOCATION_STATE_FREED) {
         ++statistics.double_frees;
+        log_warn("allocator: double free at %p", pointer);
         return false;
     }
     if (header->state != ALLOCATION_STATE_ACTIVE) {
         ++statistics.corruptions;
+        log_error("allocator: corrupt state 0x%08x at %p",
+                  header->state, pointer);
         return false;
     }
     fm_memset(pointer, FREED_BYTE, header->requested_size);
     header->state = ALLOCATION_STATE_FREED;
     --statistics.active_allocations;
     ++statistics.frees;
+    log_trace("free %p (%llu bytes)", pointer, (u64)header->requested_size);
     return true;
 }
 

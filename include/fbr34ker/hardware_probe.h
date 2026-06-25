@@ -6,6 +6,9 @@ typedef enum {
     HARDWARE_PROBE_FEATURE_FRAMEBUFFER = 1,
     HARDWARE_PROBE_FEATURE_WATCHDOG = 2,
     HARDWARE_PROBE_FEATURE_POWER = 3,
+    HARDWARE_PROBE_FEATURE_KERNEL_PATCHING = 4,
+    HARDWARE_PROBE_FEATURE_SECURE_BOOT_BYPASS = 5,
+    HARDWARE_PROBE_FEATURE_PERSISTENCE = 6,
 } hardware_probe_feature_t;
 
 typedef enum {
@@ -25,6 +28,9 @@ typedef struct {
     bool framebuffer_validated;
     bool watchdog_validated;
     bool power_validated;
+    bool kernel_patching_validated;
+    bool secure_boot_bypass_validated;
+    bool persistence_validated;
 } hardware_probe_status_t;
 
 void hardware_probe_init(void);
@@ -53,3 +59,9 @@ hardware_compatibility_state_t hardware_probe_watchdog_state(void);
 hardware_compatibility_state_t hardware_probe_framebuffer_state(void);
 hardware_compatibility_state_t hardware_probe_module_state(void);
 hardware_compatibility_state_t hardware_probe_power_state(void);
+bool hardware_probe_kernel_patching_allowed(void);
+bool hardware_probe_secure_boot_bypass_allowed(void);
+bool hardware_probe_persistence_allowed(void);
+hardware_compatibility_state_t hardware_probe_kernel_patching_state(void);
+hardware_compatibility_state_t hardware_probe_secure_boot_bypass_state(void);
+hardware_compatibility_state_t hardware_probe_persistence_state(void);

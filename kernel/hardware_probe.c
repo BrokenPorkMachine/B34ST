@@ -16,6 +16,15 @@ static bool compiled_immutable(void)
 #endif
 }
 
+static bool security_model_compiled(void)
+{
+#ifdef FBR34KER_ENABLE_SECURITY_MODEL
+    return true;
+#else
+    return false;
+#endif
+}
+
 void hardware_probe_init(void)
 {
     const bool external_handoff = fbr34ker_handoff_active() != NULL;
@@ -28,6 +37,9 @@ void hardware_probe_init(void)
         .framebuffer_validated = false,
         .watchdog_validated = false,
         .power_validated = false,
+        .kernel_patching_validated = false,
+        .secure_boot_bypass_validated = false,
+        .persistence_validated = false,
     };
 }
 
@@ -76,6 +88,15 @@ bool hardware_probe_mark_validated(hardware_probe_feature_t feature,
         return true;
     case HARDWARE_PROBE_FEATURE_POWER:
         status.power_validated = validated;
+        return true;
+    case HARDWARE_PROBE_FEATURE_KERNEL_PATCHING:
+        status.kernel_patching_validated = validated;
+        return true;
+    case HARDWARE_PROBE_FEATURE_SECURE_BOOT_BYPASS:
+        status.secure_boot_bypass_validated = validated;
+        return true;
+    case HARDWARE_PROBE_FEATURE_PERSISTENCE:
+        status.persistence_validated = validated;
         return true;
     default:
         return false;
@@ -231,6 +252,57 @@ hardware_compatibility_state_t hardware_probe_power_state(void)
         return HARDWARE_COMPAT_UNSUPPORTED;
     }
     if (status.active || !status.power_validated) {
+        return HARDWARE_COMPAT_LOCKED;
+    }
+    return HARDWARE_COMPAT_PASS;
+}
+
+bool hardware_probe_kernel_patching_allowed(void)
+{
+    return security_model_compiled() && !compiled_immutable() && (!defensive_context ||
+        (!status.active && status.kernel_patching_validated));
+}
+
+bool hardware_probe_secure_boot_bypass_allowed(void)
+{
+    return security_model_compiled() && !compiled_immutable() && (!defensive_context ||
+        (!status.active && status.secure_boot_bypass_validated));
+}
+
+bool hardware_probe_persistence_allowed(void)
+{
+    return security_model_compiled() && !compiled_immutable() && (!defensive_context ||
+        (!status.active && status.persistence_validated));
+}
+
+hardware_compatibility_state_t hardware_probe_kernel_patching_state(void)
+{
+    if (!security_model_compiled() || compiled_immutable()) {
+        return HARDWARE_COMPAT_UNSUPPORTED;
+    }
+    if (status.active || !status.kernel_patching_validated) {
+        return HARDWARE_COMPAT_LOCKED;
+    }
+    return HARDWARE_COMPAT_PASS;
+}
+
+hardware_compatibility_state_t hardware_probe_secure_boot_bypass_state(void)
+{
+    if (!security_model_compiled() || compiled_immutable()) {
+        return HARDWARE_COMPAT_UNSUPPORTED;
+    }
+    if (status.active || !status.secure_boot_bypass_validated) {
+        return HARDWARE_COMPAT_LOCKED;
+    }
+    return HARDWARE_COMPAT_PASS;
+}
+
+hardware_compatibility_state_t hardware_probe_persistence_state(void)
+{
+    if (!security_model_compiled() || compiled_immutable()) {
+        return HARDWARE_COMPAT_UNSUPPORTED;
+    }
+    if (status.active || !status.persistence_validated) {
         return HARDWARE_COMPAT_LOCKED;
     }
     return HARDWARE_COMPAT_PASS;

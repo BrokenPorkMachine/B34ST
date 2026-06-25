@@ -4,8 +4,9 @@
 #include "fbr34ker/timer.h"
 #include <stdarg.h>
 
-#define LOG_ENTRY_COUNT 32U
-#define LOG_TEXT_SIZE 112U
+#define LOG_ENTRY_COUNT 64U
+#define LOG_TEXT_SIZE 160U
+#define LOG_DEFAULT_LEVEL LOG_LEVEL_INFO
 
 typedef struct {
     u64 timestamp_ms;
@@ -16,15 +17,28 @@ typedef struct {
 static log_entry_t entries[LOG_ENTRY_COUNT];
 static usize next_entry;
 static usize stored_entries;
+static log_level_t current_level = LOG_DEFAULT_LEVEL;
 
-static const char *level_name(log_level_t level)
+void log_set_level(log_level_t level)
+{
+    current_level = level;
+}
+
+log_level_t log_get_level(void)
+{
+    return current_level;
+}
+
+const char *log_level_name(log_level_t level)
 {
     switch (level) {
-    case LOG_LEVEL_DEBUG: return "DEBUG";
-    case LOG_LEVEL_INFO:  return "INFO";
-    case LOG_LEVEL_WARN:  return "WARN";
-    case LOG_LEVEL_ERROR: return "ERROR";
-    default:              return "?";
+    case LOG_LEVEL_TRACE:   return "TRACE";
+    case LOG_LEVEL_DEBUG:   return "DEBUG";
+    case LOG_LEVEL_INFO:    return "INFO";
+    case LOG_LEVEL_VERBOSE: return "VERBOSE";
+    case LOG_LEVEL_WARN:    return "WARN";
+    case LOG_LEVEL_ERROR:   return "ERROR";
+    default:                return "?";
     }
 }
 
@@ -33,10 +47,15 @@ void log_init(void)
     fm_memset(entries, 0, sizeof(entries));
     next_entry = 0U;
     stored_entries = 0U;
+    current_level = LOG_DEFAULT_LEVEL;
 }
 
 void log_write(log_level_t level, const char *format, ...)
 {
+    if (level < current_level) {
+        return;
+    }
+
     log_entry_t *entry = &entries[next_entry];
     entry->timestamp_ms = timer_uptime_ms();
     entry->level = level;
@@ -47,7 +66,7 @@ void log_write(log_level_t level, const char *format, ...)
     va_end(arguments);
 
     fm_printf("[%llu ms] %s: %s\n", entry->timestamp_ms,
-              level_name(level), entry->text);
+              log_level_name(level), entry->text);
 
     next_entry = (next_entry + 1U) % LOG_ENTRY_COUNT;
     if (stored_entries < LOG_ENTRY_COUNT) {
@@ -88,7 +107,7 @@ usize log_export_text(char *buffer, usize capacity)
     for (usize index = 0U; index < stored_entries; ++index) {
         const log_entry_t *entry = &entries[(first + index) % LOG_ENTRY_COUNT];
         offset = append_text(buffer, capacity, offset, "[%llu ms] %s: %s\n",
-                             entry->timestamp_ms, level_name(entry->level),
+                             entry->timestamp_ms, log_level_name(entry->level),
                              entry->text);
         if (offset + 1U >= capacity) {
             break;
@@ -99,7 +118,7 @@ usize log_export_text(char *buffer, usize capacity)
 
 void log_dump(void)
 {
-    char text[4096];
+    char text[8192];
     const usize length = log_export_text(text, sizeof(text));
     if (length != 0U) {
         fm_printf("%s", text);

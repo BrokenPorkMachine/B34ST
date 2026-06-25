@@ -19,6 +19,8 @@ typedef enum {
     FBR34KER_DEVICE_WATCHDOG,
     FBR34KER_DEVICE_POWER,
     FBR34KER_DEVICE_FRAMEBUFFER,
+    FBR34KER_DEVICE_USB,
+    FBR34KER_DEVICE_I2C,
     FBR34KER_DEVICE_COUNT
 } fbr34ker_device_type_t;
 
@@ -67,3 +69,6 @@ const fbr34ker_board_device_t *board_find_device(fbr34ker_device_type_t type,
 const char *board_source_name(fbr34ker_board_source_t source);
 const char *board_device_type_name(fbr34ker_device_type_t type);
 usize board_export_json(char *buffer, usize capacity);
+bool board_add_device(const char *name, const char *compatible,
+                       fbr34ker_device_type_t type, u32 flags,
+                       u64 base, u64 size, u64 clock_hz, u32 interrupt);

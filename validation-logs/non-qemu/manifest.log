@@ -1,0 +1,284 @@
+/Applications/Xcode.app/Contents/Developer/usr/bin/make FBR34KER_PLATFORM=generic_arm64 BUILD_DIR=build-generic \
+		TARGET=build-generic/fbr34ker-generic all
+make[2]: Nothing to be done for `all'.
+/Applications/Xcode.app/Contents/Developer/usr/bin/make FBR34KER_PLATFORM=generic_arm64 BUILD_DIR=build-hardware-probe \
+		TARGET=build-hardware-probe/fbr34ker-hardware-probe \
+		EXTRA_CFLAGS=-DFBR34KER_PHYSICAL_PROBE_IMAGE=1 all
+make[2]: Nothing to be done for `all'.
+rm -rf build/loader-simulation
+python3 host/fbr34kctl.py loader-simulate examples/handoff-v4.json \
+		--image build-generic/fbr34ker-generic.elf \
+		--module build/modules/hello-dynamic.fmod --output build/loader-simulation >/dev/null
+python3 host/fbr34kctl.py loader-report \
+		build/loader-simulation/loader-conformance.json
+FBR34KER loader conformance: PASS
+Entry point: 0x80000000
+Handoff: 0x80800200
+[supported  ] handoff-schema: handoff-v4 design validated
+[supported  ] elf-architecture: ELF64 little-endian AArch64 image validated
+[supported  ] monitor-placement: all ELF load segments fit the executable monitor region
+[not-tested ] callback-materialization: synthetic trap callbacks were materialized for offline structure validation
+[not-tested ] device-tree: no DTB was supplied to the simulator
+[supported  ] boot-modules: boot modules fit granted readable memory
+[supported  ] writable-executable-regions: no usable or MMIO region is executable
+[not-tested ] runtime-input: callback structure materialized but not executed
+[not-tested ] runtime-timer: callback structure materialized but not executed
+[not-tested ] runtime-power: callback structure materialized but not executed
+[unsupported] interrupt-controller: loader design has no interrupt-controller service
+python3 host/fbr34kctl.py handoff-build examples/handoff-v4.json build/loader-simulation/handoff-v4.fbhb >/dev/null
+python3 host/fbr34kctl.py handoff-roundtrip build/loader-simulation/handoff-v4.fbhb >/dev/null
+python3 host/fbr34kctl.py loader-conformance --handoff build/loader-simulation/handoff-v4.fbhb \
+		--profile examples/hardware-profile.json --report build/loader-simulation/sdk-conformance.json >/dev/null
+rm -rf build/deployment-simulation
+python3 scripts/run_deployment_simulation.py --output build/deployment-simulation
+{
+  "arbitrary_memory": false,
+  "artifact_count": 2,
+  "evidence_bundle": "build/deployment-simulation/evidence.zip",
+  "exploit_transport": false,
+  "profile": "qemu-virt-development",
+  "result": "pass",
+  "retry_count": 1,
+  "schema_version": 1,
+  "started": true
+}
+rm -rf build-apple
+python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
+		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/loader-simulation/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/a12/boot.img \
+		--raw-output build-apple/a12/boot.raw
+{
+  "component_count": 3,
+  "family": "a12",
+  "manifest": {
+    "alignment": 4096,
+    "components": [
+      {
+        "entry_address": 2147483648,
+        "load_address": 2147483648,
+        "name": "fbr34ker-generic.bin",
+        "offset": 20480,
+        "role": "monitor",
+        "sha256": "429905eacf70331e491a72044e1d9d1d27536a0c7ed91d5ea1643d4f0f7b04f8",
+        "size": 194080
+      },
+      {
+        "entry_address": 0,
+        "load_address": 0,
+        "name": "handoff-v4.fbhb",
+        "offset": 217088,
+        "role": "handoff",
+        "sha256": "6e9e0455b5b66c8aa595457a7dd6b408ff0998b55e6e46419022af0f5a4c8a76",
+        "size": 1072
+      },
+      {
+        "entry_address": 0,
+        "load_address": 0,
+        "name": "hello-dynamic.fmod",
+        "offset": 221184,
+        "role": "module",
+        "sha256": "882a7c0792b4482920e420acf23dbb245e2d3c306f1ca0a70f25a9d2f6bdc8f1",
+        "size": 299
+      }
+    ],
+    "cpids": [
+      "0x8020"
+    ],
+    "direct_stock_iboot_compatible": false,
+    "execution_contract": "external-authorized-loader",
+    "family": "a12",
+    "format": "fbri-v1",
+    "image_size": 225280,
+    "profile_id": "apple-a12-recovery",
+    "project": "FBR34KER",
+    "release_version": "0.2.3",
+    "schema_version": 1
+  },
+  "path": "build-apple/a12/boot.img",
+  "sha256": "9e7d315d17f737c44461702619d43a6627ca75c630aa0da3055a14ddd4d847be",
+  "size": 225280
+}
+python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
+		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/loader-simulation/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/a12x/boot.img \
+		--raw-output build-apple/a12x/boot.raw
+{
+  "component_count": 3,
+  "family": "a12x",
+  "manifest": {
+    "alignment": 4096,
+    "components": [
+      {
+        "entry_address": 2147483648,
+        "load_address": 2147483648,
+        "name": "fbr34ker-generic.bin",
+        "offset": 20480,
+        "role": "monitor",
+        "sha256": "429905eacf70331e491a72044e1d9d1d27536a0c7ed91d5ea1643d4f0f7b04f8",
+        "size": 194080
+      },
+      {
+        "entry_address": 0,
+        "load_address": 0,
+        "name": "handoff-v4.fbhb",
+        "offset": 217088,
+        "role": "handoff",
+        "sha256": "6e9e0455b5b66c8aa595457a7dd6b408ff0998b55e6e46419022af0f5a4c8a76",
+        "size": 1072
+      },
+      {
+        "entry_address": 0,
+        "load_address": 0,
+        "name": "hello-dynamic.fmod",
+        "offset": 221184,
+        "role": "module",
+        "sha256": "882a7c0792b4482920e420acf23dbb245e2d3c306f1ca0a70f25a9d2f6bdc8f1",
+        "size": 299
+      }
+    ],
+    "cpids": [
+      "0x8027"
+    ],
+    "direct_stock_iboot_compatible": false,
+    "execution_contract": "external-authorized-loader",
+    "family": "a12x",
+    "format": "fbri-v1",
+    "image_size": 225280,
+    "profile_id": "apple-a12x-a12z-recovery-experimental",
+    "project": "FBR34KER",
+    "release_version": "0.2.3",
+    "schema_version": 1
+  },
+  "path": "build-apple/a12x/boot.img",
+  "sha256": "d05acb064d61685c401b085bd66982e6803f37b789a8dfe3cac6d967e0a0268f",
+  "size": 225280
+}
+python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
+		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/loader-simulation/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/a13/boot.img \
+		--raw-output build-apple/a13/boot.raw
+{
+  "component_count": 3,
+  "family": "a13",
+  "manifest": {
+    "alignment": 4096,
+    "components": [
+      {
+        "entry_address": 2147483648,
+        "load_address": 2147483648,
+        "name": "fbr34ker-generic.bin",
+        "offset": 20480,
+        "role": "monitor",
+        "sha256": "429905eacf70331e491a72044e1d9d1d27536a0c7ed91d5ea1643d4f0f7b04f8",
+        "size": 194080
+      },
+      {
+        "entry_address": 0,
+        "load_address": 0,
+        "name": "handoff-v4.fbhb",
+        "offset": 217088,
+        "role": "handoff",
+        "sha256": "6e9e0455b5b66c8aa595457a7dd6b408ff0998b55e6e46419022af0f5a4c8a76",
+        "size": 1072
+      },
+      {
+        "entry_address": 0,
+        "load_address": 0,
+        "name": "hello-dynamic.fmod",
+        "offset": 221184,
+        "role": "module",
+        "sha256": "882a7c0792b4482920e420acf23dbb245e2d3c306f1ca0a70f25a9d2f6bdc8f1",
+        "size": 299
+      }
+    ],
+    "cpids": [
+      "0x8030"
+    ],
+    "direct_stock_iboot_compatible": false,
+    "execution_contract": "external-authorized-loader",
+    "family": "a13",
+    "format": "fbri-v1",
+    "image_size": 225280,
+    "profile_id": "apple-a13-recovery",
+    "project": "FBR34KER",
+    "release_version": "0.2.3",
+    "schema_version": 1
+  },
+  "path": "build-apple/a13/boot.img",
+  "sha256": "a8d51a94f034b1ca2ab856041ff3fc4b6c34efc736612c1e52a82492d0c16928",
+  "size": 225280
+}
+python3 host/boot_image.py inspect build-apple/a12/boot.img --json >/dev/null
+python3 host/boot_image.py inspect build-apple/a12x/boot.img --json >/dev/null
+python3 host/boot_image.py inspect build-apple/a13/boot.img --json >/dev/null
+rm -rf build-apple/bringup-simulation
+python3 scripts/run_hardware_bringup_simulation.py \
+		--output build-apple/bringup-simulation \
+		--image build-apple/a13/boot.img \
+		--profile profiles/apple-a13-recovery.json \
+		--device-info examples/a13-device-info.json
+./build-apple/bringup-simulation/simulation-summary.json
+rm -rf build-apple/physical-integration-simulation
+python3 scripts/run_physical_integration_simulation.py \
+		--output build-apple/physical-integration-simulation \
+		--image build-apple/a13/boot.img \
+		--profile profiles/apple-a13-iphone-recovery.json \
+		--device-info examples/a13-device-info.json
+./build-apple/physical-integration-simulation/simulation-summary.json
+rm -rf build-apple/physical-validation-candidate
+python3 scripts/run_physical_validation_candidate.py \
+		--output build-apple/physical-validation-candidate \
+		--image build-apple/a13/boot.img \
+		--profile profiles/apple-a13-iphone-recovery.json \
+		--device-info examples/a13-device-info.json \
+
+build-apple/physical-validation-candidate/summary.json
+python3 host/physical_validation.py validate-session \
+		build-apple/physical-validation-candidate/success-session.zip >/dev/null
+python3 host/physical_validation.py validate-session \
+		build-apple/physical-validation-candidate/recovered-session.zip >/dev/null
+python3 scripts/release_manifest.py \
+		--version 0.2.3 --channel validation-candidate \
+		--source-id 0.2.3-validation-candidate --release-name FBR34KER_0.2.3_Physical_Validation_Candidate \
+		--output RELEASE_MANIFEST.json --checksums CHECKSUMS.sha256 \
+		build/fbr34ker.bin build/fbr34ker.elf build/fbr34ker.map \
+		build-generic/fbr34ker-generic.bin build-generic/fbr34ker-generic.elf \
+		build-generic/fbr34ker-generic.map build/modules/hello-dynamic.fmod \
+		build/loader-simulation/loader-conformance.json \
+		build/loader-simulation/handoff-v4.bin \
+		build/loader-simulation/memory-regions.bin \
+		build/loader-simulation/platform-services.bin \
+		build/loader-simulation/callback-stubs.bin \
+		build/loader-simulation/boot-modules.bin \
+		build/loader-simulation/normalized-handoff.json \
+		build/loader-simulation/sparse-memory.json \
+		build-loader/fbr34ker-qemu-loader.bin build-loader/fbr34ker-qemu-loader.elf \
+		build-loader/fbr34ker-qemu-loader.map \
+		build-hardware-probe/fbr34ker-hardware-probe.bin build-hardware-probe/fbr34ker-hardware-probe.elf \
+		build-hardware-probe/fbr34ker-hardware-probe.map \
+		build-sdk/libfbr34ker_sdk.a build/loader-simulation/handoff-v4.fbhb build/loader-simulation/sdk-conformance.json \
+		build/deployment-simulation/simulation-summary.json \
+		build/deployment-simulation/evidence.zip \
+		build-apple/a12/boot.img build-apple/a12/boot.img.json \
+		build-apple/a12/boot.raw build-apple/a12/boot.raw.json \
+		build-apple/a12x/boot.img build-apple/a12x/boot.img.json \
+		build-apple/a12x/boot.raw build-apple/a12x/boot.raw.json \
+		build-apple/a13/boot.img build-apple/a13/boot.img.json \
+		build-apple/a13/boot.raw build-apple/a13/boot.raw.json \
+		build-apple/bringup-simulation/simulation-summary.json \
+		build-apple/bringup-simulation/success-evidence.zip \
+		build-apple/bringup-simulation/failure-evidence.zip \
+		build-apple/bringup-simulation/recovered-evidence.zip \
+		build-apple/physical-integration-simulation/simulation-summary.json \
+		build-apple/physical-integration-simulation/success-session.zip \
+		build-apple/physical-integration-simulation/failure-session.zip \
+		build-apple/physical-integration-simulation/recovered-session.zip \
+		build-apple/physical-validation-candidate/summary.json \
+		build-apple/physical-validation-candidate/candidate-report.json \
+		build-apple/physical-validation-candidate/qemu-summary.json \
+		build-apple/physical-validation-candidate/success-session.zip \
+		build-apple/physical-validation-candidate/failure-session.zip \
+		build-apple/physical-validation-candidate/recovered-session.zip \
+		build-apple/physical-validation-candidate/failure-matrix/console.zip \
+		build-apple/physical-validation-candidate/failure-matrix/memory-map.zip \
+		build-apple/physical-validation-candidate/failure-matrix/timer.zip \
+		build-apple/physical-validation-candidate/failure-matrix/boot-evidence.zip
+RELEASE_MANIFEST.json
+CHECKSUMS.sha256

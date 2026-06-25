@@ -22,7 +22,9 @@ static const char *const allowed_commands[] = {
     "architecture", "components", "service-registry", "drivers", "events",
     "trace", "trace-json", "fault-status", "crash-json", "board-info",
     "hardware-inventory", "board-json", "mmio-map", "physical-memory",
-    "bringup-report", "bringup-json", "boot-evidence", "boot-evidence-json"
+    "bringup-report", "bringup-json", "boot-evidence", "boot-evidence-json",
+    "kernel-patches", "secure-boot-bypass", "persistence",
+    "exploit-chain", "exploit-status"
 };
 
 void bringup_init(void)

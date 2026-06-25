@@ -26,6 +26,17 @@ An independently authorized loader may supply the same handoff ABI. Generic boot
 
 FBR34KER does not install an MMU. A loader must document inherited translation and cache state.
 
+## Security-state models
+
+Version 0.2.3 includes bounded in-memory models for patch, boot-policy, and
+persistence concepts. They exist to validate interface shape, status output,
+policy gates, event wiring, and failure handling. They do not modify target
+memory, Apple trust policy, filesystems, or reboot state.
+
+Release builds do not define `FBR34KER_ENABLE_SECURITY_MODEL`, so mutation
+operations return failure. Immutable probe images remain locked regardless of
+build options. A native harness verifies the release-default boundary.
+
 ## Runtime architecture graph
 
 Version 0.2.3 retains an allocation-free orchestration layer with fixed compile-time capacities.
@@ -45,7 +56,8 @@ No heap allocation, dynamic native loading, scheduler, thread, or preemption dep
 
 The event bus retains 32 fixed-size records and up to eight synchronous subscribers. Each record contains a monotonic sequence, event type, bounded source name, and two integer values. When full, the oldest record is overwritten and the overwrite count is retained. Recursive dispatch is rejected and counted rather than allowing unbounded callback recursion.
 
-Events cover boot, component state, service state, driver state, bring-up mode, and module load/execute/unload transitions.
+Events cover boot, component state, service state, driver state, bring-up mode,
+module load/execute/unload transitions, and disabled security-model state.
 
 ## Service registry
 
@@ -76,7 +88,7 @@ When immutable-probe policy is active, mutation-capable framebuffer, interrupt, 
 ## Layers
 
 - `arch/arm64`: entry, vectors, and CPU helpers
-- `kernel`: lifecycle, events, service/driver orchestration, shell, framing, FDT, crash handling, allocator, consoles, and modules
+- `kernel`: lifecycle, events, service/driver orchestration, shell, framing, FDT, crash handling, allocator, consoles, modules, kernel patching, secure boot bypass, and persistence
 - `platform/qemu_virt`: PL011, timer, PSCI, GICv3, and semihosting
 - `platform/generic_arm64`: handoff callback/FDT adapter
 - `platform/gic.c`: compact GICv2/GICv3 implementation

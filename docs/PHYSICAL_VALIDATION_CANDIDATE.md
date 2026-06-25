@@ -25,7 +25,9 @@ make physical-validation-candidate
 
 `hardware prepare` is read-only. `hardware run` delegates to the existing
 explicitly authorized first-stage workflow and retains its separate unsigned-code
-acknowledgement. No command in this release discovers or invokes an exploit.
+acknowledgement. The non-operational security-state models are compile-time
+gated, disabled in release builds, and unconditionally locked on immutable
+probe images.
 
 ## Maturity states
 

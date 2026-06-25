@@ -23,7 +23,10 @@ case "$PREFIX" in /*) ;; *) echo "PREFIX must be absolute" >&2; exit 2 ;; esac
 case "$DESTDIR" in ""|/*) ;; *) echo "DESTDIR must be empty or absolute" >&2; exit 2 ;; esac
 
 rm -f "$DESTDIR$PREFIX/bin/fbr34ker"
+rm -f "$DESTDIR$PREFIX/bin/B34ST"
+rm -f "$DESTDIR$PREFIX/bin/b34stctl"
 rm -f "$DESTDIR$PREFIX/share/man/man1/fbr34ker.1"
+rm -f "$DESTDIR$PREFIX/share/man/man1/B34ST.1"
 rm -f "$DESTDIR$PREFIX/share/bash-completion/completions/fbr34ker"
 rm -f "$DESTDIR$PREFIX/share/zsh/site-functions/_fbr34ker"
 rm -rf "$DESTDIR$PREFIX/share/fbr34ker"

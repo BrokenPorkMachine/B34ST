@@ -33,8 +33,19 @@ static fbr34ker_trace_category_t trace_category_for_event(fbr34ker_event_type_t 
     case FBR34KER_EVENT_COMPONENT_STATE:
     case FBR34KER_EVENT_ROLLBACK: return FBR34KER_TRACE_LIFECYCLE;
     case FBR34KER_EVENT_VALIDATION: return FBR34KER_TRACE_VALIDATION;
-    default: return FBR34KER_TRACE_BOOT;
+    case FBR34KER_EVENT_BOOT:
+    case FBR34KER_EVENT_BRINGUP_MODE:
+    case FBR34KER_EVENT_MODULE_LOADED:
+    case FBR34KER_EVENT_MODULE_EXECUTED:
+    case FBR34KER_EVENT_MODULE_UNLOADED:
+    case FBR34KER_EVENT_KERNEL_PATCH:
+    case FBR34KER_EVENT_SECURE_BOOT_BYPASS:
+    case FBR34KER_EVENT_PERSISTENCE:
+    case FBR34KER_EVENT_EXPLOIT_CHAIN:
+    case FBR34KER_EVENT_COUNT:
+        return FBR34KER_TRACE_BOOT;
     }
+    return FBR34KER_TRACE_BOOT;
 }
 
 static void trace_event(const fbr34ker_event_t *event, void *context)

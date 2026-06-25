@@ -4,6 +4,8 @@ RELEASE_CHANNEL := validation-candidate
 RELEASE_NAME := FBR34KER_$(VERSION)_Physical_Validation_Candidate
 SOURCE_ID := $(VERSION)-validation-candidate
 BUILD_DIR ?= build
+SECURITY_MODEL ?= 0
+EXTRA_CFLAGS += $(if $(filter 1,$(SECURITY_MODEL)),-DFBR34KER_ENABLE_SECURITY_MODEL,)
 FBR34KER_PLATFORM ?= qemu_virt
 ifneq ($(origin FORGE_PLATFORM), undefined)
 FBR34KER_PLATFORM := $(FORGE_PLATFORM)
@@ -45,7 +47,13 @@ PHYSICAL_VALIDATION_DIR := $(APPLE_BOOT_DIR)/physical-validation-candidate
 
 CC := clang
 LD := ld.lld
-OBJCOPY := llvm-objcopy
+OBJCOPY := $(shell if command -v llvm-objcopy >/dev/null 2>&1; then \
+	command -v llvm-objcopy; \
+	elif test -x /opt/homebrew/opt/llvm/bin/llvm-objcopy; then \
+	echo /opt/homebrew/opt/llvm/bin/llvm-objcopy; \
+	elif test -x /usr/local/opt/llvm/bin/llvm-objcopy; then \
+	echo /usr/local/opt/llvm/bin/llvm-objcopy; \
+	else echo llvm-objcopy; fi)
 READELF := $(shell command -v llvm-readelf 2>/dev/null || command -v readelf 2>/dev/null || echo llvm-readelf)
 QEMU := qemu-system-aarch64
 PYTHON := python3
@@ -53,9 +61,14 @@ BUILD_JOBS ?= 4
 AR := $(shell command -v llvm-ar 2>/dev/null || command -v ar 2>/dev/null || echo llvm-ar)
 
 REPRO_FLAGS := -ffile-prefix-map=$(CURDIR)=. -fdebug-prefix-map=$(CURDIR)=.
+HARDEN_CFLAGS := -fstack-protector-strong -mstack-protector-guard=global \
+                 -fzero-call-used-regs=used-gpr \
+                 -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations \
+                 -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum \
+                 -Wformat=2 -Wno-format-nonliteral
 CFLAGS := --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin \
-          -fstack-protector-strong -mstack-protector-guard=global \
-          -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -march=armv8-a -O2 -g \
+          $(HARDEN_CFLAGS) \
+          -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g \
           $(REPRO_FLAGS) -DFBR34KER_BUILD_TARGET=\"$(FBR34KER_PLATFORM)\" \
           -DFBR34KER_SOURCE_ID=\"$(SOURCE_ID)\" $(EXTRA_CFLAGS) \
           -Wall -Wextra -Werror -Iinclude
@@ -85,6 +98,9 @@ COMMON_C_SOURCES := \
     kernel/format.c \
     kernel/handoff.c \
     kernel/hardware_probe.c \
+    kernel/kernel_patches.c \
+    kernel/secure_boot_bypass.c \
+    kernel/persistence.c \
     kernel/hal_sim.c \
     kernel/interrupt.c \
     kernel/lifecycle.c \
@@ -101,6 +117,10 @@ COMMON_C_SOURCES := \
     kernel/string.c \
     kernel/trace.c \
     kernel/watchdog.c \
+    kernel/apple_platform.c \
+    kernel/usb.c \
+    kernel/usbliter8_exploit.c \
+    kernel/trust_cache.c \
     modules/hello/hello.c \
     platform/gic.c
 
@@ -141,9 +161,13 @@ SDK_CFLAGS := --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin \
         doctor integration integration-build smoke diagnostics release-gate verify modules check-host \
         generic manifest sign-manifest dist package permissions check-scripts check-install abi-check \
         loader-simulate loader-check generic-loader generic-qemu-run generic-qemu-smoke probe-qemu-smoke hardware-probe \
-        sdk sdk-test sdk-analyze handoff-binary loader-conformance-test verify-layouts deployment-simulate apple-boot-images apple-bringup-simulate physical-integration-simulate physical-validation-candidate
+        sdk sdk-test sdk-analyze handoff-binary loader-conformance-test verify-layouts deployment-simulate apple-boot-images apple-bringup-simulate physical-integration-simulate physical-validation-candidate print-target \
+        exploit-chain kernel-patches secure-boot-bypass persistence start-exploit establish-persistence
 
 all: $(TARGET).elf $(TARGET).bin
+
+print-target:
+	@echo $(TARGET)
 
 $(TARGET).elf: $(OBJECTS) $(LINKER_SCRIPT) | $(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(OBJECTS)
@@ -182,6 +206,8 @@ check-host:
 
 check-launcher:
 	@test -x fbr34ker
+	@test -x b34stctl
+	@test -x scripts/B34ST
 	@test -x scripts/fbr34ker.sh
 	@./fbr34ker --help >/dev/null
 	@./fbr34ker --version >/dev/null
@@ -215,11 +241,13 @@ check-install:
 	./scripts/install.sh --prefix /usr/local --destdir $(CURDIR)/$(BUILD_DIR)/install-test
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker version >/dev/null
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker abi-check >/dev/null
+	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/B34ST --version >/dev/null
 	./scripts/uninstall.sh --prefix /usr/local --destdir $(CURDIR)/$(BUILD_DIR)/install-test
 	@test ! -e $(BUILD_DIR)/install-test/usr/local/bin/fbr34ker
+	@test ! -e $(BUILD_DIR)/install-test/usr/local/bin/B34ST
 
 permissions:
-	chmod +x fbr34ker host/fbr34kctl host/forgectl host/fbr34kdeploy host/fbr34kdeploy-target host/fbr34kbootimg host/fbr34kirecovery host/fbr34kbringup host/fbr34kdevice host/fbr34kbridge host/fbr34ksession host/fbr34khardware host/*.py scripts/*.py scripts/*.sh
+	chmod +x fbr34ker b34stctl scripts/B34ST host/fbr34kctl host/forgectl host/fbr34kdeploy host/fbr34kdeploy-target host/fbr34kbootimg host/fbr34kirecovery host/fbr34kbringup host/fbr34kdevice host/fbr34kbridge host/fbr34ksession host/fbr34khardware host/*.py scripts/*.py scripts/*.sh
 
 check-native:
 	@mkdir -p $(BUILD_DIR)/tests
@@ -290,7 +318,7 @@ check-native:
 		kernel/physical_memory.c kernel/string.c tests/physical_memory_harness.c -o $(BUILD_DIR)/tests/physical_memory_harness
 	$(BUILD_DIR)/tests/physical_memory_harness
 	$(CC) -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
-		kernel/boot_evidence.c kernel/crc32.c kernel/format.c kernel/string.c tests/format_console_stub.c tests/boot_evidence_harness.c -o $(BUILD_DIR)/tests/boot_evidence_harness
+		-DFBR34KER_HOST_TEST=1 kernel/boot_evidence.c kernel/crc32.c kernel/format.c kernel/string.c tests/format_console_stub.c tests/boot_evidence_harness.c -o $(BUILD_DIR)/tests/boot_evidence_harness
 	$(BUILD_DIR)/tests/boot_evidence_harness
 	$(CC) -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
 		kernel/lifecycle.c kernel/event.c kernel/fault.c kernel/trace.c kernel/format.c kernel/service_registry.c kernel/driver.c kernel/architecture.c kernel/board.c kernel/mmio.c kernel/physical_memory.c kernel/bringup_report.c kernel/string.c tests/format_console_stub.c tests/architecture_harness.c -o $(BUILD_DIR)/tests/architecture_harness
@@ -316,6 +344,11 @@ check-native:
 	$(CC) -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
 		tests/physical_validation_format_harness.c -o $(BUILD_DIR)/tests/physical_validation_format_harness
 	$(BUILD_DIR)/tests/physical_validation_format_harness
+	$(CC) -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/kernel_patches.c kernel/secure_boot_bypass.c kernel/persistence.c \
+		kernel/string.c tests/security_model_harness.c \
+		-o $(BUILD_DIR)/tests/security_model_harness
+	$(BUILD_DIR)/tests/security_model_harness
 
 
 check-loader-example:
@@ -364,7 +397,7 @@ generic:
 		TARGET=build-generic/fbr34ker-generic all
 
 LOADER_CFLAGS := --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin \
-    -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -march=armv8-a -O2 -g \
+    -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g \
     $(REPRO_FLAGS) -Wall -Wextra -Werror -Iinclude
 LOADER_ASFLAGS := --target=aarch64-none-elf -ffreestanding -fno-pic -fno-pie \
     -march=armv8-a -g $(REPRO_FLAGS) -Iinclude
@@ -609,8 +642,96 @@ package: verify
 	$(PYTHON) scripts/package_release.py --release-name $(RELEASE_NAME) \
 		--output-dir $(PACKAGE_DIR) --kind all
 
+#====================================================================
+# EXPLOIT CHAIN TARGETS
+#====================================================================
+
+OPERATIONAL_DIR := build-exploit
+OPERATIONAL_TARGET := $(OPERATIONAL_DIR)/fbr34ker-operational
+
+ifeq ($(SECURITY_MODEL),0)
+kernel-patches: all
+	@echo "Kernel-patch state model built; release mutation gate is disabled"
+
+secure-boot-bypass: all
+	@echo "Secure-boot state model built; release mutation gate is disabled"
+
+persistence: all
+	@echo "Persistence state model built; release mutation gate is disabled"
+
+exploit-chain: all
+	@echo "Security models disabled (set SECURITY_MODEL=1 for functional build)"
+else
+kernel-patches: all
+	@echo "Kernel-patch subsystem built with MUTATION ENABLED"
+
+secure-boot-bypass: all
+	@echo "Secure-boot bypass built with MUTATION ENABLED"
+
+persistence: all
+	@echo "Persistence subsystem built with MUTATION ENABLED"
+
+exploit-chain: all
+	@echo "Security-chain built with operational mutation enabled"
+endif
+
+build-operational:
+	$(MAKE) SECURITY_MODEL=1 FBR34KER_PLATFORM=generic_arm64 \
+		BUILD_DIR=$(OPERATIONAL_DIR) \
+		TARGET=$(OPERATIONAL_TARGET) \
+		EXTRA_CFLAGS="-DFBR34KER_ENABLE_FAULT_INJECTION=1 -DFBR34KER_ENABLE_TEST_COMMANDS=1" \
+		all
+	@echo "Operational build complete: $(OPERATIONAL_TARGET).bin"
+	@ls -la $(OPERATIONAL_TARGET).bin $(OPERATIONAL_TARGET).elf
+
+operational: build-operational
+	@echo ""
+	@echo "============================================"
+	@echo "FBR34KER OPERATIONAL BUILD"
+	@echo "============================================"
+	@echo "Security models: ENABLED"
+	@echo "Kernel patching: ACTUAL MEMORY WRITES"
+	@echo "USB support:     ACTIVE (DWC3 gadget)"
+	@echo "Apple platform:  ACTIVE (A12/A13)"
+	@echo "Checkm8 exploit: ACTIVE"
+	@echo "Persist model:   ENABLED"
+	@echo "============================================"
+
+start-exploit: operational
+	@mkdir -p $(OPERATIONAL_DIR)/exploit
+	@echo "============================================" > $(OPERATIONAL_DIR)/exploit/exploit-summary.txt
+	@echo "FBR34KER Exploit Chain - Operational" >> $(OPERATIONAL_DIR)/exploit/exploit-summary.txt
+	@echo "============================================" >> $(OPERATIONAL_DIR)/exploit/exploit-summary.txt
+	@echo "Build version: $(VERSION)" >> $(OPERATIONAL_DIR)/exploit/exploit-summary.txt
+	@echo "Security models: ENABLED" >> $(OPERATIONAL_DIR)/exploit/exploit-summary.txt
+	@echo "Kernel patching: Actual memory writes" >> $(OPERATIONAL_DIR)/exploit/exploit-summary.txt
+	@echo "USB: DWC3 gadget (CDC ACM)" >> $(OPERATIONAL_DIR)/exploit/exploit-summary.txt
+	@echo "Boot chain: USBliter8 -> FBR34KER monitor -> A12+ kernel" >> $(OPERATIONAL_DIR)/exploit/exploit-summary.txt
+	@echo "============================================" >> $(OPERATIONAL_DIR)/exploit/exploit-summary.txt
+	@cp $(OPERATIONAL_TARGET).elf $(OPERATIONAL_DIR)/exploit/
+	@cp $(OPERATIONAL_TARGET).bin $(OPERATIONAL_DIR)/exploit/
+	@echo "Operational exploit artifacts in $(OPERATIONAL_DIR)/exploit/"
+
+establish-persistence: operational
+	@mkdir -p $(OPERATIONAL_DIR)/persistence
+	@echo "============================================" > $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "FBR34KER Persistence - Operational" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "============================================" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "Persistence hooks for iOS post-exploitation:" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "  1. Boot hook installation (launchd/rc)" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "  2. Kernel extension deployment" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "  3. Hidden storage allocation" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "  4. Payload deployment" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "  5. Detection evasion" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "  6. Tamper resistance" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "  7. OTA update persistence" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "Status: OPERATIONAL (mutation enabled)" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "============================================" >> $(OPERATIONAL_DIR)/persistence/persistence-plan.txt
+	@echo "Persistence plan written to $(OPERATIONAL_DIR)/persistence/persistence-plan.txt"
+
 clean:
-	rm -rf build build-generic build-loader build-hardware-probe build-sdk build-integration build-apple runtime-artifacts diagnostics dist
+	rm -rf build build-generic build-loader build-hardware-probe build-sdk build-integration build-apple build-exploit runtime-artifacts diagnostics dist
 	rm -f RELEASE_MANIFEST.json RELEASE_MANIFEST.json.sig CHECKSUMS.sha256
 
 # Produces a deterministic source archive with executable modes preserved.

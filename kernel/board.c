@@ -274,8 +274,19 @@ const char *board_device_type_name(fbr34ker_device_type_t type)
     case FBR34KER_DEVICE_WATCHDOG: return "watchdog";
     case FBR34KER_DEVICE_POWER: return "power";
     case FBR34KER_DEVICE_FRAMEBUFFER: return "framebuffer";
+    case FBR34KER_DEVICE_USB: return "usb";
+    case FBR34KER_DEVICE_I2C: return "i2c";
+    case FBR34KER_DEVICE_COUNT: return "count";
     default: return "unknown";
     }
+}
+
+bool board_add_device(const char *name, const char *compatible,
+                       fbr34ker_device_type_t type, u32 flags,
+                       u64 base, u64 size, u64 clock_hz, u32 interrupt)
+{
+    if (!initialized) return false;
+    return add_device(name, compatible, type, flags, base, size, clock_hz, interrupt);
 }
 
 static usize append(char *buffer, usize capacity, usize offset,

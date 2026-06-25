@@ -1,4 +1,5 @@
-# FBR34KER 0.2.3
+#
+# B34ST - usbliter8 + FBR34KER
 
 FBR34KER is a freestanding ARM64 preboot monitor and authorized
 loader-integration research toolkit. Version 0.2.3 is a Physical Validation

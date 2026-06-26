@@ -1,0 +1,23 @@
+{
+  "compatibility_policy": "same-major-interface-version",
+  "interfaces": {
+    "board_description": 1,
+    "boot_evidence": 1,
+    "boot_image": 1,
+    "bridge_protocol": 1,
+    "driver_manager": 1,
+    "fbdp": 1,
+    "first_stage_adapter": 1,
+    "fmbc": 2,
+    "handoff": 4,
+    "module_abi": 3,
+    "module_container": 1,
+    "physical_session": 1,
+    "physical_validation": 1,
+    "recovery_profile": 1,
+    "release_manifest": 2,
+    "service_registry": 1
+  },
+  "release_line": "0.2.x",
+  "schema_version": 1
+}

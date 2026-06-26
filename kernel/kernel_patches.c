@@ -6,7 +6,7 @@
 #include "fbr34ker/fault.h"
 #include "fbr34ker/mmio.h"
 
-#define KERNEL_BASE 0xFFFFFFD000000000ULL
+#define KERNEL_BASE APPLE_IOS_KERNEL_BASE
 
 static kernel_patches_status_t state;
 static u16 active_cpid;

@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec python3 -m b34st.control_panel "$@"

@@ -22,8 +22,20 @@ static bool region_is_guarded(const u8 *start, const u8 *end)
     return true;
 }
 
+static u64 mix_entropy(void)
+{
+    u64 entropy = (u64)(usize)__stack_guard_low_start
+                ^ (u64)(usize)__stack_guard_high_start
+                ^ (u64)(usize)stack_guard_init;
+    entropy ^= entropy >> 33;
+    entropy *= 0xff51afd7ed558ccdULL;
+    entropy ^= entropy >> 33;
+    return entropy;
+}
+
 void stack_guard_init(void)
 {
+    __stack_chk_guard ^= mix_entropy();
     fm_memset(__stack_guard_low_start, STACK_GUARD_PATTERN,
               (usize)(__stack_guard_low_end - __stack_guard_low_start));
     fm_memset(__stack_guard_high_start, STACK_GUARD_PATTERN,

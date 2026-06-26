@@ -42,7 +42,7 @@ static void capture_putc(char value)
     if (capture_buffer == NULL || capture_capacity == 0U) {
         return;
     }
-    if (capture_length + 1U < capture_capacity) {
+    if (capture_length < capture_capacity) {
         capture_buffer[capture_length] = value;
     }
     ++capture_length;

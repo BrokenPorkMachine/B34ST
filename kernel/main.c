@@ -26,6 +26,8 @@
 #include "fbr34ker/usb.h"
 #include "fbr34ker/usbliter8_exploit.h"
 #include "fbr34ker/trust_cache.h"
+#include "fbr34ker/jailbreak.h"
+#include "fbr34ker/mmu.h"
 #include "fbr34ker/apple_platform.h"
 
 extern u8 __image_start[];
@@ -143,6 +145,7 @@ NORETURN void kernel_main(const void *boot_context)
     persistence_init();
     trust_cache_init();
     usbliter8_exploit_init();
+    jailbreak_init();
     boot_evidence_stage(FBR34KER_BOOT_STAGE_RUNTIME);
     log_trace("stage RUNTIME");
 

@@ -5,6 +5,7 @@ Acts as the host-side counterpart to the monitor's USB gadget stack,
 providing a serial-like interface over USB for sending commands and
 receiving output. Uses pyusb (libusb) for USB device communication.
 """
+
 from __future__ import annotations
 
 import dataclasses
@@ -20,6 +21,7 @@ from typing import Callable
 try:
     import usb.core
     import usb.util
+
     HAS_PYUSB = True
 except ImportError:
     HAS_PYUSB = False
@@ -34,16 +36,23 @@ ChipsetInfo: type | None = None
 chipset_for_cpid = None
 chipset_for_device_string = None
 
+
 def _load_chipset_db():
     global CHIPSET_DB, ChipsetInfo, chipset_for_cpid, chipset_for_device_string
     if CHIPSET_DB is not None:
         return
-    from host.chipset_db import CHIPSET_DB as _DB, chipset_for_cpid as _cfc, \
-        chipset_for_device_string as _cfds, ChipsetInfo as _CI
+    from host.chipset_db import (
+        CHIPSET_DB as _DB,
+        chipset_for_cpid as _cfc,
+        chipset_for_device_string as _cfds,
+        ChipsetInfo as _CI,
+    )
+
     CHIPSET_DB = _DB
     ChipsetInfo = _CI
     chipset_for_cpid = _cfc
     chipset_for_device_string = _cfds
+
 
 _load_chipset_db()
 BULK_EP_OUT = 0x01
@@ -71,8 +80,9 @@ class DeviceIdentity:
         return f"{self.vid:04x}:{self.pid:04x} bus={self.bus} addr={self.address}"
 
 
-def find_monitor(vid: int = FBR34KER_VID, pid: int = FBR34KER_PID,
-                 serial: str | None = None) -> usb.core.Device | None:
+def find_monitor(
+    vid: int = FBR34KER_VID, pid: int = FBR34KER_PID, serial: str | None = None
+) -> usb.core.Device | None:
     if not HAS_PYUSB:
         raise TransportError("pyusb not installed (pip install pyusb)")
     for device in usb.core.find(find_all=True):
@@ -123,9 +133,14 @@ def _safe_str(value: object) -> str | None:
 class USBConsole:
     """USB CDC ACM serial console to FBR34KER monitor."""
 
-    def __init__(self, device: usb.core.Device | None = None,
-                 vid: int = FBR34KER_VID, pid: int = FBR34KER_PID,
-                 serial: str | None = None, timeout_ms: int = USB_TIMEOUT_MS):
+    def __init__(
+        self,
+        device: usb.core.Device | None = None,
+        vid: int = FBR34KER_VID,
+        pid: int = FBR34KER_PID,
+        serial: str | None = None,
+        timeout_ms: int = USB_TIMEOUT_MS,
+    ):
         if not HAS_PYUSB:
             raise TransportError("pyusb is required (pip install pyusb)")
         if device is None:
@@ -135,8 +150,10 @@ class USBConsole:
         self.device = device
         self.timeout = timeout_ms
         self.identity = DeviceIdentity(
-            vid=device.idVendor, pid=device.idProduct,
-            bus=device.bus, address=device.address,
+            vid=device.idVendor,
+            pid=device.idProduct,
+            bus=device.bus,
+            address=device.address,
             manufacturer=_safe_str(device.manufacturer),
             product=_safe_str(device.product),
             serial=_safe_str(device.serial_number),
@@ -186,14 +203,20 @@ class USBConsole:
         try:
             usb.util.claim_interface(self.device, self._interface)
             self._claimed = True
-            if data_iface is not None and data_iface.bInterfaceNumber != self._interface:
+            if (
+                data_iface is not None
+                and data_iface.bInterfaceNumber != self._interface
+            ):
                 usb.util.claim_interface(self.device, data_iface.bInterfaceNumber)
         except usb.core.USBError as exc:
             raise TransportError(f"failed to claim interface: {exc}")
 
         iface_eps = data_iface if data_iface is not None else cfg[0]
         for iface in cfg:
-            if data_iface is not None and iface.bInterfaceNumber == data_iface.bInterfaceNumber:
+            if (
+                data_iface is not None
+                and iface.bInterfaceNumber == data_iface.bInterfaceNumber
+            ):
                 iface_eps = iface
                 break
         for ep in iface_eps:
@@ -319,8 +342,9 @@ class USBDevice:
 
     MAX_XFER_SIZE = 0x8000
 
-    def __init__(self, serial: str | None = None,
-                 vid: int = APPLE_VID, pid: int | None = None):
+    def __init__(
+        self, serial: str | None = None, vid: int = APPLE_VID, pid: int | None = None
+    ):
         if not HAS_PYUSB:
             raise TransportError("pyusb is required (pip install pyusb)")
         self.serial = serial
@@ -401,27 +425,30 @@ class USBDevice:
             self._detach_drivers.clear()
         self._claimed = False
 
-    def _ctrl_xfer(self, bmrt: int, breq: int,
-                   wval: int = 0, widx: int = 0,
-                   data: bytes | int = b"") -> bytes | int:
+    def _ctrl_xfer(
+        self,
+        bmrt: int,
+        breq: int,
+        wval: int = 0,
+        widx: int = 0,
+        data: bytes | int = b"",
+    ) -> bytes | int:
         if self.device is None:
             raise TransportError("no device")
-        return self.device.ctrl_transfer(bmrt, breq, wval, widx, data,
-                                         timeout=5000)
+        return self.device.ctrl_transfer(bmrt, breq, wval, widx, data, timeout=5000)
 
     def vendor_set_addr(self, addr: int) -> None:
-        self._ctrl_xfer(self.VENDOR_OUT, self.VENDOR_REQ_SET_ADDR,
-                        0, 0, struct.pack('<Q', addr))
+        self._ctrl_xfer(
+            self.VENDOR_OUT, self.VENDOR_REQ_SET_ADDR, 0, 0, struct.pack("<Q", addr)
+        )
 
     def vendor_read(self, size: int) -> bytes:
-        result = self._ctrl_xfer(self.VENDOR_IN, self.VENDOR_REQ_MEM_READ,
-                                 0, 0, size)
+        result = self._ctrl_xfer(self.VENDOR_IN, self.VENDOR_REQ_MEM_READ, 0, 0, size)
         assert isinstance(result, bytes)
         return result
 
     def vendor_write(self, data: bytes) -> None:
-        self._ctrl_xfer(self.VENDOR_OUT, self.VENDOR_REQ_MEM_WRITE,
-                        0, 0, data)
+        self._ctrl_xfer(self.VENDOR_OUT, self.VENDOR_REQ_MEM_WRITE, 0, 0, data)
 
     def verify_vendor_requests(self) -> bool:
         dram = (self.chipset or {}).get("dram_base", 0x800000000)
@@ -442,10 +469,11 @@ class USBDevice:
         """
         if self.device is None:
             return False
-        payload = getattr(self, 'exploit_payload', None)
+        payload = getattr(self, "exploit_payload", None)
         if payload is None:
-            raise TransportError("exploit_payload not set; "
-                                 "a DWC3 USBliter8 exploit payload is required")
+            raise TransportError(
+                "exploit_payload not set; a DWC3 USBliter8 exploit payload is required"
+            )
         self._claim()
         try:
             for xfer in payload:
@@ -457,8 +485,7 @@ class USBDevice:
         except Exception:
             return False
 
-    def send_payload(self, payload_path: str,
-                     load_addr: int | None = None) -> bool:
+    def send_payload(self, payload_path: str, load_addr: int | None = None) -> bool:
         """Send a binary image via vendor MEM_WRITE requests.
 
         Uses SET_ADDR + repeated MEM_WRITE to write the image to physical
@@ -476,7 +503,7 @@ class USBDevice:
             offset = 0
             total = len(payload)
             while offset < total:
-                chunk = payload[offset:offset + self.MAX_XFER_SIZE]
+                chunk = payload[offset : offset + self.MAX_XFER_SIZE]
                 self.vendor_write(chunk)
                 offset += len(chunk)
             return True
@@ -496,15 +523,13 @@ class USBDevice:
             entry = (self.chipset or {}).get("load_addr", 0x800000000)
         try:
             self.vendor_set_addr(entry)
-            self._ctrl_xfer(self.VENDOR_OUT, self.VENDOR_REQ_EXECUTE,
-                            0, 0, b"")
-        except Exception:
-            pass
+            self._ctrl_xfer(self.VENDOR_OUT, self.VENDOR_REQ_EXECUTE, 0, 0, b"")
+        except Exception as exc:
+            print(f"[!] EXECUTE vendor request failed: {exc}", file=sys.stderr)
         deadline = time.monotonic() + 15.0
         while time.monotonic() < deadline:
             try:
-                self._ctrl_xfer(self.VENDOR_IN, self.VENDOR_REQ_MEM_READ,
-                                0, 0, 4)
+                self._ctrl_xfer(self.VENDOR_IN, self.VENDOR_REQ_MEM_READ, 0, 0, 4)
             except Exception:
                 break
             time.sleep(0.2)
@@ -529,8 +554,10 @@ def find_a12_device(serial: str | None = None) -> usb.core.Device | None:
 def _readable_cpid(device: usb.core.Device) -> int | None:
     try:
         import subprocess
-        r = subprocess.run(["irecovery", "-q"], capture_output=True,
-                           text=True, timeout=5)
+
+        r = subprocess.run(
+            ["irecovery", "-q"], capture_output=True, text=True, timeout=5
+        )
         for line in r.stdout.splitlines():
             if "CPID" in line:
                 return int(line.split(":")[1].strip(), 16)

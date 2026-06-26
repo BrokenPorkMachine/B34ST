@@ -5,8 +5,10 @@
 #include "fbr34ker/event.h"
 #include "fbr34ker/fault.h"
 #include "fbr34ker/hardware_probe.h"
+#include "fbr34ker/log.h"
 #include "fbr34ker/lifecycle.h"
 #include "fbr34ker/mmio.h"
+#include "fbr34ker/mmu.h"
 #include "fbr34ker/physical_memory.h"
 #include "fbr34ker/platform.h"
 #include "fbr34ker/service_registry.h"
@@ -106,6 +108,31 @@ static bool start_physical_memory(void)
 static void stop_physical_memory(void)
 {
     physical_memory_shutdown();
+}
+
+static bool start_mmu(void)
+{
+    if (!mmu_init()) {
+        return false;
+    }
+    u64 root_addr = 0x41000000ULL;
+    usize pool_size = MMU_PAGE_SIZE * 32U;
+    if (!mmu_allocate_page_table_pool(root_addr, pool_size)) {
+        log_warn("mmu: page table pool allocation at 0x%llx failed, using fallback", root_addr);
+        mmu_shutdown();
+        return true;
+    }
+    u64 identity_start = 0x40000000ULL;
+    u64 identity_size = 0x1000000000ULL;
+    if (!mmu_setup_identity_map(identity_start, identity_size)) {
+        log_warn("mmu: identity map failed, MMU will not be enabled");
+    }
+    return true;
+}
+
+static void stop_mmu(void)
+{
+    mmu_shutdown();
 }
 
 static bool start_bringup_report(void)
@@ -297,6 +324,13 @@ static const fbr34ker_component_descriptor_t components[] = {
         .provides = FBR34KER_ARCH_CAP_MMIO_MANAGER,
         .start = start_mmio_manager, .stop = stop_mmio_manager,
         .health = mmio_healthy,
+    },
+    {
+        .name = "mmu", .phase = FBR34KER_PHASE_CORE,
+        .requires = FBR34KER_ARCH_CAP_BOARD_DESCRIPTION | FBR34KER_ARCH_CAP_MMIO_MANAGER,
+        .provides = FBR34KER_ARCH_CAP_MMU,
+        .start = start_mmu, .stop = stop_mmu,
+        .health = mmu_healthy,
     },
     {
         .name = "service-registry", .phase = FBR34KER_PHASE_CORE,

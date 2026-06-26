@@ -1,0 +1,361 @@
+# B34ST Project Configuration
+
+This file contains project configuration for the B34ST (B34KER/STAR) runtime authentication tool.
+
+## Project Identity
+
+- **Name**: B34ST (B34KER/STAR)
+- **Version**: 0.2.3 (as part of FBR34KER 0.2.3)
+- **Status**: Physical Validation Candidate
+- **Release Channel**: validation-candidate
+- **Release Name**: B34ST_0.2.3_Physical_Validation_Candidate
+
+## Project Purpose
+
+B34ST provides deterministic runtime authentication and validation for FBR34KER, implementing:
+
+1. Evidence-based profile maturity enforcement
+2. Controlled failure injection and recovery testing
+3. Persistent bridge authorization management
+4. Physical validation candidate generation
+5. Structured hardware bring-up workflows
+
+## Build Configuration
+
+### Build Directories
+
+```
+B34ST_BUILD_DIR ?= build-b34st
+B34ST_TARGET ?= $(B34ST_BUILD_DIR)/b34st-validation
+B34ST_RUNTIME_ARTIFACT_DIR ?= runtime-artifacts/b34st
+B34ST_RELEASE_MANIFEST ?= RELEASE_MANIFEST.json
+```
+
+### Source Dependencies
+
+B34ST integrates with existing FBR34KER components:
+
+- Host validation framework (`host/physical_validation.py`)
+- Bridge protocol (`host/bridge_protocol.py`)
+- Hardware bringup (`host/hardware_bringup.py`)
+- Session bundle management (`host/session_bundle.py`)
+- SDK validation (`host/sdk_conformance.py`)
+
+## Validation Targets
+
+### Primary Validation
+
+1. **Physical Validation Candidate**: Deterministic candidate generation
+2. **Runtime Bundle Validation**: Session bundle verification
+3. **Profile Maturity Enforcement**: Evidence-gated claims
+4. **Bridge Verification**: Persistent bridge authentication
+5. **Failure Matrix Testing**: Controlled stage failures
+
+### Evidence Classes
+
+- **Simulator**: Deterministic simulator execution
+- **Bridge**: Persistent bridge operation proof
+- **Console**: Console capture and verification
+- **Boot-evidence**: Boot-stage evidence collection
+- **Physical-runtime**: Physical device execution proof
+
+## Runtime Configuration
+
+### Default Paths
+
+```
+# B34ST runtime artifact directory
+B34ST_RUNTIME_ARTIFACT_DIR ?= runtime-artifacts/b34st
+
+# B34ST validation target
+B34ST_TARGET ?= $(B34ST_BUILD_DIR)/b34st-validation
+
+# B34ST build directory
+B34ST_BUILD_DIR ?= build-b34st
+
+# Common FBR34KER paths (integration)
+FBR34KER_SCRIPTS_DIR ?= scripts
+FBR34KER_HOST_DIR ?= host
+FBR34KER_PROFILES_DIR ?= profiles
+FBR34KER_EXAMPLES_DIR ?= examples
+```
+
+### Environment Variables
+
+```bash
+# B34ST Configuration
+B34ST_ENABLED ?= 1                    # Enable B34ST validation
+B34ST_VALIDATION_ONLY ?= 0             # Only run validation (no build)
+B34ST_DRY_RUN ?= 0                     # Dry run mode (check paths, validate)
+
+# Integration Settings
+B34ST_LOG_LEVEL ?= INFO               # Logging verbosity
+B34ST_VALIDATION_TIMEOUT ?= 300       # Command timeout in seconds
+B34ST_EVIDENCE_TIMEOUT ?= 120         # Evidence generation timeout
+
+# Profile Maturity
+B34ST_STRICT_MATURITY ?= 1            # Strict profile maturity enforcement
+B34ST_ALLOW_SIMULATOR_ONLY ?= 0       # Allow simulator-only validation
+B34ST_REQUIRE_PHYSICAL ?= 0           # Require physical device proof
+```
+
+## B34ST Maturity Schema
+
+### Evidence-Based Maturity Order
+
+B34ST enforces maturity in this evidence-dependent order:
+
+1. **Simulated**: Bridge-backed simulator execution
+2. **Bridge-verified**: Persistent bridge authorization proof
+3. **Console-verified**: Console capture and entry observation
+4. **Boot-evidence-verified**: Boot-stage evidence collection
+5. **Physical-runtime-verified**: Physical device execution proof
+
+### Profile Maturity Mapping
+
+```json
+{
+  "simulated": {
+    "required_evidence": ["simulator"],
+    "description": "Bridge-backed simulator execution"
+  },
+  "bridge-verified": {
+    "required_evidence": ["bridge", "simulator"],
+    "description": "Persistent bridge authorization"
+  },
+  "console-verified": {
+    "required_evidence": ["bridge", "simulator", "console"],
+    "description": "Console capture and verification"
+  },
+  "boot-evidence-verified": {
+    "required_evidence": ["bridge", "simulator", "boot-evidence"],
+    "description": "Boot-stage evidence collection"
+  },
+  "physical-runtime-verified": {
+    "required_evidence": ["bridge", "simulator", "physical-runtime"],
+    "description": "Physical device execution proof"
+  }
+}
+```
+
+## Failure Matrix Configuration
+
+### Controlled Failure Stages
+
+B34ST supports controlled failure injection for:
+
+1. **Console Stage**: Console capture failure
+2. **Memory-map Stage**: Memory-map validation failure
+3. **Timer Stage**: Timer callback failure
+4. **Boot-evidence Stage**: Boot-stage evidence collection failure
+
+### Failure Injection Parameters
+
+```bash
+# Failure injection targets
+B34ST_FAILURE_STAGES ?= (console)memory-map(timer)boot-evidence
+
+# Failure recovery expectations
+B34ST_EXPECTED_RECOVERY ?= true
+B34ST_EXPECTED_AUTH_INVALIDATION ?= true
+
+# Failure validation
+B34ST_FAILURE_DETECTION ?= automatic
+B34ST_FAILURE_EVIDENCE_COLLECTION ?= mandatory
+```
+
+## Integration with FBR34KER Build System
+
+### Make Targets
+
+B34ST adds these targets to the FBR34KER Makefile:
+
+```makefile
+# Primary validation target
+b34st: $(B34ST_TARGET).bin
+
+# Runtime artifacts
+b34st-runtime: runtime-artifacts/b34st
+
+# Validation candidate generation
+b34st-candidate: runtime-artifacts/b34st-candidate
+
+# Evidence validation
+b34st-validate: runtime-artifacts/b34st-validation-summary
+
+# Clean B34ST artifacts
+clean-b34st:
+	$(RM) -r $(B34ST_BUILD_DIR) $(RUNTIME_ARTIFACT_DIR)/b34st
+```
+
+### Dependency Management
+
+B34ST depends on:
+
+- **Core FBR34KER**: Monitor and loader builds
+- **Host Tools**: fbr34kctl, fbr34ker, physical validation scripts
+- **Profiles**: Apple A12/A13 recovery profiles
+- **Device Info**: A12/A13 device information examples
+
+## Output Configuration
+
+### Runtime Artifact Structure
+
+```
+runtime-artifacts/
+├── b34st/
+│   ├── success-session.zip          # Successful validation bundle
+│   ├── failure-session.zip          # Failed validation bundle  
+│   ├── recovered-session.zip        # Recovery after reauthorization
+│   ├── failure-matrix/               # Controlled failure evidence
+│   │   ├── console.zip
+│   │   ├── memory-map.zip
+│   │   ├── timer.zip
+│   │   └── boot-evidence.zip
+│   ├── validation-summary.json      # Final validation report
+│   └── candidate-report.json        # Physical validation candidate
+└── b34st-validation/                # B34ST build output
+    ├── b34st.bin
+    ├── b34st.elf
+    └── b34st.map
+```
+
+### Release Manifest Inclusion
+
+B34ST artifacts are included in the release manifest:
+
+```json
+{
+  "artifacts": [
+    ... existing FBR34KER artifacts ...
+    "runtime-artifacts/b34st/*.zip",
+    "build-b34st/b34st*.bin",
+    "build-b34st/b34st*.elf",
+    "build-b34st/b34st*.map"
+  ]
+}
+```
+
+## Documentation
+
+### B34ST Documentation
+
+- **Primary Guide**: b34st/README.md (this file)
+- **Architecture**: docs/ARCHITECTURE.md
+- **Validation**: docs/PHYSICAL_VALIDATION_CANDIDATE.md
+- **API Reference**: docs/PROFILE_MATURITY.md
+- **Security**: docs/THREAT_MODEL.md
+
+### Examples
+
+- **Physical Validation**: scripts/run_physical_validation_candidate.py
+- **Runtime Validation**: host/physical_validation.py
+- **Bundle Generation**: host/session_bundle.py
+- **Bridge Management**: host/bridge_protocol.py
+
+## Security & Safety Configuration
+
+### Operational Boundaries
+
+```bash
+# Safety limits
+B34ST_MAX_ARTIFACT_SIZE ?= 1G           # Maximum artifact size
+B34ST_MAX_SESSION_COUNT ?= 100          # Maximum concurrent sessions
+B34ST_VALIDATION_TIMEOUT ?= 600        # Maximum validation time
+B34ST_EVIDENCE_SIZE_LIMIT ?= 500M       # Maximum evidence bundle size
+
+# Security restrictions
+B34ST_NO_EXPLOIT ?= 1                   # No exploit delivery
+B34ST_NO_PHYSICAL_DEVICE ?= 1           # No physical device testing
+B34ST_SOURCE_PRIVATE ?= 1               # Source code restricted to private repo
+```
+
+## CI/CD Integration
+
+### B34ST CI Job
+
+B34ST adds a dedicated CI job to `.github/workflows/ci.yml`:
+
+```yaml
+b34st-validation:
+  runs-on: ubuntu-latest
+  timeout-minutes: 30
+  
+  steps:
+    - uses: actions/checkout@v7
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.13'
+    
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+    
+    - name: Build B34ST runtime
+      run: make b34st
+    
+    - name: Run physical validation candidate
+      run: ./scripts/run_physical_validation_candidate.py \
+        --output runtime-artifacts/b34st \
+        --image build-apple/a13/boot.img
+    
+    - name: Upload B34ST artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: fbr34ker-b34st-validation
+        path: runtime-artifacts/b34st/
+```
+
+## Migration Notes
+
+### Upgrading from Earlier Versions
+
+When migrating to B34ST 0.2.3:
+
+1. **Source Repo**: Source code now maintained in private repository
+2. **Release Process**: Public releases contain only artifacts, not source
+3. **Validation**: Added profile maturity enforcement and evidence gating
+4. **Testing**: Deterministic candidate generation replaces previous validation
+
+## Development Guidelines
+
+### Coding Standards
+
+- Follow existing FBR34KER code style
+- Write comprehensive validation tests
+- Include evidence verification in validation logic
+- Document profile maturity requirements
+- Implement proper error handling for validation failures
+
+### Testing Requirements
+
+- Validate bundle integrity for all evidence classes
+- Test profile maturity enforcement with different evidence sets
+- Verify failure injection and recovery sequences
+- Ensure controlled failure matrix coverage
+- Test CLI interface against all B34ST operations
+
+## Troubleshooting
+
+### Common Issues
+
+```bash
+# Issue: B34ST artifacts directory not found
+Solution: Run 'make b34st-runtime' to generate artifacts
+
+# Issue: Profile maturity validation failure
+Solution: Check evidence files and profile requirements in b34st/README.md
+
+# Issue: Missing host tools
+Solution: Run 'make permissions' to restore executable permissions
+```
+
+## Future Work
+
+### Planned Enhancements
+
+1. **Physical Device Testing**: Integration with real A12/A13 hardware
+2. **Cloud Validation**: Automated cloud-based validation testing
+3. **Attestation**: Remote attestation service integration
+4. **Monitoring**: Real-time validation monitoring and alerting
+5. **Automation**: CI/CD pipeline integration for continuous validation

@@ -29,6 +29,15 @@ python3 host/fbr34kctl.py handoff-build examples/handoff-v4.json build/loader-si
 python3 host/fbr34kctl.py handoff-roundtrip build/loader-simulation/handoff-v4.fbhb >/dev/null
 python3 host/fbr34kctl.py loader-conformance --handoff build/loader-simulation/handoff-v4.fbhb \
 		--profile examples/hardware-profile.json --report build/loader-simulation/sdk-conformance.json >/dev/null
+/Applications/Xcode.app/Contents/Developer/usr/bin/make SECURITY_MODEL=1 FBR34KER_PLATFORM=generic_arm64 \
+		BUILD_DIR=build-exploit \
+		TARGET=build-exploit/fbr34ker-operational \
+		EXTRA_CFLAGS="-DFBR34KER_ENABLE_FAULT_INJECTION=1 -DFBR34KER_ENABLE_TEST_COMMANDS=1" \
+		all
+make[2]: Nothing to be done for `all'.
+Operational build complete: build-exploit/fbr34ker-operational.bin
+-rwxr-xr-x@ 1 failbr34k  staff  210784 Jun 26 16:44 build-exploit/fbr34ker-operational.bin
+-rwxr-xr-x@ 1 failbr34k  staff  869552 Jun 26 16:44 build-exploit/fbr34ker-operational.elf
 rm -rf build/deployment-simulation
 python3 scripts/run_deployment_simulation.py --output build/deployment-simulation
 {

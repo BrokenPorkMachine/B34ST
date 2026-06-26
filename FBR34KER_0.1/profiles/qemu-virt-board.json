@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "id": "qemu-virt-arm64",
+  "name": "QEMU Arm virt",
+  "compatible": ["linux,dummy-virt"],
+  "memory": {"base": "0x40000000", "size": "0x10000000"},
+  "devices": [
+    {"name": "pl011-uart", "type": "uart", "compatible": "arm,pl011", "base": "0x09000000", "size": "0x1000", "irq": 33},
+    {"name": "architectural-timer", "type": "timer", "compatible": "arm,armv8-timer", "irq": 27},
+    {"name": "gicv3-distributor", "type": "interrupt-controller", "compatible": "arm,gic-v3", "base": "0x08000000", "size": "0x10000"},
+    {"name": "virt-power-control", "type": "power", "compatible": "qemu,virt-power", "base": "0x09020000", "size": "0x1000"}
+  ]
+}

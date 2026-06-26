@@ -3,5 +3,5 @@ python3 scripts/run_static_analysis.py --clang clang --timeout 45 \
 starting bounded static analysis (3 files, 3 workers)
 [analyze 03/03] sdk/src/profile_match.c: ok (0.04s)
 [analyze 01/03] sdk/src/handoff_builder.c: ok (0.04s)
-[analyze 02/03] sdk/src/handoff_validate.c: ok (0.68s)
-clang static analysis passed without findings (3 files, 0.68s, 3 workers)
+[analyze 02/03] sdk/src/handoff_validate.c: ok (0.70s)
+clang static analysis passed without findings (3 files, 0.70s, 3 workers)

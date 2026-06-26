@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "id": "generic-arm64",
+  "name": "Generic ARM64 board",
+  "compatible": ["generic,arm64"],
+  "selection": "loader handoff first, validated device tree second, safe fallback last",
+  "required": ["memory ownership", "monotonic timer"],
+  "optional": ["PL011 UART", "GICv2/GICv3", "SP805 watchdog", "framebuffer", "power callbacks"],
+  "policy": "DTB-discovered MMIO is allow-listed but not active-probe-safe by default"
+}

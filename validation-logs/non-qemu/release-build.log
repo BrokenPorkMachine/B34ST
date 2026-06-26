@@ -8,8 +8,8 @@ make[1]: Nothing to be done for `modules'.
 make[1]: Nothing to be done for `sdk'.
 python3 host/fbr34kctl.py handoff-build examples/handoff-v4.json build/loader-simulation/handoff-v4.fbhb >/dev/null
 make[2]: Nothing to be done for `all'.
-make[2]: Nothing to be done for `all'.
 make[1]: Nothing to be done for `generic-loader'.
+make[2]: Nothing to be done for `all'.
 python3 host/fbr34kctl.py handoff-roundtrip build/loader-simulation/handoff-v4.fbhb >/dev/null
 rm -rf build-apple
 python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \

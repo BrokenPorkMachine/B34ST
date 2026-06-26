@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fbr34ker.invalid/schema/first-stage-adapter-v1.json",
+  "title": "FBR34KER first-stage adapter request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "adapter_abi", "operation", "arguments"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "adapter_abi": {"const": 1},
+    "operation": {
+      "enum": ["identify", "authorize", "upload", "start", "probe-stage", "collect", "reset"]
+    },
+    "arguments": {"type": "object", "maxProperties": 16}
+  }
+}

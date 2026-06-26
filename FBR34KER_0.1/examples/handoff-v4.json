@@ -1,0 +1,52 @@
+{
+  "boot_cpu_id": 0,
+  "entry_exception_level": 1,
+  "firmware_revision": "0x0",
+  "module_policy": {
+    "allowed_capabilities": [
+      "console",
+      "log",
+      "time",
+      "dt"
+    ],
+    "dynamic_slots": 2,
+    "instruction_budget": 2048
+  },
+  "monitor": {
+    "base": "0x80000000",
+    "size": "0x00800000"
+  },
+  "page_granule": 16384,
+  "regions": [
+    {
+      "attributes": [
+        "read",
+        "write",
+        "execute"
+      ],
+      "base": "0x80000000",
+      "size": "0x00800000",
+      "type": "monitor"
+    },
+    {
+      "attributes": [
+        "read",
+        "write"
+      ],
+      "base": "0x80800000",
+      "size": "0x07800000",
+      "type": "usable"
+    }
+  ],
+  "runtime_callbacks": [
+    "input",
+    "timer",
+    "power"
+  ],
+  "services": [
+    "console-write",
+    "console-read",
+    "console-flush"
+  ],
+  "version": 4
+}

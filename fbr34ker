@@ -21,6 +21,7 @@ Commands:
   detect               Auto-detect chipset of connected device
 
   control-panel        B34ST operator control panel
+  b34stool [args...]   Unified B34ST interactive multi-tool
   b34st [args...]      Run a B34ST command
   research-runtime [args...]  Evidence-gated runtime orchestrator
   ipsw [args...]       Targeted firmware download/restore workflows
@@ -464,6 +465,11 @@ def cmd_control_panel(args):
 def cmd_b34st(args):
     from b34st.engine import B34STCLI
     return B34STCLI().run(args.arguments)
+
+
+def cmd_b34stool(args):
+    import b34stool
+    return b34stool.main(args.arguments)
 
 
 def cmd_run(args):
@@ -1055,7 +1061,7 @@ def build_parser():
             Built-in subcommands:
               version | doctor | build | test | clean | chipsets
               exploit | pwndfu | load-monitor | console | device | detect
-              control-panel | b34st | menu
+              control-panel | b34stool | b34st | menu
               research-runtime
               ipsw
               device-dashboard
@@ -1125,6 +1131,8 @@ def build_parser():
     sub.add_parser("menu")
     sub.add_parser("interactive")
     sub.add_parser("control-panel")
+    b34stool_parser = sub.add_parser("b34stool")
+    b34stool_parser.add_argument("arguments", nargs=argparse.REMAINDER)
     b34st_parser = sub.add_parser("b34st")
     b34st_parser.add_argument("arguments", nargs=argparse.REMAINDER)
     runtime_parser = sub.add_parser("research-runtime")
@@ -1153,6 +1161,9 @@ def main(argv=None):
 
     # B34ST owns its argument grammar; pass everything after the command
     # through without asking the FBR34KER parser to interpret it.
+    if raw[0] == "b34stool":
+        import b34stool
+        return b34stool.main(raw[1:])
     if raw[0] == "b34st":
         from b34st.engine import B34STCLI
         return B34STCLI().run(raw[1:])
@@ -1220,6 +1231,7 @@ def main(argv=None):
             "console": cmd_console,
             "device": cmd_device,
             "control-panel": cmd_control_panel,
+            "b34stool": cmd_b34stool,
             "b34st": cmd_b34st,
             "package": cmd_package,
             "gate": cmd_gate,

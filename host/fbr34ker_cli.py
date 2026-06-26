@@ -31,7 +31,7 @@ def parser():
     sub.add_parser('clean'); sub.add_parser('package'); sub.add_parser('gate'); sub.add_parser('permissions')
     for name in ('deploy','recover','inspect','evidence'):
         x=sub.add_parser(name); x.add_argument('arguments',nargs=argparse.REMAINDER)
-    for name in ('boot-image','irecovery','bringup','device','bridge','session','crash','trace','hardware','physical-validation'):
+    for name in ('boot-image','irecovery','bringup','device','bridge','session','crash','trace','hardware','physical-validation','b34stool'):
         x=sub.add_parser(name); x.add_argument('arguments',nargs=argparse.REMAINDER)
     m=sub.add_parser('module'); m.add_argument('arguments',nargs=argparse.REMAINDER)
     for kind in ('board','driver','module','transport'):
@@ -50,6 +50,8 @@ def legacy(argv):
 
 def main(argv=None):
     raw=list(sys.argv[1:] if argv is None else argv); converted=legacy(raw)
+    if raw and raw[0]=='b34stool':
+        return execute([sys.executable,'b34stool.py',*raw[1:]],json_mode=False)
     if converted is not None:
         raw=converted
     elif raw and raw[0].startswith('-') and raw[0] not in {'--json','-h','--help'}:
@@ -92,6 +94,7 @@ def main(argv=None):
             return execute([sys.executable,'host/session_tools.py',*values],json_mode=j)
         if cmd=='hardware': return execute([sys.executable,'host/hardware_workflow.py',*args.arguments],json_mode=j)
         if cmd=='physical-validation': return execute([sys.executable,'host/physical_validation.py',*args.arguments],json_mode=j)
+        if cmd=='b34stool': return execute([sys.executable,'b34stool.py',*args.arguments],json_mode=j)
         if cmd.startswith('new-'):
             argv2=[sys.executable,'scripts/scaffold.py',cmd[4:],args.name,args.destination]
             if args.force: argv2.append('--force')

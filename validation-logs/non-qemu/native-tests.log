@@ -69,7 +69,7 @@ clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
 		-DFBR34KER_HOST_TEST=1 kernel/boot_evidence.c kernel/crc32.c kernel/format.c kernel/string.c tests/format_console_stub.c tests/boot_evidence_harness.c -o build/tests/boot_evidence_harness
 build/tests/boot_evidence_harness
 clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
-		kernel/lifecycle.c kernel/event.c kernel/fault.c kernel/trace.c kernel/format.c kernel/service_registry.c kernel/driver.c kernel/architecture.c kernel/board.c kernel/mmio.c kernel/physical_memory.c kernel/bringup_report.c kernel/string.c tests/format_console_stub.c tests/architecture_harness.c -o build/tests/architecture_harness
+		kernel/lifecycle.c kernel/event.c kernel/fault.c kernel/trace.c kernel/format.c kernel/service_registry.c kernel/driver.c kernel/architecture.c kernel/board.c kernel/mmio.c kernel/physical_memory.c kernel/bringup_report.c kernel/string.c tests/format_console_stub.c tests/mmu_log_stub.c tests/architecture_harness.c -o build/tests/architecture_harness
 build/tests/architecture_harness
 clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
 		kernel/trace.c kernel/format.c kernel/string.c tests/format_console_stub.c tests/trace_harness.c -o build/tests/trace_harness

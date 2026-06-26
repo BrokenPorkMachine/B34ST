@@ -28,7 +28,7 @@ static bool is_valid_tc_header(const trust_cache_header_t *hdr, usize max_size)
         return false;
     }
     u32 entry_sz = trust_cache_entry_size(hdr->version);
-    u32 allocation = sizeof(trust_cache_header_t) + (hdr->num_entries * entry_sz);
+    u64 allocation = (u64)sizeof(trust_cache_header_t) + ((u64)hdr->num_entries * (u64)entry_sz);
     if (allocation > max_size) return false;
     if (hdr->num_entries == 0U || hdr->num_entries > 4096U) return false;
     return true;
@@ -150,7 +150,7 @@ static bool link_trust_cache_chain(u64 new_cache_addr)
         mmio_read32(next, &tc_version);
         mmio_read32(next + 4U, &tc_num_entries);
         u32 entry_sz = trust_cache_entry_size(tc_version);
-        u32 alloc = sizeof(trust_cache_header_t) + (tc_num_entries * entry_sz);
+        u64 alloc = (u64)sizeof(trust_cache_header_t) + ((u64)tc_num_entries * (u64)entry_sz);
         next_ptr_addr = next + (u64)alloc;
     }
     log_write(LOG_LEVEL_WARN,

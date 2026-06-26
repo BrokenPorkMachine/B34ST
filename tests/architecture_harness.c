@@ -42,7 +42,7 @@ bool device_tree_get_cells(const char *p,const char *n,u32 *v,u32 c,u32 *count){
 int main(void)
 {
     if (!architecture_init() || !architecture_healthy()) return 1;
-    if (lifecycle_component_count() != 9U || service_registry_count() != 8U ||
+    if (lifecycle_component_count() != 10U || service_registry_count() != 8U ||
         driver_count() != 8U) return 2;
     if (!board_healthy() || !mmio_healthy() || !physical_memory_healthy()) return 3;
     if (!service_registry_service_ready("console.output") ||

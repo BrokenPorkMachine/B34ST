@@ -22,6 +22,7 @@
 #include "fbr34ker/secure_boot_bypass.h"
 #include "fbr34ker/persistence.h"
 #include "fbr34ker/trust_cache.h"
+#include "fbr34ker/jailbreak.h"
 #include "fbr34ker/log.h"
 #include "fbr34ker/interrupt.h"
 #include "fbr34ker/lifecycle.h"
@@ -153,6 +154,7 @@ static int command_exploit_chain(int argument_count, char **arguments);
 static int command_exploit_status(int argument_count, char **arguments);
 static int command_usb_status(int argument_count, char **arguments);
 static int command_trust_cache(int argument_count, char **arguments);
+static int command_jailbreak(int argument_count, char **arguments);
 
 static const command_entry_t commands[] = {
     {"help",          "help",                 "List available commands.", command_help},
@@ -253,6 +255,7 @@ static const command_entry_t commands[] = {
     {"secure-boot-bypass", "secure-boot-bypass [status|activate|forgive|manifest]", "Inspect secure boot bypass subsystem state.", command_secure_boot_bypass},
     {"persistence",   "persistence [status|deploy|activate|evade]", "Inspect persistence subsystem state and deploy hooks.", command_persistence},
     {"trust-cache",   "trust-cache [status|find|inject]", "Inject trust cache entries into the iOS kernel.", command_trust_cache},
+    {"jailbreak",     "jailbreak [status|security-model <on|off>|bypass-pac|bypass-aprr|bypass-wxn|bypass-all|detect-kernel|detect-kaslr|inject-bootargs [--args <str>]|detect-sep|chain-all|boot-kernel]", "A12+ security bypass and kernel boot chain.", command_jailbreak},
     {"exploit-chain", "exploit-chain [status|run [cpid]|pwndfu [cpid]|load <addr> <size>|dfu-load [addr]|exec [entry]|reset]", "USBliter8 exploit chain for A12+.", command_exploit_chain},
     {"exploit-status","exploit-status",         "Show security-model status.", command_exploit_status},
     {"usb-status",    "usb-status",             "Show USB controller and DFU status.", command_usb_status},
@@ -2263,7 +2266,7 @@ static int command_exploit_chain(int argument_count, char **arguments)
         } else {
             fm_printf("Load address 0x%llx recorded. Use 'exploit-chain load <addr> <size>' to confirm\n", addr);
         }
-        } else if (fm_strcmp(arguments[1], "dfu-load") == 0) {
+    } else if (fm_strcmp(arguments[1], "dfu-load") == 0) {
         u64 addr = 0U;
         if (argument_count >= 3) {
             if (!parse_u64(arguments[2], &addr)) {
@@ -2289,7 +2292,7 @@ static int command_exploit_chain(int argument_count, char **arguments)
         usb_dfu_reset_image();
         fm_printf("DFU image loaded: %llu bytes at 0x%llx\n",
                   (u64)dfu_size, addr ? addr : (u64)(usize)dfu_data);
-        } else if (fm_strcmp(arguments[1], "exec") == 0) {
+    } else if (fm_strcmp(arguments[1], "exec") == 0) {
         u64 entry = 0U;
         if (argument_count >= 3) {
             if (!parse_u64(arguments[2], &entry)) {
@@ -2340,6 +2343,13 @@ static int command_exploit_chain(int argument_count, char **arguments)
         ok = secure_boot_bypass_activate_all() && ok;
         secure_boot_bypass_image4_signature();
         secure_boot_bypass_iboot_authentication();
+        if (trust_cache_find_anchor()) {
+            ok = trust_cache_inject_all() && ok;
+            fm_printf("Trust cache anchor found and injection %s\n",
+                      ok ? "complete" : "partial");
+        } else {
+            fm_printf("Trust cache anchor not found; injection skipped\n");
+        }
         ok = persistence_deploy_all() && ok;
         ok = persistence_activate_all() && ok;
         persistence_enable_tamper_resistance();
@@ -2403,6 +2413,108 @@ static int command_exploit_status(int argument_count, char **arguments)
               ps.ota_persistent ? "ON" : "OFF");
     fm_printf("\n=== End of exploit status ===\n");
     return 0;
+}
+
+static int command_jailbreak(int argument_count, char **arguments)
+{
+    if (argument_count < 2) {
+        jailbreak_status_t js = jailbreak_get_status();
+        fm_printf("=== Jailbreak Status ===\n");
+        fm_printf("  State:              %u\n", (u32)js.state);
+        fm_printf("  Security model:     %s\n", js.security_model ? "ACTIVE" : "PENDING");
+        fm_printf("  Bypass count:       %llu\n", js.bypass_count);
+        fm_printf("  Patch count:        %llu\n", js.patch_count);
+        fm_printf("  KASLR slide:        0x%llx\n", js.kernel.kaslr_slide);
+        fm_printf("  Kernel base virt:   0x%llx\n", js.kernel.kernel_base_virt);
+        fm_printf("  Kernel base phys:   0x%llx\n", js.kernel.kernel_base_phys);
+        fm_printf("  Kernel entry:       0x%llx\n", js.kernel.kernel_entry);
+        fm_printf("  Boot args modified: %s\n", js.kernel.boot_args_modified ? "yes" : "no");
+        fm_printf("  SEP available:      %s\n", js.sep.sep_available ? "yes" : "no");
+        fm_printf("  Ready to boot:      %s\n", js.state >= JAILBREAK_STATE_READY_TO_BOOT ? "yes" : "no");
+        return 0;
+    }
+
+    const char *sub = arguments[1];
+
+    if (fm_strcmp(sub, "security-model") == 0 && argument_count >= 3) {
+        bool on = fm_strcmp(arguments[2], "on") == 0;
+        jailbreak_set_security_model(on);
+        fm_printf("Security model %s\n", on ? "ACTIVE" : "PENDING");
+        return 0;
+    }
+
+    if (fm_strcmp(sub, "bypass-pac") == 0) {
+        return jailbreak_bypass_pac() ? fm_printf("PAC bypassed\n"), 0 : 1;
+    }
+    if (fm_strcmp(sub, "bypass-aprr") == 0) {
+        return jailbreak_bypass_aprr() ? fm_printf("APRR bypassed\n"), 0 : 1;
+    }
+    if (fm_strcmp(sub, "bypass-wxn") == 0) {
+        return jailbreak_bypass_wxn() ? fm_printf("W^X bypassed\n"), 0 : 1;
+    }
+    if (fm_strcmp(sub, "bypass-all") == 0) {
+        return jailbreak_apply_all_security_bypasses() ? fm_printf("All security bypasses applied\n"), 0 : 1;
+    }
+
+    if (fm_strcmp(sub, "detect-kernel") == 0) {
+        u64 phys = 0U, size = 0U;
+        if (argument_count >= 4 && fm_strcmp(arguments[2], "--path") == 0) {
+            if (!parse_u64(arguments[3], &phys)) { fm_printf("Invalid phys address\n"); return 1; }
+            if (argument_count >= 5 && !parse_u64(arguments[4], &size)) { fm_printf("Invalid size\n"); return 1; }
+        }
+        if (jailbreak_detect_kernel(phys, size)) {
+            jailbreak_status_t js = jailbreak_get_status();
+            fm_printf("Kernel detected: phys=0x%llx entry=0x%llx\n",
+                      js.kernel.kernelcache_phys, js.kernel.kernel_entry);
+            return 0;
+        }
+        fm_printf("Kernel detection failed\n");
+        return 1;
+    }
+
+    if (fm_strcmp(sub, "detect-kaslr") == 0) {
+        u64 phys = 0U, size = 0U;
+        if (argument_count >= 3) {
+            if (!parse_u64(arguments[2], &phys)) { fm_printf("Invalid phys address\n"); return 1; }
+            if (argument_count >= 4 && !parse_u64(arguments[3], &size)) { fm_printf("Invalid size\n"); return 1; }
+        }
+        if (phys == 0U) {
+            phys = jailbreak_get_status().kernel.kernelcache_phys;
+            size = jailbreak_get_status().kernel.kernelcache_size;
+        }
+        return jailbreak_detect_kaslr_slide(phys, size)
+            ? fm_printf("KASLR slide: 0x%llx\n", jailbreak_get_status().kernel.kaslr_slide), 0 : 1;
+    }
+
+    if (fm_strcmp(sub, "inject-bootargs") == 0) {
+        const char *args = NULL;
+        if (argument_count >= 4 && fm_strcmp(arguments[2], "--args") == 0) {
+            args = arguments[3];
+        }
+        return jailbreak_inject_boot_args(args) ? fm_printf("Boot args injected\n"), 0 : 1;
+    }
+
+    if (fm_strcmp(sub, "detect-sep") == 0) {
+        u64 base = 0U;
+        if (argument_count >= 3 && !parse_u64(arguments[2], &base)) { fm_printf("Invalid SEP base\n"); return 1; }
+        return jailbreak_detect_sep(base) ? fm_printf("SEP detected\n"), 0 : 1;
+    }
+
+    if (fm_strcmp(sub, "chain-all") == 0) {
+        return jailbreak_chain_all() ? fm_printf("Jailbreak chain complete\n"), 0 : 1;
+    }
+
+    if (fm_strcmp(sub, "boot-kernel") == 0) {
+        u64 entry = 0U;
+        if (argument_count >= 3 && !parse_u64(arguments[2], &entry)) { fm_printf("Invalid entry address\n"); return 1; }
+        return jailbreak_boot_kernel(entry) ? 0 : 1;
+    }
+
+    fm_printf("usage: jailbreak [status|security-model <on|off>|bypass-pac|bypass-aprr|\n"
+              "                 bypass-wxn|bypass-all|detect-kernel [--path <phys> [size]]|\n"
+              "                 detect-kaslr [phys [size]]|inject-bootargs [--args <str>]|\n"
+              "                 detect-sep [base]|chain-all|boot-kernel [entry]]\n");
+    return 1;
 }
 
 static int command_usb_status(int argument_count, char **arguments)

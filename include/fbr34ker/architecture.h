@@ -10,6 +10,7 @@
 #define FBR34KER_ARCH_CAP_MMIO_MANAGER (1ULL << 6)
 #define FBR34KER_ARCH_CAP_PHYSICAL_MEMORY (1ULL << 7)
 #define FBR34KER_ARCH_CAP_BRINGUP_REPORT (1ULL << 8)
+#define FBR34KER_ARCH_CAP_MMU (1ULL << 9)
 
 bool architecture_init(void);
 void architecture_shutdown(void);

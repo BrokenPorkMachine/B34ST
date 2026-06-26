@@ -14,9 +14,25 @@ import shutil
 import subprocess
 import sys
 
+SECURITY_MODEL_CONFIG_PATH = pathlib.Path("~/.config/fbr34ker/security-model").expanduser()
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 ARTIFACT_ROOT = ROOT / "runtime-artifacts" / "b34st" / "control-panel"
 AUTHORIZATION_TEXT = "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE"
+
+
+class Colors:
+    if os.isatty(1):
+        BOLD = "\033[1m"
+        DIM = "\033[2m"
+        RED = "\033[31m"
+        GREEN = "\033[32m"
+        YELLOW = "\033[33m"
+        BLUE = "\033[34m"
+        CYAN = "\033[36m"
+        RESET = "\033[0m"
+    else:
+        BOLD = DIM = RED = GREEN = YELLOW = BLUE = CYAN = RESET = ""
 
 
 class Session:
@@ -49,15 +65,21 @@ class Session:
                 script_tool = shutil.which("script")
                 if script_tool:
                     safe_label = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
-                    transcript = self.directory / f"{safe_label or 'interactive'}.typescript"
+                    transcript = (
+                        self.directory / f"{safe_label or 'interactive'}.typescript"
+                    )
                     return_code = subprocess.run(
                         [script_tool, "-q", str(transcript), *command],
                         cwd=ROOT,
                         check=False,
                     ).returncode
-                    self.record(f"Interactive transcript: {transcript.relative_to(ROOT)}")
+                    self.record(
+                        f"Interactive transcript: {transcript.relative_to(ROOT)}"
+                    )
                 else:
-                    return_code = subprocess.run(command, cwd=ROOT, check=False).returncode
+                    return_code = subprocess.run(
+                        command, cwd=ROOT, check=False
+                    ).returncode
             else:
                 process = subprocess.Popen(
                     command,
@@ -78,7 +100,9 @@ class Session:
             print(f"Unable to start command: {exc}", file=sys.stderr)
             return 1
         self.record(f"END {label}: exit={return_code}")
-        print(f"\nResult: {'passed' if return_code == 0 else f'failed ({return_code})'}")
+        print(
+            f"\nResult: {'passed' if return_code == 0 else f'failed ({return_code})'}"
+        )
         return return_code
 
 
@@ -212,33 +236,40 @@ def _build_and_verify(session: Session) -> None:
 def _external_hardware(session: Session) -> None:
     while True:
         _clear()
-        _header(session, "External hardware and first-stage execution")
-        print("  1. Guided evidence-gated research runtime")
-        print("  2. Read-only connected-device inspection")
-        print("  3. Query iRecovery device state")
-        print("  4. Verify an image/profile for iRecovery")
-        print("  5. Run an authorized adapter/bridge bring-up")
-        print("  6. Collect from an existing adapter/bridge session")
-        print("  7. Recover/reset an authorized adapter session")
-        print("  8. Legacy USBliter8 backend (experimental, not evidence)")
+        _header(session, "A12+ USBliter8 — Pwn, Inspect, Jailbreak")
+        print("  1. Pwn & Inspect  — USBliter8 exploit + full protection audit")
+        print(
+            "  2. USBliter8 jailbreak  — full A12+ chain (PWNDFU -> monitor -> exploit)"
+        )
+        print("  3. Guided evidence-gated research runtime")
+        print("  4. Read-only connected-device inspection")
+        print("  5. Query iRecovery device state")
+        print("  6. Verify an image/profile for iRecovery")
+        print("  7. Run an authorized adapter/bridge bring-up")
+        print("  8. Collect from an existing adapter/bridge session")
+        print("  9. Recover/reset an authorized adapter session")
         print("  0. Back")
         choice = _prompt("Selection", "1")
         if choice == "1":
-            _physical_flow(session)
+            _usbliter8_pwn_and_inspect(session)
         elif choice == "2":
+            _usbliter8_jailbreak(session)
+        elif choice == "3":
+            _physical_flow(session)
+        elif choice == "4":
             session.run(["device"], label="Device inspection")
             _pause()
-        elif choice == "3":
+        elif choice == "5":
             session.run(["irecovery", "query"], label="iRecovery query")
             _pause()
-        elif choice == "4":
+        elif choice == "6":
             _run_prompted(
                 session,
                 ["irecovery", "verify"],
                 label="iRecovery verification",
                 example="--profile profiles/apple-a13-iphone-recovery.json",
             )
-        elif choice == "5":
+        elif choice == "7":
             _run_prompted(
                 session,
                 ["bringup", "run"],
@@ -246,24 +277,20 @@ def _external_hardware(session: Session) -> None:
                 example="--state-dir runtime-artifacts/device --device-info device.json --profile profiles/apple-a13-iphone-recovery.json --image build-apple/a13/boot.img --bridge-command '...' --authorized-session --authorization-id SESSION --acknowledge-unsigned-code --evidence session.zip",
                 interactive=True,
             )
-        elif choice == "6":
+        elif choice == "8":
             _run_prompted(
                 session,
                 ["bringup", "collect"],
                 label="Collect adapter evidence",
                 example="--state-dir runtime-artifacts/device --device-info device.json --bridge-command '...' --output collected.zip",
             )
-        elif choice == "7":
+        elif choice == "9":
             _run_prompted(
                 session,
                 ["bringup", "recover"],
                 label="Authorized adapter reset",
                 example="--state-dir runtime-artifacts/device --device-info device.json --bridge-command '...' --authorized-session --authorization-id SESSION",
             )
-        elif choice == "8":
-            print("This legacy path is not accepted as proof of a modified runtime.")
-            if _confirm("Open the legacy device-operation menu"):
-                session.run(["menu"], label="Legacy maintenance menu", interactive=True)
         elif choice in {"0", "q", ""}:
             return
 
@@ -391,8 +418,12 @@ def _ipsw_workflows(session: Session) -> None:
             if choice == "7" and _confirm("Erase all device data"):
                 command.append("--erase")
             if choice in {"6", "7"}:
-                print("Back up the device first. Restore operations can cause irreversible data loss.")
-                owner = _prompt(f'Type "{AUTHORIZATION_TEXT.replace("TEST", "RESTORE")}"')
+                print(
+                    "Back up the device first. Restore operations can cause irreversible data loss."
+                )
+                owner = _prompt(
+                    f'Type "{AUTHORIZATION_TEXT.replace("TEST", "RESTORE")}"'
+                )
                 confirm = _prompt('Type "START SIGNED IPSW RESTORE"')
                 command += [
                     "--execute",
@@ -420,7 +451,9 @@ def _ipsw_workflows(session: Session) -> None:
             ]
             if choice == "9":
                 adapter = _prompt("External tether adapter command")
-                owner = _prompt(f'Type "{AUTHORIZATION_TEXT.replace("TEST", "RESTORE")}"')
+                owner = _prompt(
+                    f'Type "{AUTHORIZATION_TEXT.replace("TEST", "RESTORE")}"'
+                )
                 confirm = _prompt('Type "START TETHERED DOWNGRADE"')
                 command += [
                     "--adapter-command",
@@ -441,7 +474,9 @@ def _modification_workflows(session: Session) -> None:
     while True:
         _clear()
         _header(session, "Authorized modification workflows")
-        print("Modifications are only promoted when exact-target evidence verifies them.")
+        print(
+            "Modifications are only promoted when exact-target evidence verifies them."
+        )
         print("  1. Evidence-gated kernel/bootstrap workflow")
         print("  2. Validate external modification evidence")
         print("  3. Generate a runtime-stage evidence template")
@@ -478,7 +513,9 @@ def _modification_workflows(session: Session) -> None:
             _runtime_console(session)
         elif choice == "6":
             print("The research-runtime workflow writes legacy-component-audit.json.")
-            print("Run workflow option 1 to generate an audit for the current source tree.")
+            print(
+                "Run workflow option 1 to generate an audit for the current source tree."
+            )
             _pause()
         elif choice in {"0", "q", ""}:
             return
@@ -499,10 +536,22 @@ def _evidence_and_release(session: Session) -> None:
         print("  0. Back")
         choice = _prompt("Selection", "1")
         routes = {
-            "1": (["physical-validation", "validate-session"], "Validate session", "session.zip"),
-            "2": (["physical-validation", "explain-failure"], "Explain failure", "failure.zip"),
+            "1": (
+                ["physical-validation", "validate-session"],
+                "Validate session",
+                "session.zip",
+            ),
+            "2": (
+                ["physical-validation", "explain-failure"],
+                "Explain failure",
+                "failure.zip",
+            ),
             "3": (["evidence-compare"], "Compare evidence", "first.zip second.zip"),
-            "4": (["physical-validation", "candidate-report"], "Candidate report", "--success success.zip --failure failure.zip --recovered recovered.zip --output report.json"),
+            "4": (
+                ["physical-validation", "candidate-report"],
+                "Candidate report",
+                "--success success.zip --failure failure.zip --recovered recovered.zip --output report.json",
+            ),
             "5": (["session"], "Session tools", "--help"),
             "6": (["trace"], "Trace tools", "--help"),
         }
@@ -517,6 +566,369 @@ def _evidence_and_release(session: Session) -> None:
             _pause()
         elif choice in {"0", "q", ""}:
             return
+
+
+def _usbliter8_jailbreak(session: Session) -> int:
+    _clear()
+    _header(session, "A12+ USBliter8 Jailbreak")
+    print("Targets A12+ devices (CPID 0x8015 and above) in DFU mode.")
+    print("Exploit: DWC3 USB controller firmware patch (USBliter8)")
+    print("Payload: FBR34KER monitor + full post-exploit chain")
+    print("Chain:  PWNDFU  ->  rogue DWC3 chain  ->  kernel patches")
+    print("        ->  secure-boot bypass  ->  trust-cache injection")
+    print("        ->  persistence  ->  evasion  ->  runtime shell")
+    print()
+    print("Evidence will be written to this session directory.")
+    print()
+
+    owner = _prompt(
+        f'Type "{AUTHORIZATION_TEXT}" to confirm device ownership',
+        "",
+    )
+    if owner != AUTHORIZATION_TEXT:
+        print("Authorization not confirmed. Aborting.")
+        session.record("USBliter8 jailbreak aborted: authorization not confirmed")
+        _pause()
+        return 1
+
+    exploit_script = ROOT / "scripts" / "run_exploit.py"
+    if not exploit_script.is_file():
+        print(f"Exploit script not found: {exploit_script}", file=sys.stderr)
+        session.record(f"USBliter8 jailbreak aborted: script missing: {exploit_script}")
+        _pause()
+        return 1
+
+    evidence_path = session.directory / "usbliter8-jailbreak.json"
+    label = "USBliter8 A12+ jailbreak"
+    command = [
+        sys.executable,
+        str(exploit_script),
+        "--auto",
+        "--evidence",
+        str(evidence_path),
+        "--timeout",
+        "60",
+    ]
+    printable = shlex.join(command)
+    session.record(f"START {label}: {printable}")
+    print(f"\n[{label}]")
+    print(f"$ {printable}\n")
+    try:
+        process = subprocess.Popen(
+            command,
+            cwd=ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+        assert process.stdout is not None
+        for line in process.stdout:
+            print(line, end="")
+            with session.log_path.open("a", encoding="utf-8") as stream:
+                stream.write(line)
+        return_code = process.wait()
+    except OSError as exc:
+        session.record(f"ERROR {label}: {exc}")
+        print(f"Unable to start exploit: {exc}", file=sys.stderr)
+        _pause()
+        return 1
+
+    session.record(f"END {label}: exit={return_code}")
+    print(f"\nResult: {'passed' if return_code == 0 else f'failed ({return_code})'}")
+
+    if return_code == 0 and evidence_path.exists():
+        print(f"Evidence: {evidence_path.relative_to(ROOT)}")
+        session.record(f"Evidence written: {evidence_path}")
+    elif return_code != 0:
+        print(
+            f"\n{Colors.YELLOW}Jailbreak did not complete successfully.{Colors.RESET}"
+        )
+        print("Troubleshooting:")
+        print("  - Ensure the device is in DFU mode (not Recovery)")
+        print("  - Confirm CPID is 0x8015 or above (A12 or newer)")
+        print("  - Check USB cable and host port are functioning")
+        print("  - Review session log for detailed error output")
+        session.record("USBliter8 jailbreak FAILED")
+
+    if return_code == 0 and _confirm("Connect to FBR34KER runtime console"):
+        _runtime_console(session)
+
+    _pause()
+    return return_code
+
+
+def _usbliter8_pwn_and_inspect(session: Session) -> int:
+    _clear()
+    _header(session, "A12+ USBliter8 Pwn & Inspect")
+    print("Exploits the device via USBliter8 DWC3, boots FBR34KER, then")
+    print("dumps hardware details, protection schemes, and attack surface.")
+    print()
+    print("Outputs a verbose JSON report to the session directory.")
+    print()
+
+    owner = _prompt(
+        f'Type "{AUTHORIZATION_TEXT}" to confirm device ownership',
+        "",
+    )
+    if owner != AUTHORIZATION_TEXT:
+        print("Authorization not confirmed. Aborting.")
+        session.record("USBliter8 pwn-and-inspect aborted: authorization not confirmed")
+        _pause()
+        return 1
+
+    try:
+        from scripts.run_exploit import BootChain, ExploitError
+    except ImportError:
+        print("run_exploit.py not found in scripts/", file=sys.stderr)
+        session.record("USBliter8 pwn-and-inspect aborted: run_exploit.py missing")
+        _pause()
+        return 1
+
+    exploit_script = ROOT / "scripts" / "run_exploit.py"
+    evidence_path = session.directory / "usbliter8-inspect.json"
+    report_path = session.directory / "pwn-inspect-report.json"
+
+    pwndfu_ok = False
+    chipset_info = None
+    chain_results = {}
+    console_inspection: dict[str, str] = {}
+
+    pwndfu_label = "USBliter8 PWNDFU + monitor boot"
+    pwndfu_cmd = [
+        sys.executable,
+        str(exploit_script),
+        "--auto",
+        "--evidence",
+        str(evidence_path),
+        "--timeout",
+        "90",
+    ]
+    session.record(f"START {pwndfu_label}: {shlex.join(pwndfu_cmd)}")
+    print(f"\n[{pwndfu_label}]")
+    print(f"$ {shlex.join(pwndfu_cmd)}\n")
+    try:
+        proc = subprocess.Popen(
+            pwndfu_cmd,
+            cwd=ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+        assert proc.stdout is not None
+        for line in proc.stdout:
+            print(line, end="")
+            with session.log_path.open("a", encoding="utf-8") as stream:
+                stream.write(line)
+        rc = proc.wait()
+    except OSError as exc:
+        session.record(f"ERROR {pwndfu_label}: {exc}")
+        print(f"Unable to start exploit: {exc}", file=sys.stderr)
+        _pause()
+        return 1
+
+    session.record(f"END {pwndfu_label}: exit={rc}")
+    pwndfu_ok = rc == 0
+
+    if not pwndfu_ok:
+        print(f"\n{Colors.RED}PWNDFU / monitor boot failed (exit {rc}).{Colors.RESET}")
+        print("Inspection cannot proceed without an active FBR34KER console.")
+        _pause()
+        return 1
+
+    print(f"\n{Colors.GREEN}Device pwned and monitor active.{Colors.RESET}")
+
+    if evidence_path.exists():
+        try:
+            ev = json.loads(evidence_path.read_text(encoding="utf-8"))
+            chipset_info = ev.get("chipset")
+            chain_results = ev.get("results", {})
+            session.record(f"Loaded exploit evidence from {evidence_path}")
+        except Exception as exc:
+            session.record(f"WARNING: could not parse evidence file: {exc}")
+
+    console = None
+    try:
+        from usb_serial import USBConsole, TransportError
+
+        print(f"\n[*] Connecting to FBR34KER console for inspection...")
+        console = USBConsole()
+        console.open()
+        banner = console.read_until_prompt(timeout=10.0)
+        print(f"[+] Console connected")
+        session.record("Console connected for inspection")
+
+        inspection_commands = [
+            ("exploit-chain status", "Protection scheme state"),
+            ("usb-status", "USB DWC3 controller status"),
+            (
+                "hardware-prepare --list-categories",
+                "Available hardware inspection categories",
+            ),
+            ("chipsets", "Supported A12+ SoC database"),
+            ("boot-evidence status", "Boot evidence collection status"),
+        ]
+
+        print(f"\n[*] Running {len(inspection_commands)} inspection commands...\n")
+        for cmd, description in inspection_commands:
+            session.record(f"INSPECT: {cmd}")
+            print(f"  {Colors.BOLD}── {description} ──{Colors.RESET}")
+            try:
+                out = console.run_command(cmd, timeout=15.0)
+                console_inspection[cmd] = out
+                print(out)
+            except Exception as exc:
+                err = f"<inspection command failed: {exc}>"
+                console_inspection[cmd] = err
+                print(f"  {Colors.YELLOW}{err}{Colors.RESET}")
+            print()
+
+    except ImportError:
+        session.record("INSPECT SKIPPED: pyusb not available for console connection")
+        print(
+            f"\n{Colors.YELLOW}pyusb not available; skipping live inspection.{Colors.RESET}"
+        )
+    except Exception as exc:
+        session.record(f"INSPECT ERROR: {exc}")
+        print(f"\n{Colors.YELLOW}Console inspection error: {exc}{Colors.RESET}")
+    finally:
+        if console is not None:
+            try:
+                console.close()
+            except Exception:
+                pass
+
+    try:
+        from host.chipset_db import all_chipsets, chipset_summary
+
+        all_socs = {c["cpid"]: c for c in all_chipsets()}
+    except Exception:
+        all_socs = {}
+
+    known_protections = [
+        "Image4 signature validation",
+        "Certificate chain verification",
+        "AP Ticket validation",
+        "SHSH blob acceptance",
+        "iBoot image authentication",
+        "Boot manifest trust evaluation",
+        "AMFI code signing enforcement",
+        "Sandbox policy enforcement",
+        "codesign requirement",
+        "task_for_pid access control",
+        "Root filesystem mount (read-only)",
+        "Kernel extension signing",
+        "Kernel patch protection (kpp)",
+        "PAC (Pointer Authentication)",
+        "Secure Enclave Bridge",
+    ]
+
+    bypass_status: dict[str, str] = {}
+    for entry in console_inspection.get("exploit-chain status", "").splitlines():
+        stripped = entry.strip()
+        for kw in (
+            "Image4",
+            "cert",
+            "APTicket",
+            "SHSH",
+            "iBoot",
+            "AMFI",
+            "sandbox",
+            "codesign",
+            "task_for_pid",
+            "mount",
+            "bypass",
+        ):
+            if kw.lower() in stripped.lower():
+                bypass_status[kw] = stripped
+                break
+
+    report = {
+        "schema_version": 1,
+        "project": "FBR34KER",
+        "version": "0.2.3",
+        "operation": "usbliter8-pwn-and-inspect",
+        "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+        "authorization": "confirmed",
+        "pwndfu": {
+            "succeeded": pwndfu_ok,
+            "target": "A12+ (CPID >= 0x8015)",
+            "exploit": "DWC3 USBliter8 firmware patch",
+        },
+        "chipset": chipset_info,
+        "known_protections": known_protections,
+        "protection_state": bypass_status,
+        "live_console_inspection": console_inspection,
+        "exploit_chain_results": chain_results,
+        "evidence_files": {
+            "exploit_evidence": str(evidence_path.relative_to(ROOT))
+            if evidence_path.exists()
+            else None,
+            "this_report": str(report_path.relative_to(ROOT)),
+        },
+        "supported_chipsets": list(all_socs.values()),
+        "session_directory": str(session.directory.relative_to(ROOT)),
+    }
+
+    try:
+        report_path.write_text(
+            json.dumps(report, indent=2, sort_keys=True, default=str),
+            encoding="utf-8",
+        )
+        print(f"{Colors.GREEN}Inspection report written:{Colors.RESET}")
+        print(f"  {report_path.relative_to(ROOT)}")
+        session.record(f"PWN-INSPECT report written: {report_path}")
+    except Exception as exc:
+        session.record(f"ERROR writing report: {exc}")
+        print(f"{Colors.RED}Failed to write report: {exc}{Colors.RESET}")
+
+    print(f"\n{'=' * 60}")
+    print(f"  {Colors.BOLD}Inspection Summary{Colors.RESET}")
+    print(f"{'=' * 60}")
+
+    if chipset_info:
+        ci = chipset_info
+        print(f"  Chipset:   {ci.get('name', '?')} ({ci.get('model', '?')})")
+        print(f"  CPID:      0x{ci.get('cpid', 0):04x}")
+        print(f"  DRAM:      0x{ci.get('dram_base', 0):x}")
+        print(f"  Kernel:    0x{ci.get('kernel_base', 0):x}")
+
+    print(f"\n  {Colors.BOLD}Protection State (from live console){Colors.RESET}")
+    if bypass_status:
+        for kw, state in bypass_status.items():
+            active = "BYPASSED" in state.upper() or "ACTIVE" in state.upper()
+            mark = (
+                f"{Colors.GREEN}✗{Colors.RESET}"
+                if active
+                else f"{Colors.YELLOW}?{Colors.RESET}"
+            )
+            print(f"    {mark} {state.strip()}")
+    else:
+        print(
+            f"    {Colors.DIM}(no protection state captured — check report){Colors.RESET}"
+        )
+
+    print(f"\n  {Colors.BOLD}Known Protections (attack surface){Colors.RESET}")
+    for p in known_protections:
+        print(f"    - {p}")
+
+    print(f"\n  Exploit chain steps:")
+    for step, result in chain_results.items():
+        ok = isinstance(result, bool) and result
+        mark = (
+            f"{Colors.GREEN}PASS{Colors.RESET}"
+            if ok
+            else f"{Colors.RED}FAIL{Colors.RESET}"
+        )
+        print(f"    [{mark}] {step}")
+    print(f"{'=' * 60}")
+
+    if _confirm("Connect to FBR34KER runtime console for live exploration"):
+        _runtime_console(session)
+
+    _pause()
+    return 0
 
 
 def _physical_flow(session: Session) -> None:
@@ -553,6 +965,46 @@ def _runtime_console(session: Session) -> None:
     _pause()
 
 
+def _resolve_security_model() -> bool:
+    """Prompt for FBR34KER_ENABLE_SECURITY_MODEL on first run, cache decision."""
+    if SECURITY_MODEL_CONFIG_PATH.exists():
+        stored = SECURITY_MODEL_CONFIG_PATH.read_text(encoding="utf-8").strip()
+        return stored == "1"
+
+    _clear()
+    print("=" * 64)
+    print("  FBR34KER_SECURITY_MODEL — First-time setup")
+    print("=" * 64)
+    print()
+    from b34st.environment import SECURITY_MODEL_DESCRIPTION
+    print(SECURITY_MODEL_DESCRIPTION)
+    print()
+
+    while True:
+        choice = _prompt("Select [1] State model (default)  [2] Active security model", "1")
+        if choice == "1":
+            enable = False
+            break
+        elif choice == "2":
+            if not _confirm("WARNING: Active security model WILL write to kernel memory. Continue"):
+                continue
+            owner = _prompt('Type "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE"')
+            if owner != "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE":
+                print("Authorization not confirmed.")
+                continue
+            enable = True
+            print(f"\n{Colors.RED}Active security model selected. Writes to kernel memory are enabled.{Colors.RESET}")
+            break
+        else:
+            print("Invalid selection.")
+
+    SECURITY_MODEL_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    SECURITY_MODEL_CONFIG_PATH.write_text("1" if enable else "0")
+    print(f"Security model preference saved to {SECURITY_MODEL_CONFIG_PATH}")
+    _pause()
+    return enable
+
+
 def _show_log(session: Session) -> None:
     _clear()
     _header(session, "Session log")
@@ -565,7 +1017,8 @@ def _device_snapshot(session: Session) -> dict:
 
     args = argparse.Namespace(
         device_info=pathlib.Path(os.environ["B34ST_DEVICE_INFO"])
-        if os.environ.get("B34ST_DEVICE_INFO") else None,
+        if os.environ.get("B34ST_DEVICE_INFO")
+        else None,
         recovery_only=False,
         udid=None,
         ecid=None,
@@ -591,7 +1044,9 @@ def _device_snapshot(session: Session) -> dict:
             "actions": [],
         }
     path = session.directory / "device-dashboard.json"
-    path.write_text(json.dumps(snapshot, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(snapshot, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     session.record(f"Dashboard refreshed: connected={snapshot.get('connected')}")
     return snapshot
 
@@ -608,15 +1063,27 @@ def _print_dashboard(snapshot: dict) -> None:
     firmware = snapshot.get("firmware", {})
     latest = firmware.get("latest_signed") or {}
     latest_build = f" ({latest['build']})" if latest.get("build") else ""
-    print(f"Device:          {device.get('name') or device.get('device_name') or 'Unknown'}")
+    print(
+        f"Device:          {device.get('name') or device.get('device_name') or 'Unknown'}"
+    )
     print(f"Product:         {device.get('product') or 'Unknown'}")
     print(f"Mode:            {device.get('mode') or 'Unknown'}")
     print(f"Board/model:     {device.get('model') or 'Unknown'}")
-    print(f"Launch firmware: {device.get('launch_version') or 'Not in reviewed database'}")
-    print(f"Current version: {device.get('current_version') or 'Unavailable in this mode'}")
-    print(f"Current build:   {device.get('current_build') or 'Unavailable in this mode'}")
-    print(f"Latest signed:   {latest.get('version') or 'Catalog unavailable'}{latest_build}")
-    print(f"Exact profiles:  {sum(1 for item in snapshot.get('profiles', []) if item.get('exact'))}")
+    print(
+        f"Launch firmware: {device.get('launch_version') or 'Not in reviewed database'}"
+    )
+    print(
+        f"Current version: {device.get('current_version') or 'Unavailable in this mode'}"
+    )
+    print(
+        f"Current build:   {device.get('current_build') or 'Unavailable in this mode'}"
+    )
+    print(
+        f"Latest signed:   {latest.get('version') or 'Catalog unavailable'}{latest_build}"
+    )
+    print(
+        f"Exact profiles:  {sum(1 for item in snapshot.get('profiles', []) if item.get('exact'))}"
+    )
     if not firmware.get("available") and firmware.get("error"):
         print(f"Firmware note:   {firmware['error']}")
 
@@ -661,11 +1128,19 @@ def _run_device_action(session: Session, snapshot: dict, action: dict) -> None:
         return
     if action_id == "download-latest":
         command = [
-            "ipsw", "download", "--product", product,
-            "--version", latest["version"], "--build", latest["build"],
+            "ipsw",
+            "download",
+            "--product",
+            product,
+            "--version",
+            latest["version"],
+            "--build",
+            latest["build"],
             "--signed-only",
-            "--output-dir", str(session.directory / "ipsw"),
-            "--manifest", str(session.directory / "latest-ipsw.json"),
+            "--output-dir",
+            str(session.directory / "ipsw"),
+            "--manifest",
+            str(session.directory / "latest-ipsw.json"),
         ]
         session.run(command, label="Download latest signed IPSW", interactive=True)
         _pause()
@@ -686,9 +1161,12 @@ def _run_device_action(session: Session, snapshot: dict, action: dict) -> None:
         confirm = _prompt('Type "START SIGNED IPSW RESTORE"')
         command += [
             "--execute",
-            "--owner-authorization", owner,
-            "--confirm", confirm,
-            "--evidence", str(session.directory / "signed-restore.json"),
+            "--owner-authorization",
+            owner,
+            "--confirm",
+            confirm,
+            "--evidence",
+            str(session.directory / "signed-restore.json"),
         ]
         session.run(command, label="Signed IPSW restore", interactive=True)
         _pause()
@@ -701,10 +1179,14 @@ def _run_device_action(session: Session, snapshot: dict, action: dict) -> None:
         if not path:
             return
         plan = [
-            "ipsw", "tethered-downgrade",
-            "--product", product,
-            "--ipsw", path,
-            "--evidence", str(session.directory / "tethered-downgrade.json"),
+            "ipsw",
+            "tethered-downgrade",
+            "--product",
+            product,
+            "--ipsw",
+            path,
+            "--evidence",
+            str(session.directory / "tethered-downgrade.json"),
         ]
         if session.run(plan, label="Tethered downgrade plan") != 0:
             _pause()
@@ -716,11 +1198,15 @@ def _run_device_action(session: Session, snapshot: dict, action: dict) -> None:
         owner = _prompt('Type "I OWN OR AM AUTHORIZED TO RESTORE THIS DEVICE"')
         confirm = _prompt('Type "START TETHERED DOWNGRADE"')
         session.run(
-            plan + [
-                "--adapter-command", adapter,
+            plan
+            + [
+                "--adapter-command",
+                adapter,
                 "--execute",
-                "--owner-authorization", owner,
-                "--confirm", confirm,
+                "--owner-authorization",
+                owner,
+                "--confirm",
+                confirm,
             ],
             label="External tethered downgrade",
             interactive=True,
@@ -767,6 +1253,16 @@ def run_control_panel() -> int:
         return 1
 
     session = Session()
+    security_model = _resolve_security_model()
+    session.record(f"Security model: {'ACTIVE' if security_model else 'STATE MODEL'}")
+    if security_model:
+        session.run(["build", "--security-model"], label="Build with security model")
+        print(f"\n{Colors.RED}SECURITY MODEL ACTIVE: memory writes enabled{Colors.RESET}")
+    else:
+        session.run(["build"], label="Build (state model only)")
+        print(f"\n{Colors.GREEN}State model only: no kernel memory writes{Colors.RESET}")
+    _pause()
+
     try:
         _device_dashboard(session)
     except SystemExit:

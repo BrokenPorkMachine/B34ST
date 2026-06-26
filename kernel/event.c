@@ -76,15 +76,14 @@ bool event_bus_publish(fbr34ker_event_type_t type, const char *source,
     } else {
         ++statistics.overwritten;
     }
+    if (type >= 64U) {
+        return false;
+    }
     if (dispatching) {
         ++statistics.recursive_dispatches;
         return true;
     }
     dispatching = true;
-    if (type >= 64U) {
-        dispatching = false;
-        return false;
-    }
     const u64 bit = 1ULL << (u32)type;
     for (usize index = 0U; index < statistics.subscriber_count; ++index) {
         if ((subscribers[index].mask & bit) == 0U) {

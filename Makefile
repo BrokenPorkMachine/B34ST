@@ -78,6 +78,7 @@ LDFLAGS := -T $(LINKER_SCRIPT) -Map=$(TARGET).map --gc-sections --fatal-warnings
 
 COMMON_C_SOURCES := \
     arch/arm64/cpu.c \
+    arch/arm64/mmu.c \
     kernel/allocator.c \
     kernel/architecture.c \
     kernel/board.c \
@@ -121,6 +122,7 @@ COMMON_C_SOURCES := \
     kernel/usb.c \
     kernel/usbliter8_exploit.c \
     kernel/trust_cache.c \
+    kernel/jailbreak.c \
     modules/hello/hello.c \
     platform/gic.c
 
@@ -321,7 +323,7 @@ check-native:
 		-DFBR34KER_HOST_TEST=1 kernel/boot_evidence.c kernel/crc32.c kernel/format.c kernel/string.c tests/format_console_stub.c tests/boot_evidence_harness.c -o $(BUILD_DIR)/tests/boot_evidence_harness
 	$(BUILD_DIR)/tests/boot_evidence_harness
 	$(CC) -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
-		kernel/lifecycle.c kernel/event.c kernel/fault.c kernel/trace.c kernel/format.c kernel/service_registry.c kernel/driver.c kernel/architecture.c kernel/board.c kernel/mmio.c kernel/physical_memory.c kernel/bringup_report.c kernel/string.c tests/format_console_stub.c tests/architecture_harness.c -o $(BUILD_DIR)/tests/architecture_harness
+		kernel/lifecycle.c kernel/event.c kernel/fault.c kernel/trace.c kernel/format.c kernel/service_registry.c kernel/driver.c kernel/architecture.c kernel/board.c kernel/mmio.c kernel/physical_memory.c kernel/bringup_report.c kernel/string.c tests/format_console_stub.c tests/mmu_log_stub.c tests/architecture_harness.c -o $(BUILD_DIR)/tests/architecture_harness
 	$(BUILD_DIR)/tests/architecture_harness
 	$(CC) -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
 		kernel/trace.c kernel/format.c kernel/string.c tests/format_console_stub.c tests/trace_harness.c -o $(BUILD_DIR)/tests/trace_harness

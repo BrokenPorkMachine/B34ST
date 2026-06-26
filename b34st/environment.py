@@ -28,8 +28,28 @@ PROVIDED_CAPABILITIES = (
     "persistence",
     "protected-data-access",
     "secure-boot-bypass",
+    "pac-bypass",
+    "aprr-bypass",
+    "wx-bypass",
+    "mmu-management",
+    "full-jailbreak-chain",
 )
 PROHIBITED_CAPABILITIES = ()
+
+SECURITY_MODEL_DESCRIPTION = """\
+FBR34KER_ENABLE_SECURITY_MODEL controls whether the monitor actually WRITES
+to kernel memory, or operates as a read-only state model.
+
+  [1] OFF (default, state model only) — All patches, bypasses, and
+      injections are tracked in state but NOT written to memory.
+      Safe for exploration, simulation, and evidence collection.
+
+  [2] ON (active security model) — The monitor WILL write patches,
+      bypass PAC/APRR/W^X, inject trust caches, modify boot-args,
+      and boot unsigned kernel code. Requires explicit authorization.
+
+Which mode should FBR34KER use?
+"""
 
 CAPABILITY_BOUNDARY_MAP: dict[str, str] = {
     "activation-bypass": "activation_bypass_included",
@@ -39,6 +59,11 @@ CAPABILITY_BOUNDARY_MAP: dict[str, str] = {
     "persistence": "persistence_included",
     "protected-data-access": "protected_data_access_included",
     "secure-boot-bypass": "signature_bypass_included",
+    "pac-bypass": "pac_bypass_included",
+    "aprr-bypass": "aprr_bypass_included",
+    "wx-bypass": "wx_bypass_included",
+    "mmu-management": "mmu_management_included",
+    "full-jailbreak-chain": "full_jailbreak_chain_included",
 }
 
 ALL_BOUNDARY_KEYS: tuple[str, ...] = (
@@ -51,6 +76,11 @@ ALL_BOUNDARY_KEYS: tuple[str, ...] = (
     "credential_extraction_included",
     "passcode_bypass_included",
     "protected_data_access_included",
+    "pac_bypass_included",
+    "aprr_bypass_included",
+    "wx_bypass_included",
+    "mmu_management_included",
+    "full_jailbreak_chain_included",
 )
 
 CAPABILITY_BLOCKERS: dict[str, list[str]] = {
@@ -81,6 +111,28 @@ CAPABILITY_BLOCKERS: dict[str, list[str]] = {
     "secure-boot-bypass": [
         "A BootROM or iBoot vulnerability must be available for this device+iOS.",
         "B34ST itself does not provide or distribute bootrom exploits.",
+    ],
+    "pac-bypass": [
+        "SCTLR_EL1.EnIA/EnIB/EnDA/EnDB must be cleared.",
+        "Must be done before unsigned kernel code can execute.",
+    ],
+    "aprr-bypass": [
+        "Apple Page Protection Layer must be disabled via TCR_EL1.",
+        "NFD0/NFD1 bits must be set, HA/HD must be cleared.",
+    ],
+    "wx-bypass": [
+        "SCTLR_EL1.WXN must be cleared to allow writable executable pages.",
+    ],
+    "mmu-management": [
+        "Page tables must be allocated and identity-mapped.",
+        "TCR_EL1, MAIR_EL1, and TTBR0_EL1/TTBR1_EL1 must be configured.",
+    ],
+    "full-jailbreak-chain": [
+        "All security bypasses (PAC, APRR, W^X) must succeed first.",
+        "KASLR slide must be detected from the kernelcache.",
+        "Boot-args must be injected with jailbreak flags.",
+        "SEP must be handled to prevent panics.",
+        "The kernel entry point must be identified.",
     ],
 }
 

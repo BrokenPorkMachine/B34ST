@@ -3,51 +3,38 @@
 
 Usage:
   ./fbr34ker <command> [options]
+  ./fbr34ker menu                   Interactive guided interface
 
-Commands:
+Core commands:
   version              Show version
   doctor               System diagnostics
-  build [--jobs N]     Build all targets
-  test [--qemu] [--jobs N]  Run test suite
+  build                Build all targets (--security-model, --jobs N)
+  test                 Run test suite (--qemu for integration tests)
+  run [direct|generic|probe]  Run in QEMU emulation
   clean                Clean build artifacts
-  chipsets             List all supported A12+ SoCs
+  menu                 Interactive goal-driven interface
 
-  exploit [--auto] [--monitor PATH] [--ecid SERIAL] [--timeout N]
-                       Full exploit chain (detect → DWC3 exploit → load → execute)
+Device & exploit:
+  detect               Auto-detect chipset of connected device
+  device               Show connected device info
   pwndfu               Send DWC3 exploit and enter PWNDFU
   load-monitor PATH    Send FBR34KER image via vendor MEM_WRITE
   console              Connect to FBR34KER CDC ACM console
-  device               Show connected device info
-  detect               Auto-detect chipset of connected device
+  exploit              Full exploit chain (DWC3 → monitor → jailbreak → boot kernel)
 
+Advanced tools:
+  chipsets             List all supported A12+ SoCs
   control-panel        B34ST operator control panel
-  b34stool [args...]   Unified B34ST interactive multi-tool
   b34st [args...]      Run a B34ST command
-  research-runtime [args...]  Evidence-gated runtime orchestrator
-  ipsw [args...]       Targeted firmware download/restore workflows
-  device-dashboard [args...]  Device-specific capability snapshot
-  menu                 Interactive, goal-driven interface
-  interactive          Same as menu
-   run [direct|generic|probe]  Run in QEMU emulation
-  irecovery [args...]  Run irecovery commands
+  b34stool [args...]   B34ST interactive multi-tool
   deploy [args...]     Deploy to device
   module [args...]     Interact with FBR34KER modules
-  evidence [args...]   Manage boot evidence
   hardware [args...]   Hardware bring-up workflow
   physical-validation [args...]  Validate physical probe image
   session [args...]    Session management
-  bridge [args...]     Bridge mode operations
-  boot-image [args...]  Build/verify boot images
-  bringup [args...]    Hardware bring-up reports
-  trace [args...]      Trace/log analysis
-  crash [args...]      Crash log decode/analysis
   package              Create release package
   gate                 Release gate checks
   permissions          Check system permissions
-  abi-check [MANIFEST] Check ABI compatibility
-  verify-release MANIFEST  Verify release manifest
-  compare-releases A B Compare two releases
-  evidence-compare A B  Compare evidence files
 """
 from __future__ import annotations
 
@@ -94,10 +81,12 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def run(cmd, *, capture=False, timeout=120, cwd=ROOT, check=True):
+def run(cmd, *, capture=False, timeout=120, cwd=ROOT, check=True, env=None):
     kwargs = dict(cwd=cwd, timeout=timeout)
     if capture:
         kwargs.update(stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if env is not None:
+        kwargs["env"] = env
     proc = subprocess.run([str(x) for x in cmd], **kwargs)
     if check and proc.returncode != 0:
         raise CliError(f"command failed: {' '.join(str(x) for x in cmd)}", proc.returncode)
@@ -109,12 +98,15 @@ def require_qemu():
         raise CliError("qemu-system-aarch64 required")
 
 
-def make(targets, jobs=4, extra_vars=None, capture=False, check=True):
+def make(targets, jobs=4, extra_vars=None, capture=False, check=True, extra_env=None):
     cmd = ["make", "--no-print-directory", f"-j{jobs}"]
     if extra_vars:
         cmd.extend(extra_vars)
     cmd.extend(targets)
-    return run(cmd, cwd=ROOT, capture=capture, check=check)
+    run_env = os.environ.copy()
+    if extra_env:
+        run_env.update(extra_env)
+    return run(cmd, cwd=ROOT, capture=capture, check=check, env=run_env)
 
 
 # ── Subcommands ──────────────────────────────────────────────────────────
@@ -213,11 +205,18 @@ def cmd_build(args):
                "generic-loader", "loader-check", "loader-conformance-test",
                "deployment-simulate", "apple-boot-images",
                "apple-bringup-simulate", "physical-validation-candidate"]
-    print(f"{Colors.BOLD}Building all targets ({args.jobs} jobs)...{Colors.RESET}")
-    rc = make(targets, jobs=args.jobs)
+    env = {}
+    security_model = getattr(args, "security_model", None)
+    if security_model is True or (security_model is None and os.environ.get("FBR34KER_ENABLE_SECURITY_MODEL") == "1"):
+        env["SECURITY_MODEL"] = "1"
+        print(f"  {Colors.RED}Security model: ACTIVE (memory writes enabled){Colors.RESET}")
+    else:
+        print(f"  {Colors.GREEN}Security model: disabled (state model only){Colors.RESET}")
+    print(f"  Building {len(targets)} targets ({args.jobs} jobs)...")
+    rc = make(targets, jobs=args.jobs, extra_env=env)
     if rc.returncode != 0:
         return rc.returncode
-    print(f"{Colors.GREEN}All builds passed{Colors.RESET}")
+    print(f"  {Colors.GREEN}All builds passed{Colors.RESET}")
     return 0
 
 
@@ -322,10 +321,8 @@ def cmd_exploit(args):
         if not os.path.isfile(monitor):
             raise CliError(f"monitor image not found: {monitor}")
 
-    print(f"\n  {Colors.YELLOW}Legacy experimental path: textual command results are not runtime evidence.{Colors.RESET}")
-    print(f"  {Colors.DIM}Use: ./fbr34ker research-runtime guided{Colors.RESET}")
-    print(f"\n  {Colors.BOLD}FBR34KER USBliter8 Exploit Chain{Colors.RESET}")
-    print(f"  {Colors.DIM}A12+ DWC3 exploit → FBR34KER boot → exploit chain{Colors.RESET}\n")
+    print(f"\n  {Colors.BOLD}FBR34KER USBliter8 Exploit Chain v{VERSION}{Colors.RESET}")
+    print(f"  {Colors.DIM}A12+ DFU → DWC3 exploit → FBR34KER boot → jailbreak → boot kernel{Colors.RESET}\n")
 
     with BootChain(
         monitor_path=monitor,
@@ -335,15 +332,15 @@ def cmd_exploit(args):
     ) as chain:
         results = chain.run_all()
 
-        print(f"\n  {Colors.BOLD}Results{Colors.RESET}")
+        print(f"\n  {Colors.BOLD}Chain Results{Colors.RESET}")
         for step, result in results.items():
             if step == "chipset_detected":
                 continue
             mark = f"{Colors.GREEN}PASS{Colors.RESET}" if result else f"{Colors.RED}FAIL{Colors.RESET}"
             name = step.replace("_", " ").title()
-            print(f"    [{mark}] {name}")
+            print(f"    {mark}  {name}")
         if results.get("chipset_detected"):
-            print(f"    Chipset: {chain.dev.chipset_name}")
+            print(f"             Chipset: {chain.dev.chipset_name}")
 
         if args.evidence:
             ev_data = {
@@ -379,14 +376,14 @@ def cmd_pwndfu(args):
     ci = dev.chipset
     label = f" for {ci['name']} ({ci['model']})" if ci else ""
     if not j:
-        print(f"Sending DWC3 exploit{label}...")
+        print(f"  Sending DWC3 exploit{label}...")
     ok = dev.enter_pwndfu()
     if j:
         print(json.dumps({"ok": ok, "chipset": ci}))
     elif ok:
-        print(f"{Colors.GREEN}DWC3 exploited — vendor requests active{Colors.RESET}")
+        print(f"  {Colors.GREEN}DWC3 exploited — vendor requests active on EP0{Colors.RESET}")
     else:
-        eprint(f"{Colors.RED}Exploit failed{Colors.RESET}")
+        eprint(f"  {Colors.RED}Exploit failed{Colors.RESET}")
     dev.close()
     return 0 if ok else 1
 
@@ -401,9 +398,11 @@ def cmd_load_monitor(args):
     dev._claim()
     ok = dev.send_payload(args.path)
     if ok:
-        print(f"{Colors.GREEN}Monitor loaded{Colors.RESET}")
+        size = os.path.getsize(args.path)
+        print(f"  {Colors.GREEN}Monitor loaded ({size} bytes){Colors.RESET}")
     else:
-        eprint(f"{Colors.RED}Failed to load monitor{Colors.RESET}")
+        eprint(f"  {Colors.RED}Failed to load monitor{Colors.RESET}")
+        return 1
     dev.close()
     return 0 if ok else 1
 
@@ -415,8 +414,8 @@ def cmd_console(args):
         raise CliError("pyusb not available")
     dev = USBConsole(serial=args.ecid)
     dev.open()
-    print(f"{Colors.GREEN}Console connected (PID 0x1227){Colors.RESET}")
-    print(f"{Colors.DIM}Type commands or Ctrl-D to exit{Colors.RESET}\n")
+    print(f"  {Colors.GREEN}Console connected (PID 0x1227){Colors.RESET}")
+    print(f"  {Colors.DIM}Type commands, Ctrl-D to exit, Ctrl-C to interrupt{Colors.RESET}")
     transcript = None
     if args.log:
         log_path = pathlib.Path(args.log)
@@ -474,7 +473,10 @@ def cmd_b34stool(args):
 
 def cmd_run(args):
     require_qemu()
-    target = {"direct": "run", "generic": "generic-qemu-run", "probe": "probe-qemu-smoke"}[args.profile]
+    profile = args.profile
+    target = {"direct": "run", "generic": "generic-qemu-run", "probe": "probe-qemu-smoke"}[profile]
+    label = {"direct": "QEMU virt", "generic": "QEMU generic loader", "probe": "QEMU hardware probe"}[profile]
+    print(f"  Starting {label}...")
     return make([target]).returncode
 
 
@@ -508,7 +510,7 @@ def cmd_device(args):
         } for d in devices]))
         return 0
     if not devices:
-        print(f"{Colors.YELLOW}No Apple devices found{Colors.RESET}")
+        print(f"  {Colors.YELLOW}No Apple devices found{Colors.RESET}")
         return 0
     for d in devices:
         ci = detect_device_chipset(usb.core.find(bus=d.bus, address=d.address))
@@ -764,38 +766,38 @@ def _menu_device():
         _clear()
         _title("Device Operations")
         _box("Choose an option", [
-            (1, "Auto-detect connected device"),
-            (2, "Show device info"),
-            (3, "Legacy exploit chain (not accepted as runtime evidence)"),
-            (4, "Send DWC3 exploit & enter PWNDFU"),
-            (5, "Load FBR34KER monitor via USB"),
-            (6, "Connect to CDC ACM console"),
+            (1, "Legacy exploit chain (not accepted as runtime evidence)"),
+            (2, "Send DWC3 exploit & enter PWNDFU"),
+            (3, "Load FBR34KER monitor via USB"),
+            (4, "Connect to CDC ACM console"),
+            (5, "Auto-detect connected device"),
+            (6, "Show device info"),
             (7, "Back to main menu"),
         ])
         c = _prompt("Selection", "7")
         _clear(); _title("Device")
         if c == "1":
-            _run_and_show(["detect"])
-            _wait()
-        elif c == "2":
-            _run_and_show(["device"])
-            _wait()
-        elif c == "3":
             _run_and_show(["exploit", "--auto"])
             _wait()
-        elif c == "4":
+        elif c == "2":
             _run_and_show(["pwndfu"])
             _wait()
-        elif c == "5":
+        elif c == "3":
             path = _prompt("Path to monitor binary", "build-generic/fbr34ker-generic.bin")
             if path and os.path.isfile(path):
                 _run_and_show(["load-monitor", path])
             else:
                 _warn("File not found — build first (option 2 in Build menu)")
             _wait()
-        elif c == "6":
+        elif c == "4":
             _info("Connecting to console (Ctrl-D to exit)...")
             _run_and_show(["console"])
+            _wait()
+        elif c == "5":
+            _run_and_show(["detect"])
+            _wait()
+        elif c == "6":
+            _run_and_show(["device"])
             _wait()
         elif c in ("7", "q", ""):
             return
@@ -1052,29 +1054,11 @@ def build_parser():
         description=__doc__.split("\n")[0],
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent("""\
-            Compatibility aliases:
-              --build / -b  →  build      --run / -r    →  run direct
-              --clean / -c  →  clean      --verify      →  test
-              --gate        →  gate       --package     →  package
-              --permissions →  permissions
-
-            Built-in subcommands:
-              version | doctor | build | test | clean | chipsets
-              exploit | pwndfu | load-monitor | console | device | detect
-              control-panel | b34stool | b34st | menu
-              research-runtime
-              ipsw
-              device-dashboard
-
-            Delegated subcommands (pass-through to host/ scripts):
-              deploy | module | boot-image | irecovery | bringup | bridge
-              session | hardware | physical-validation | package | gate
-              permissions | abi-check | verify-release | compare-releases
-              evidence-compare | run | trace | crash | evidence
-
-            Short flags:
-              -V (version)  -D (doctor)  -b (build)  -t (test)
-              -c (clean)    -e (exploit) -d (device) -S (chipsets)
+            Long flags:   --build       --run       --clean      --package
+                          --permissions --doctor    --gate       --menu
+            Short flags:  -V (version)  -D (doctor)   -b (build)   -t (test)
+                          -c (clean)    -e (exploit)  -d (device)  -r (run)
+                          -S (chipsets)
         """),
     )
     p.add_argument("--json", action="store_true", help="JSON output")
@@ -1094,6 +1078,10 @@ def build_parser():
 
     bp = sub.add_parser("build")
     bp.add_argument("--jobs", type=int, default=int(os.environ.get("FBR34KER_JOBS", "4")))
+    bp.add_argument("--security-model", action="store_true", default=None,
+                    help="Build with FBR34KER_ENABLE_SECURITY_MODEL=1 (memory writes enabled)")
+    bp.add_argument("--no-security-model", action="store_false", dest="security_model",
+                    help="Build with security model disabled (state model only)")
 
     tp = sub.add_parser("test")
     tp.add_argument("--qemu", action="store_true")

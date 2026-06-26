@@ -28,9 +28,10 @@ fbr34ker_sdk_result_t fbr34ker_handoff_builder_add_region(
     if (builder->region_count >= FBR34KER_SDK_MAX_REGIONS) return FBR34KER_SDK_ERR_CAPACITY;
     if (type < FBR34KER_HANDOFF_REGION_USABLE || type > FBR34KER_HANDOFF_REGION_FRAMEBUFFER ||
         (attributes & ~FBR34KER_REGION_ATTR_SUPPORTED) != 0U) return FBR34KER_SDK_ERR_PERMISSIONS;
-    if (builder->region_count != 0U) {
-        const fbr34ker_handoff_region_t *previous = &builder->regions[builder->region_count - 1U];
-        if (base < previous->base + previous->size) return FBR34KER_SDK_ERR_OVERLAP;
+    uint64_t end = base + size;
+    for (uint32_t i = 0U; i < builder->region_count; ++i) {
+        uint64_t region_end = builder->regions[i].base + builder->regions[i].size;
+        if (base < region_end && end > builder->regions[i].base) return FBR34KER_SDK_ERR_OVERLAP;
     }
     builder->regions[builder->region_count++] = (fbr34ker_handoff_region_t){base, size, type, attributes};
     return FBR34KER_SDK_OK;

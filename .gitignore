@@ -6,6 +6,7 @@ build-apple/
 build-hardware-probe/
 build-loader/
 build-sdk/
+build-exploit/
 runtime-artifacts/
 diagnostics/
 dist/

@@ -43,7 +43,7 @@ static void emit_unsigned(emit_fn emit, void *context, u64 value,
                           u32 base, bool uppercase, unsigned width,
                           char padding, int *written)
 {
-    char digits[32];
+    char digits[65];
     unsigned count = 0U;
     const char *alphabet = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
 

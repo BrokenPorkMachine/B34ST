@@ -257,8 +257,6 @@ static ios_version_t scan_kernel_version_string(u64 base)
         "iOS 16.",
         NULL
     };
-    };
-    };
     const u64 scan_limit = 0x200000U;
     for (u64 off = 0U; off < scan_limit; off += 16U) {
         char buf[32];
@@ -274,15 +272,23 @@ static ios_version_t scan_kernel_version_string(u64 base)
         }
         if (!ok) continue;
         for (int m = 0; ios17_markers[m]; ++m) {
-            if (string_contains(buf, ios17_markers[m])) {
-                log_write(LOG_LEVEL_VERBOSE, "kernel_patches: iOS 17+ version string found: %s", ios17_markers[m]);
-                return IOS_VERSION_17;
+            const char *marker = ios17_markers[m];
+            usize marker_len = fm_strlen(marker);
+            for (usize i = 0; i + marker_len <= 32; ++i) {
+                if (fm_strncmp(&buf[i], marker, marker_len) == 0) {
+                    log_write(LOG_LEVEL_VERBOSE, "kernel_patches: iOS 17+ version string found: %s", marker);
+                    return IOS_VERSION_17;
+                }
             }
         }
         for (int m = 0; ios16_markers[m]; ++m) {
-            if (string_contains(buf, ios16_markers[m])) {
-                log_write(LOG_LEVEL_VERBOSE, "kernel_patches: iOS 16 version string found: %s", ios16_markers[m]);
-                return IOS_VERSION_16;
+            const char *marker = ios16_markers[m];
+            usize marker_len = fm_strlen(marker);
+            for (usize i = 0; i + marker_len <= 32; ++i) {
+                if (fm_strncmp(&buf[i], marker, marker_len) == 0) {
+                    log_write(LOG_LEVEL_VERBOSE, "kernel_patches: iOS 16 version string found: %s", marker);
+                    return IOS_VERSION_16;
+                }
             }
         }
     }

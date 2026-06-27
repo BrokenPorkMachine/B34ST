@@ -128,7 +128,9 @@ class Session:
             "output_summary": summarize_output(output, exit_code),
         }
         path = self.evidence_path(operation)
-        path.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        path.write_text(
+            json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
         print(
             f"\n{Colors.GREEN if exit_code == 0 else Colors.RED}"
             f"Exit code: {exit_code}{Colors.RESET}"
@@ -160,7 +162,11 @@ def expand_token(token: str, session: Session, action: Action) -> str:
 def summarize_output(output: str, exit_code: int) -> str:
     lines = [line.strip() for line in output.splitlines() if line.strip()]
     if not lines:
-        return "completed without captured output" if exit_code == 0 else "failed without captured output"
+        return (
+            "completed without captured output"
+            if exit_code == 0
+            else "failed without captured output"
+        )
     summary = lines[-1]
     return summary[:240]
 
@@ -173,83 +179,329 @@ def display_path(path: pathlib.Path) -> pathlib.Path:
 
 
 CATEGORIES: tuple[Category, ...] = (
-    Category("system", "System", (
-        Action("system.version", "Version", fbr34ker("version")),
-        Action("system.doctor", "Doctor", fbr34ker("doctor")),
-        Action("system.build", "Build", fbr34ker("build")),
-        Action("system.test", "Test", fbr34ker("test")),
-        Action("system.clean", "Clean", fbr34ker("clean")),
-    )),
-    Category("device", "Device", (
-        Action("device.info", "Device info", fbr34ker("device")),
-        Action("device.detect", "Detect", fbr34ker("detect")),
-        Action("device.console", "Console", fbr34ker("console"), interactive=True),
-        Action("device.pwndfu", "PWNDFU", fbr34ker("pwndfu")),
-        Action("device.exploit", "Exploit chain", fbr34ker("exploit", "--auto", "--evidence", "{evidence}")),
-    )),
-    Category("usbliter8", "USBliter8", (
-        Action("usbliter8.pwn-inspect", "Pwn & Inspect", script("run_exploit.py", "--auto", "--evidence", "{evidence}")),
-        Action("usbliter8.jailbreak", "Jailbreak", fbr34ker("exploit", "--auto", "--evidence", "{evidence}")),
-        Action("usbliter8.chain", "Chain command", fbr34ker("exploit"), "Extra exploit arguments"),
-    )),
-    Category("ipsw", "IPSW", (
-        Action("ipsw.catalog", "Catalog", fbr34ker("ipsw", "catalog"), "Catalog arguments"),
-        Action("ipsw.download", "Download", fbr34ker("ipsw", "download"), "Download arguments"),
-        Action("ipsw.inspect", "Inspect", fbr34ker("ipsw", "inspect"), "Inspect arguments"),
-        Action("ipsw.upgrade", "Upgrade", fbr34ker("ipsw", "upgrade"), "Upgrade arguments"),
-        Action("ipsw.tethered-downgrade", "Tethered downgrade", fbr34ker("ipsw", "tethered-downgrade"), "Downgrade arguments"),
-    )),
-    Category("boot-image", "Boot Image", (
-        Action("boot-image.build", "Build", fbr34ker("boot-image", "build"), "Build arguments"),
-        Action("boot-image.inspect", "Inspect", fbr34ker("boot-image", "inspect"), "Image path and arguments"),
-        Action("boot-image.verify", "Verify", fbr34ker("boot-image", "verify"), "Verify arguments"),
-        Action("boot-image.send", "Send to device", fbr34ker("irecovery", "send"), "Send arguments", interactive=True),
-    )),
-    Category("deployment", "Deployment", (
-        Action("deployment.deploy", "Deploy", fbr34ker("deploy"), "Deploy arguments", interactive=True),
-        Action("deployment.recover", "Recover", fbr34ker("recover"), "Recover arguments"),
-        Action("deployment.inspect", "Inspect", fbr34ker("inspect"), "Inspect arguments"),
-        Action("deployment.modules", "Modules", fbr34ker("module"), "Module arguments"),
-    )),
-    Category("hardware", "Hardware", (
-        Action("hardware.prepare", "Prepare", fbr34ker("b34st", "hardware-prepare", "--list-categories")),
-        Action("hardware.bringup", "Bringup", fbr34ker("bringup"), "Bringup arguments"),
-        Action("hardware.profile", "Profile management", fbr34ker("hardware"), "Hardware/profile arguments"),
-    )),
-    Category("session", "Session", (
-        Action("session.tools", "Session tools", fbr34ker("session"), "Session arguments"),
-        Action("session.console", "Console", fbr34ker("console"), interactive=True),
-        Action("session.logs", "Log management", fbr34ker("session", "logs"), "Log arguments"),
-    )),
-    Category("validation", "Validation", (
-        Action("validation.physical", "Physical validation", fbr34ker("physical-validation"), "Validation arguments"),
-        Action("validation.candidate-report", "Candidate report", fbr34ker("physical-validation", "candidate-report"), "Report arguments"),
-        Action("validation.evidence", "Evidence validation", fbr34ker("evidence-compare"), "Evidence arguments"),
-    )),
-    Category("release", "Release", (
-        Action("release.package", "Package", fbr34ker("package")),
-        Action("release.gate", "Gate", fbr34ker("gate")),
-        Action("release.permissions", "Permissions", fbr34ker("permissions")),
-        Action("release.abi-check", "ABI check", fbr34ker("abi-check"), "ABI arguments"),
-    )),
-    Category("module", "Module", (
-        Action("module.compile", "Compile", fbr34ker("module", "compile"), "Compile arguments"),
-        Action("module.inspect", "Inspect", fbr34ker("module", "inspect"), "Inspect arguments"),
-        Action("module.upload", "Upload", fbr34ker("module", "upload"), "Upload arguments"),
-        Action("module.execute", "Execute", fbr34ker("module", "execute"), "Execute arguments", interactive=True),
-    )),
-    Category("research-runtime", "Research Runtime", (
-        Action("research-runtime.guided", "Guided workflow", fbr34ker("research-runtime", "workflow"), "Workflow arguments", interactive=True),
-        Action("research-runtime.validate-evidence", "Evidence validation", fbr34ker("research-runtime", "validate-evidence"), "Evidence arguments"),
-    )),
-    Category("b34st", "B34ST", (
-        Action("b34st.environment-plan", "Environment plan", fbr34ker("b34st", "environment-plan"), "Plan arguments"),
-        Action("b34st.toolkit-info", "Toolkit info", fbr34ker("b34st", "--version")),
-        Action("b34st.control-panel", "Control panel", fbr34ker("control-panel"), interactive=True),
-    )),
+    Category(
+        "system",
+        "System",
+        (
+            Action("system.version", "Version", fbr34ker("version")),
+            Action("system.doctor", "Doctor", fbr34ker("doctor")),
+            Action("system.build", "Build", fbr34ker("build")),
+            Action("system.test", "Test", fbr34ker("test")),
+            Action("system.clean", "Clean", fbr34ker("clean")),
+        ),
+    ),
+    Category(
+        "device",
+        "Device",
+        (
+            Action("device.info", "Device info", fbr34ker("device")),
+            Action("device.detect", "Detect", fbr34ker("detect")),
+            Action("device.console", "Console", fbr34ker("console"), interactive=True),
+            Action("device.pwndfu", "PWNDFU", fbr34ker("pwndfu")),
+            Action(
+                "device.exploit",
+                "Exploit chain",
+                fbr34ker("exploit", "--auto", "--evidence", "{evidence}"),
+            ),
+        ),
+    ),
+    Category(
+        "usbliter8",
+        "USBliter8",
+        (
+            Action(
+                "usbliter8.pwn-inspect",
+                "Pwn & Inspect",
+                script("run_exploit.py", "--auto", "--evidence", "{evidence}"),
+            ),
+            Action(
+                "usbliter8.jailbreak",
+                "Jailbreak",
+                fbr34ker("exploit", "--auto", "--evidence", "{evidence}"),
+            ),
+            Action(
+                "usbliter8.chain",
+                "Chain command",
+                fbr34ker("exploit"),
+                "Extra exploit arguments",
+            ),
+        ),
+    ),
+    Category(
+        "ipsw",
+        "IPSW",
+        (
+            Action(
+                "ipsw.catalog",
+                "Catalog",
+                fbr34ker("ipsw", "catalog"),
+                "Catalog arguments",
+            ),
+            Action(
+                "ipsw.download",
+                "Download",
+                fbr34ker("ipsw", "download"),
+                "Download arguments",
+            ),
+            Action(
+                "ipsw.inspect",
+                "Inspect",
+                fbr34ker("ipsw", "inspect"),
+                "Inspect arguments",
+            ),
+            Action(
+                "ipsw.upgrade",
+                "Upgrade",
+                fbr34ker("ipsw", "upgrade"),
+                "Upgrade arguments",
+            ),
+            Action(
+                "ipsw.tethered-downgrade",
+                "Tethered downgrade",
+                fbr34ker("ipsw", "tethered-downgrade"),
+                "Downgrade arguments",
+            ),
+        ),
+    ),
+    Category(
+        "boot-image",
+        "Boot Image",
+        (
+            Action(
+                "boot-image.build",
+                "Build",
+                fbr34ker("boot-image", "build"),
+                "Build arguments",
+            ),
+            Action(
+                "boot-image.inspect",
+                "Inspect",
+                fbr34ker("boot-image", "inspect"),
+                "Image path and arguments",
+            ),
+            Action(
+                "boot-image.verify",
+                "Verify",
+                fbr34ker("boot-image", "verify"),
+                "Verify arguments",
+            ),
+            Action(
+                "boot-image.send",
+                "Send to device",
+                fbr34ker("irecovery", "send"),
+                "Send arguments",
+                interactive=True,
+            ),
+        ),
+    ),
+    Category(
+        "deployment",
+        "Deployment",
+        (
+            Action(
+                "deployment.deploy",
+                "Deploy",
+                fbr34ker("deploy"),
+                "Deploy arguments",
+                interactive=True,
+            ),
+            Action(
+                "deployment.recover",
+                "Recover",
+                fbr34ker("recover"),
+                "Recover arguments",
+            ),
+            Action(
+                "deployment.inspect",
+                "Inspect",
+                fbr34ker("inspect"),
+                "Inspect arguments",
+            ),
+            Action(
+                "deployment.modules", "Modules", fbr34ker("module"), "Module arguments"
+            ),
+        ),
+    ),
+    Category(
+        "hardware",
+        "Hardware",
+        (
+            Action(
+                "hardware.prepare",
+                "Prepare",
+                fbr34ker("b34st", "hardware-prepare", "--list-categories"),
+            ),
+            Action(
+                "hardware.bringup", "Bringup", fbr34ker("bringup"), "Bringup arguments"
+            ),
+            Action(
+                "hardware.profile",
+                "Profile management",
+                fbr34ker("hardware"),
+                "Hardware/profile arguments",
+            ),
+        ),
+    ),
+    Category(
+        "session",
+        "Session",
+        (
+            Action(
+                "session.tools",
+                "Session tools",
+                fbr34ker("session"),
+                "Session arguments",
+            ),
+            Action("session.console", "Console", fbr34ker("console"), interactive=True),
+            Action(
+                "session.logs",
+                "Log management",
+                fbr34ker("session", "logs"),
+                "Log arguments",
+            ),
+        ),
+    ),
+    Category(
+        "validation",
+        "Validation",
+        (
+            Action(
+                "validation.physical",
+                "Physical validation",
+                fbr34ker("physical-validation"),
+                "Validation arguments",
+            ),
+            Action(
+                "validation.candidate-report",
+                "Candidate report",
+                fbr34ker("physical-validation", "candidate-report"),
+                "Report arguments",
+            ),
+            Action(
+                "validation.evidence",
+                "Evidence validation",
+                fbr34ker("evidence-compare"),
+                "Evidence arguments",
+            ),
+        ),
+    ),
+    Category(
+        "release",
+        "Release",
+        (
+            Action("release.package", "Package", fbr34ker("package")),
+            Action("release.gate", "Gate", fbr34ker("gate")),
+            Action("release.permissions", "Permissions", fbr34ker("permissions")),
+            Action(
+                "release.abi-check", "ABI check", fbr34ker("abi-check"), "ABI arguments"
+            ),
+        ),
+    ),
+    Category(
+        "module",
+        "Module",
+        (
+            Action(
+                "module.compile",
+                "Compile",
+                fbr34ker("module", "compile"),
+                "Compile arguments",
+            ),
+            Action(
+                "module.inspect",
+                "Inspect",
+                fbr34ker("module", "inspect"),
+                "Inspect arguments",
+            ),
+            Action(
+                "module.upload",
+                "Upload",
+                fbr34ker("module", "upload"),
+                "Upload arguments",
+            ),
+            Action(
+                "module.execute",
+                "Execute",
+                fbr34ker("module", "execute"),
+                "Execute arguments",
+                interactive=True,
+            ),
+        ),
+    ),
+    Category(
+        "research-runtime",
+        "Research Runtime",
+        (
+            Action(
+                "research-runtime.guided",
+                "Guided workflow",
+                fbr34ker("research-runtime", "workflow"),
+                "Workflow arguments",
+                interactive=True,
+            ),
+            Action(
+                "research-runtime.validate-evidence",
+                "Evidence validation",
+                fbr34ker("research-runtime", "validate-evidence"),
+                "Evidence arguments",
+            ),
+        ),
+    ),
+    Category(
+        "b34st",
+        "B34ST",
+        (
+            Action(
+                "b34st.environment-plan",
+                "Environment plan",
+                fbr34ker("b34st", "environment-plan"),
+                "Plan arguments",
+            ),
+            Action(
+                "b34st.toolkit-info", "Toolkit info", fbr34ker("b34st", "--version")
+            ),
+            Action(
+                "b34st.control-panel",
+                "Control panel",
+                fbr34ker("control-panel"),
+                interactive=True,
+            ),
+        ),
+    ),
+    Category(
+        "forensics",
+        "Forensics",
+        (
+            Action(
+                "forensics.guided",
+                "Guided acquisition",
+                fbr34ker("b34st", "forensics", "guided"),
+                "Acquisition arguments",
+            ),
+            Action(
+                "forensics.acquire",
+                "Run acquisition",
+                fbr34ker("b34st", "forensics", "acquire"),
+                "Acquire arguments",
+            ),
+            Action(
+                "forensics.verify",
+                "Verify bundle",
+                fbr34ker("b34st", "forensics", "verify"),
+                "Bundle path",
+            ),
+            Action(
+                "forensics.list-profiles",
+                "List profiles",
+                fbr34ker("b34st", "forensics", "list-profiles"),
+            ),
+        ),
+    ),
 )
 
-ACTION_MAP = {action.key: action for category in CATEGORIES for action in category.actions}
+ACTION_MAP = {
+    action.key: action for category in CATEGORIES for action in category.actions
+}
 
 
 def clear() -> None:
@@ -312,7 +564,9 @@ def run_category(session: Session, category: Category) -> int:
 
 def interactive(session: Session) -> int:
     if not os.isatty(0) or not os.isatty(1):
-        print("B34ST unified multi-tool interactive mode requires a TTY", file=sys.stderr)
+        print(
+            "B34ST unified multi-tool interactive mode requires a TTY", file=sys.stderr
+        )
         return 1
     last_code = 0
     while True:
@@ -341,11 +595,22 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         prog="b34stool",
         description="Unified B34ST multi-tool with session instrumentation.",
     )
-    parser.add_argument("--list", action="store_true", help="List non-interactive command keys")
+    parser.add_argument(
+        "--list", action="store_true", help="List non-interactive command keys"
+    )
     parser.add_argument("--command", help="Run one command key non-interactively")
-    parser.add_argument("--session-dir", type=pathlib.Path, help="Use a specific session directory")
-    parser.add_argument("--json", action="store_true", help="Print final session result as JSON")
-    parser.add_argument("--args", nargs=argparse.REMAINDER, default=[], help="Arguments appended to --command")
+    parser.add_argument(
+        "--session-dir", type=pathlib.Path, help="Use a specific session directory"
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="Print final session result as JSON"
+    )
+    parser.add_argument(
+        "--args",
+        nargs=argparse.REMAINDER,
+        default=[],
+        help="Arguments appended to --command",
+    )
     return parser.parse_args(argv)
 
 
@@ -365,12 +630,17 @@ def main(argv: list[str] | None = None) -> int:
     else:
         exit_code = interactive(session)
     if args.json:
-        print(json.dumps({
-            "ok": exit_code == 0,
-            "exit_code": exit_code,
-            "session": str(session.directory),
-            "log": str(session.log_path),
-        }, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "ok": exit_code == 0,
+                    "exit_code": exit_code,
+                    "session": str(session.directory),
+                    "log": str(session.log_path),
+                },
+                sort_keys=True,
+            )
+        )
     return exit_code
 
 

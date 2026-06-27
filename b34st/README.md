@@ -136,6 +136,62 @@ python3 -m b34st.b34st hardware-prepare \
   --save-checklists runtime-artifacts/checklists
 ```
 
+## Forensics and data acquisition
+
+B34ST provides forensic data acquisition capabilities for authorized iOS research
+environments. All acquisitions require explicit operator authorization and produce
+tamper-evident evidence bundles.
+
+List built-in acquisition profiles:
+
+```sh
+python3 -m b34st.b34st forensics list-profiles
+```
+
+Run a non-interactive acquisition session:
+
+```sh
+python3 -m b34st.b34st forensics acquire \
+  --profile quick \
+  --device-id DEVICE_ECID \
+  --operator "Operator Name" \
+  --output runtime-artifacts/b34st/forensics
+```
+
+Available profiles:
+
+- `quick` - Filesystem listing and network state only (triage) - **No user data access**
+- `full` - Memory, storage, filesystem, and network (complete acquisition) - **Requires capabilities**
+- `memory-only` - RAM contents with page-level hashing - **Requires capabilities**
+- `storage-only` - Storage partition imaging with block hashing - **May require capabilities**
+- `filesystem-only` - Recursive file listing and extraction - **Requires `protected-data-access` capability**
+- `network-only` - Network interfaces, connections, routing, DNS - **No user data access**
+
+### Protected user data access
+
+For profiles that access protected user data (filesystem, keychain, memory), you must
+acknowledge the security boundary requirements:
+
+```sh
+python3 -m b34st.b34st forensics acquire \
+  --profile filesystem-only \
+  --device-id DEVICE_ECID \
+  --capabilities protected-data-access \
+  --output runtime-artifacts/b34st/forensics
+```
+
+Requirements for protected data access:
+
+- The user data partition must be decrypted and mounted
+- File Data Protection class granularity must be accounted for
+- For keychain: passcode or unlocked SEP required (use `--capabilities credential-extraction`)
+
+Verify an evidence bundle:
+
+```sh
+python3 -m b34st.b34st forensics verify runtime-artifacts/forensics/bundle.zip
+```
+
 ## Requirements and status
 
 B34ST uses the same Python 3.10+ requirement and security boundary as

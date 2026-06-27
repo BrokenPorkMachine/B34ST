@@ -670,3 +670,12 @@ u32 kernel_patch_applied_count(void)
 {
     return state.applied_count;
 }
+
+bool kernel_patches_find_base(u64 *kbase)
+{
+    if (kbase == NULL || kernel_base == 0U) {
+        return false;
+    }
+    *kbase = kernel_base;
+    return true;
+}

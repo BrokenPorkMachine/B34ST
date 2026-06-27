@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fbr34ker.invalid/schemas/forensic-acquisition-v1.json",
+  "title": "B34ST forensic acquisition v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "kind",
+    "acquisition_type",
+    "target",
+    "collected_at",
+    "sha256",
+    "observations",
+    "boundaries"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "kind": {
+      "enum": [
+        "b34st-forensic-acquisition",
+        "b34st-hardware-probe-acquisition",
+        "b34st-kernel-memory-acquisition",
+        "b34st-filesystem-acquisition",
+        "b34st-keychain-acquisition",
+        "b34st-network-state-acquisition",
+        "b34st-console-log-acquisition",
+        "b34st-crash-log-acquisition"
+      ]
+    },
+    "acquisition_type": {
+      "enum": [
+        "hardware-probe",
+        "kernel-memory",
+        "filesystem",
+        "keychain",
+        "network-state",
+        "console-log",
+        "crash-log"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "collected_at": {"type": "string"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "size": {"type": "integer", "minimum": 0},
+    "observations": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "boundaries": {
+      "type": "object",
+      "properties": {
+        "protected_data_accessed": {"type": "boolean"},
+        "requires_passcode": {"type": "boolean"},
+        "requires_sep_unlock": {"type": "boolean"},
+        "keychain_unlocked": {"type": "boolean"},
+        "memory_accessed": {"type": "boolean"},
+        "user_data_accessed": {"type": "boolean"},
+        "kernel_patched": {"type": "boolean"}
+      }
+    }
+  }
+}

@@ -348,7 +348,7 @@ check-native:
 	$(BUILD_DIR)/tests/physical_validation_format_harness
 	$(CC) -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
 		kernel/kernel_patches.c kernel/secure_boot_bypass.c kernel/persistence.c \
-		kernel/string.c tests/security_model_harness.c \
+		kernel/string.c kernel/mmio.c tests/security_model_harness.c \
 		-o $(BUILD_DIR)/tests/security_model_harness
 	$(BUILD_DIR)/tests/security_model_harness
 

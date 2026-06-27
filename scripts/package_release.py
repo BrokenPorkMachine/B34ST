@@ -31,6 +31,7 @@ OPERATIONAL_EXCLUDED_DIRS = {
     ".git", "__pycache__",
     "runtime-artifacts", "diagnostics", "dist", "validation-logs",
     "FBR34KER_0.1",
+    "FBR34KER_0.1.1",
 }
 SDK_INCLUDED_TOP_LEVEL = {
     "README.md", "LICENSE", "CHANGELOG.md", "TUTORIAL.md",
@@ -268,7 +269,6 @@ def operational_paths() -> list[pathlib.Path]:
                           "b34st_complete.tar.gz", "idevicerestore_verbose.log"}:
             continue
         if path.name.startswith("FBR34KER_0.1") and (path.name.endswith(".zip") or path.name.endswith(".sha256")):
-            continue
             continue
         results.append(relative)
 

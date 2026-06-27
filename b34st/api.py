@@ -38,9 +38,12 @@ class B34STApi:
         """Handle physical validation commands."""
         argv = [
             "candidate-report",
-            "--success", str(args.success),
-            "--failure", str(args.failure),
-            "--recovered", str(args.recovered),
+            "--success",
+            str(args.success),
+            "--failure",
+            str(args.failure),
+            "--recovered",
+            str(args.recovered),
         ]
         if getattr(args, "qemu_summary", None):
             argv.extend(["--qemu-summary", str(args.qemu_summary)])
@@ -59,9 +62,74 @@ class B34STApi:
             argv.extend(["--validate-bundle", str(args.validate_bundle)])
         return self.engine._hardware_prepare(argv)
 
+    def forensics_acquire(self, args: argparse.Namespace) -> int:
+        """Run a forensic acquisition session."""
+        argv = ["acquire", "--profile", args.profile, "--device-id", args.device_id]
+        if args.operator:
+            argv.extend(["--operator", args.operator])
+        if args.product:
+            argv.extend(["--product", args.product])
+        if args.output:
+            argv.extend(["--output", str(args.output)])
+        if args.bundle:
+            argv.extend(["--bundle", str(args.bundle)])
+        for cap in getattr(args, "capabilities", []) or []:
+            argv.extend(["--capabilities", cap])
+        return self.engine._forensics(argv)
+
+    def forensics_verify(self, bundle_path: pathlib.Path) -> int:
+        """Verify a forensics evidence bundle."""
+        return self.engine._forensics(["verify", str(bundle_path)])
+
+    def forensics_list_profiles(self) -> int:
+        """List built-in acquisition profiles."""
+        return self.engine._forensics(["list-profiles"])
+
     def run_command(self, argv: list[str]) -> int:
         """Run B34ST command with API."""
         return self.engine.run(argv)
+
+    def cve_search(self, query: str) -> int:
+        """Search CVE database."""
+        return self.engine._cve(["search", query])
+
+    def cve_query(self, version: str) -> int:
+        """Get CVEs for an iOS version."""
+        return self.engine._cve(["query", version])
+
+    def cve_filter(self, **kwargs: Any) -> int:
+        """Filter CVEs by criteria. Pass kwargs as --key=value style args."""
+        argv = ["filter"]
+        for key, val in kwargs.items():
+            if isinstance(val, bool):
+                if val:
+                    argv.append(f"--{key.replace('_', '-')}")
+            elif isinstance(val, list):
+                for v in val:
+                    argv.extend([f"--{key.replace('_', '-')}", str(v)])
+            else:
+                argv.extend([f"--{key.replace('_', '-')}", str(val)])
+        return self.engine._cve(argv)
+
+    def cve_stats(self) -> int:
+        """Show CVE database statistics."""
+        return self.engine._cve(["stats"])
+
+    def cve_chain(self, goal: str, version: str) -> int:
+        """Plan exploit chain for goal on version."""
+        return self.engine._cve(["chain", goal, version])
+
+    def cve_suggest(self, version: str) -> int:
+        """Suggest achievable goals for version."""
+        return self.engine._cve(["suggest", version])
+
+    def cve_goals(self) -> int:
+        """List all built-in exploit goals."""
+        return self.engine._cve(["goals"])
+
+    def cve_fuzz_list(self) -> int:
+        """List available fuzz targets."""
+        return self.engine._cve(["fuzz", "list"])
 
 
 # Global API instance
@@ -89,7 +157,11 @@ def candidate_report(
     """Generate candidate report - FBR34KER compatible API."""
     from b34st.engine import B34STError
 
-    for path, name in [(success, "success"), (failure, "failure"), (recovered, "recovered")]:
+    for path, name in [
+        (success, "success"),
+        (failure, "failure"),
+        (recovered, "recovered"),
+    ]:
         if not path.exists():
             raise B34STError(f"{name} bundle not found: {path}")
 
@@ -107,19 +179,13 @@ def main(argv: list[str] | None = None) -> int:
         epilog="""\nAvailable commands:\n  validate-bundle     Validate a session bundle\n  physical-validation  Perform physical validation operations\n  hardware-prepare    Read-only hardware preparation\n  help               Show help information\n        """,
     )
 
-    parser.add_argument(
-        "--version", action="store_true", help="Show version and exit"
-    )
+    parser.add_argument("--version", action="store_true", help="Show version and exit")
     parser.add_argument(
         "--quiet", action="store_true", help="Suppress non-essential output"
     )
-    parser.add_argument(
-        "--verbose", action="store_true", help="Enable verbose output"
-    )
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
 
-    subparsers = parser.add_subparsers(
-        dest="command", help="fbr34kctl subcommand"
-    )
+    subparsers = parser.add_subparsers(dest="command", help="fbr34kctl subcommand")
 
     # Validate bundle command
     vb_parser = subparsers.add_parser(
@@ -140,7 +206,9 @@ def main(argv: list[str] | None = None) -> int:
         dest="pv_command", help="Physical validation subcommand", required=True
     )
 
-    cr_parser = pv_subparsers.add_parser("candidate-report", help="Generate candidate report")
+    cr_parser = pv_subparsers.add_parser(
+        "candidate-report", help="Generate candidate report"
+    )
     cr_parser.add_argument("--success", required=True, help="Successful bundle path")
     cr_parser.add_argument("--failure", required=True, help="Failure bundle path")
     cr_parser.add_argument("--recovered", required=True, help="Recovered bundle path")
@@ -158,6 +226,65 @@ def main(argv: list[str] | None = None) -> int:
     )
     hp_parser.add_argument("--save-checklists", help="Save checklists to directory")
     hp_parser.add_argument("--validate-bundle", help="Validate existing bundle")
+
+    # Forensics acquisition command
+    fx_parser = subparsers.add_parser(
+        "forensics", help="Forensics and data acquisition"
+    )
+    fx_sub = fx_parser.add_subparsers(
+        dest="fx_command", help="Forensics subcommand", required=True
+    )
+
+    fx_list = fx_sub.add_parser(
+        "list-profiles", help="List built-in acquisition profiles"
+    )
+
+    fx_acq = fx_sub.add_parser("acquire", help="Run a forensic acquisition session")
+    fx_acq.add_argument(
+        "--profile",
+        default="quick",
+        choices=[
+            "quick",
+            "full",
+            "memory-only",
+            "storage-only",
+            "filesystem-only",
+            "network-only",
+        ],
+    )
+    fx_acq.add_argument("--device-id", default="unknown")
+    fx_acq.add_argument("--operator", default="")
+    fx_acq.add_argument("--product", default="")
+    fx_acq.add_argument("--output", type=pathlib.Path)
+    fx_acq.add_argument("--bundle", type=pathlib.Path)
+    fx_acq.add_argument(
+        "--capabilities",
+        action="append",
+        choices=["credential-extraction", "protected-data-access"],
+        help="security capabilities for user data access",
+    )
+
+    fx_vfy = fx_sub.add_parser("verify", help="Verify a forensics evidence bundle")
+    fx_vfy.add_argument("bundle", type=pathlib.Path)
+
+    # CVE database command
+    cve_parser = subparsers.add_parser(
+        "cve", help="CVE database & exploit chain planner"
+    )
+    cve_sub = cve_parser.add_subparsers(
+        dest="cve_command", help="CVE subcommand", required=True
+    )
+    cve_search = cve_sub.add_parser("search", help="Search CVEs by ID or description")
+    cve_search.add_argument("query", help="Search query")
+    cve_query = cve_sub.add_parser("query", help="Get CVEs for an iOS version")
+    cve_query.add_argument("version", help="iOS version")
+    cve_stats = cve_sub.add_parser("stats", help="Database statistics")
+    cve_chain = cve_sub.add_parser("chain", help="Plan exploit chain")
+    cve_chain.add_argument("goal")
+    cve_chain.add_argument("version")
+    cve_suggest = cve_sub.add_parser("suggest", help="Suggest achievable goals")
+    cve_suggest.add_argument("version")
+    cve_goals = cve_sub.add_parser("goals", help="List exploit goals")
 
     if argv is None:
         argv = sys.argv[1:]
@@ -181,6 +308,32 @@ def main(argv: list[str] | None = None) -> int:
             return api.physical_validation(args)
         elif args.command == "hardware-prepare":
             return api.hardware_prepare(args)
+        elif args.command == "forensics":
+            if args.fx_command == "list-profiles":
+                return api.forensics_list_profiles()
+            elif args.fx_command == "acquire":
+                return api.forensics_acquire(args)
+            elif args.fx_command == "verify":
+                return api.forensics_verify(args.bundle)
+            else:
+                parser.print_help()
+                return 1
+        elif args.command == "cve":
+            if args.cve_command == "search":
+                return api.cve_search(args.query)
+            elif args.cve_command == "query":
+                return api.cve_query(args.version)
+            elif args.cve_command == "stats":
+                return api.cve_stats()
+            elif args.cve_command == "chain":
+                return api.cve_chain(args.goal, args.version)
+            elif args.cve_command == "suggest":
+                return api.cve_suggest(args.version)
+            elif args.cve_command == "goals":
+                return api.cve_goals()
+            else:
+                parser.print_help()
+                return 1
         else:
             parser.print_help()
             return 1

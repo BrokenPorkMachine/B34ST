@@ -31,7 +31,7 @@ def parser():
     sub.add_parser('clean'); sub.add_parser('package'); sub.add_parser('gate'); sub.add_parser('permissions')
     for name in ('deploy','recover','inspect','evidence'):
         x=sub.add_parser(name); x.add_argument('arguments',nargs=argparse.REMAINDER)
-    for name in ('boot-image','irecovery','bringup','device','bridge','session','crash','trace','hardware','physical-validation','b34stool'):
+    for name in ('boot-image','irecovery','bringup','device','bridge','session','crash','trace','hardware','physical-validation','b34stool','forensics','cve'):
         x=sub.add_parser(name); x.add_argument('arguments',nargs=argparse.REMAINDER)
     m=sub.add_parser('module'); m.add_argument('arguments',nargs=argparse.REMAINDER)
     for kind in ('board','driver','module','transport'):
@@ -95,6 +95,8 @@ def main(argv=None):
         if cmd=='hardware': return execute([sys.executable,'host/hardware_workflow.py',*args.arguments],json_mode=j)
         if cmd=='physical-validation': return execute([sys.executable,'host/physical_validation.py',*args.arguments],json_mode=j)
         if cmd=='b34stool': return execute([sys.executable,'b34stool.py',*args.arguments],json_mode=j)
+        if cmd=='forensics': return execute([sys.executable,'b34st','forensics',*args.arguments],json_mode=j)
+        if cmd=='cve': return execute([sys.executable,'b34st','cve',*args.arguments],json_mode=j)
         if cmd.startswith('new-'):
             argv2=[sys.executable,'scripts/scaffold.py',cmd[4:],args.name,args.destination]
             if args.force: argv2.append('--force')

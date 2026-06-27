@@ -1,14 +1,8 @@
 # FBR34KER 0.2.3
 
-FBR34KER is a freestanding ARM64 preboot monitor and authorized
-loader-integration research toolkit. Version 0.2.3 is a Physical Validation
-Candidate for deterministic simulation, bridge validation, and evidence
-collection.
+FBR34KER is a freestanding ARM64 preboot monitor and authorized loader-integration research toolkit. Version 0.2.3 is a Physical Validation Candidate for deterministic simulation, bridge validation, and evidence collection.
 
-The tree contains non-operational state models for kernel-patch, boot-policy,
-and persistence concepts. They do not patch a kernel, bypass Apple secure
-boot, install software, or persist across reboot. Release builds keep their
-mutation paths disabled.
+The tree contains non-operational state models for kernel-patch, boot-policy, and persistence concepts. They do not patch a kernel, bypass Apple secure boot, install software, or persist across reboot. Release builds keep their mutation paths disabled.
 
 ## Requirements
 
@@ -33,11 +27,7 @@ From the source-tree root, use:
 ./scripts/B34ST
 ```
 
-The B34ST control panel wraps FBR34KER build, validation, USBliter8 orchestration,
-session logging, and runtime-console access. Physical execution requires explicit
-owner authorization and a second execution confirmation. Direct subcommands
-remain available through `fbr34ker` for automation. `./fbr34ker` and
-`./b34stctl` remain compatibility entry points.
+The B34ST control panel wraps FBR34KER build, validation, USBliter8 orchestration, session logging, and runtime-console access. Physical execution requires explicit owner authorization and a second execution confirmation. Direct subcommands remain available through `fbr34ker` for automation. `./fbr34ker` and `./b34stctl` remain compatibility entry points.
 
 For the evidence-gated research-runtime workflow directly:
 
@@ -47,15 +37,11 @@ B34ST research-runtime guided
 python3 scripts/guided_research_runtime.py guided
 ```
 
-The orchestrator inventories the exact kernelcache, profile, device, boot image,
-bootstrap archive, first-stage evidence, safe reset, and independently produced
-runtime-stage evidence. It does not generate an exploit or accept the legacy
-mutation-labelled state models as proof.
+The orchestrator inventories the exact kernelcache, profile, device, boot image, bootstrap archive, first-stage evidence, safe reset, and independently produced runtime-stage evidence. It does not generate an exploit or accept the legacy mutation-labelled state models as proof.
 
 ## Targeted IPSW workflows
 
-B34ST includes targeted firmware discovery, Apple-CDN downloads, IPSW manifest
-inspection, signed upgrades/restores, and tethered downgrade planning:
+B34ST includes targeted firmware discovery, Apple-CDN downloads, IPSW manifest inspection, signed upgrades/restores, and tethered downgrade planning:
 
 ```sh
 B34ST
@@ -71,14 +57,9 @@ fbr34ker ipsw upgrade --product iPhone12,1 --ipsw file.ipsw
 fbr34ker ipsw tethered-downgrade --product iPhone12,1 --ipsw old.ipsw
 ```
 
-Unsigned firmware is never passed to the stock restore path. Tethered
-downgrades require an external authorized adapter and must be booted again
-after every restart.
+Unsigned firmware is never passed to the stock restore path. Tethered downgrades require an external authorized adapter and must be booted again after every restart.
 
-When B34ST starts, its first screen is a connected-device dashboard showing
-mode, model, reviewed launch firmware, current firmware where detectable,
-latest signed firmware, matching profiles, and device-specific available or
-blocked actions. See [docs/B34ST_DEVICE_WORKFLOW.md](docs/B34ST_DEVICE_WORKFLOW.md).
+When B34ST starts, its first screen is a connected-device dashboard showing mode, model, reviewed launch firmware, current firmware where detectable, latest signed firmware, matching profiles, and device-specific available or blocked actions. See [docs/B34ST_DEVICE_WORKFLOW.md](docs/B34ST_DEVICE_WORKFLOW.md).
 
 ```sh
 # Full monitor build
@@ -93,8 +74,7 @@ make release-gate
 
 ## Monitor shell commands
 
-Once running under QEMU (`make run`), the monitor shell provides status-only
-views for the disabled security models:
+Once running under QEMU (`make run`), the monitor shell provides status-only views for the disabled security models:
 
 ```
 kernel-patches [status|apply|revert|escalate]
@@ -113,16 +93,55 @@ make apple-boot-images
 ./fbr34ker boot-image inspect build-apple/a13/boot.img --json
 ```
 
+## Public operational release
+
+The public release includes all non-private operational content:
+
+```sh
+make sdk-release
+```
+
+Produces `dist/FBR34KER_0.2.3_Physical_Validation_Candidate_operational.zip` containing:
+- B34ST research runtime framework (`b34st/`, `b34stctl`, `b34stool.py`)
+- All build artifacts (`build/`, `build-generic/`, `build-exploit/`, `build-apple/`, `build-loader/`, `build-hardware-probe/`, `build-sdk/`)
+- SDK (headers, library, examples, templates, tests)
+- Linker scripts, board profiles, demo modules
+- 46 curated documentation files
+- Test suite (31 C harnesses + 35 Python tests)
+- CLI (`fbr34ker`, completions)
+- **Excludes**: `kernel/`, `arch/`, `platform/`, `host/` (private exploit/kernel source)
+
 ## Documentation
 
 | Path | Purpose |
 |------|---------|
 | docs/ARCHITECTURE.md | System architecture and trust model |
-| docs/KERNEL_PATCHING.md | Kernel patching subsystem reference |
-| docs/SECURE_BOOT_BYPASS.md | Secure boot bypass subsystem reference |
-| docs/PERSISTENCE.md | Persistence subsystem reference |
-| docs/EXPLOIT_CHAIN.md | Exploit chain orchestration |
+| docs/EXPLOIT_CHAIN.md | USBliter8 exploit chain for A12+ |
 | docs/QUICK_START.md | Quick-start guide |
 | docs/A12_A13_IRECOVERY.md | A12/A13 recovery workflow |
-| SECURITY.md | Security boundary and policy |
+| docs/B34ST_DEVICE_WORKFLOW.md | Device dashboard and workflows |
+| docs/B34ST_DESIGN.md | B34ST framework design |
+| docs/KERNEL_PATCHING.md | Kernel patching state model reference |
+| docs/SECURE_BOOT_BYPASS.md | Secure boot bypass state model reference |
+| docs/PERSISTENCE.md | Persistence state model reference |
 | docs/THREAT_MODEL.md | Threat model |
+| docs/PHYSICAL_VALIDATION_CANDIDATE.md | Validation methodology |
+| docs/LOADER_SDK.md | Standalone loader SDK guide |
+| docs/BINARY_HANDOFF.md | Handoff ABI v4 specification |
+| docs/HANDOFF.md | Handoff protocol details |
+| sdk/README.md | SDK documentation |
+| CHANGELOG.md | Version history |
+| SECURITY.md | Security boundary and policy |
+| RELEASE_NOTES.md | Release notes |
+
+## Key features in 0.2.3
+
+- **USBliter8 exploit** for A12+ (T8015/T8020/T8030) — replaces checkm8 terminology
+- **iOS 17+ kernel base detection** (0xFFFFFFF007804000) with dual-base KASLR slide scan
+- **Per-iOS-version kernel patch offsets** (iOS 16 / iOS 17+ tables for A12–M2)
+- **PE_debugger / cs_enforcement disable patches** added
+- **DWC3 firmware-aware payloads** with GSNPSID version detection
+- **Boot-args magic scanning** (0xBA696F53 / 0x626F6F74) instead of fixed offset
+- **A13 SEP base probe** (0x82E000000) before A12 fallback
+- **Kernel entry passes boot-args pointer in x1** for iOS 17+ compatibility
+- **Kernel version string scanning** for precise iOS detection

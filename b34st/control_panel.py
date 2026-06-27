@@ -951,6 +951,276 @@ def _physical_flow(session: Session) -> None:
     _pause()
 
 
+def _forensics_workflow(session: Session) -> None:
+    while True:
+        _clear()
+        _header(session, "Forensics and data acquisition")
+        print("  1. List built-in acquisition profiles")
+        print("  2. Run quick acquisition (filesystem + network)")
+        print("  3. Run full acquisition (memory + storage + filesystem + network)")
+        print("  4. Run memory-only acquisition")
+        print("  5. Run storage-only acquisition")
+        print("  6. Run filesystem-only acquisition")
+        print("  7. Run network-only acquisition")
+        print("  8. Verify an evidence bundle")
+        print("  9. iCloud/Keychain/Keybag acquisition  (via SEP/exploit)")
+        print(" 10. Activation/FMI/Baseband operations  (bypass, FMI on/off, baseband unlock)")
+        print(" 11. Passcode management  (on/off/change/bypass)")
+        print("  0. Back")
+        choice = _prompt("Selection", "1")
+        if choice == "1":
+            session.run(["forensics", "list-profiles"], label="List acquisition profiles")
+            _pause()
+        elif choice in {"2", "3", "4", "5", "6", "7"}:
+            profile_map = {
+                "2": "quick", "3": "full", "4": "memory-only",
+                "5": "storage-only", "6": "filesystem-only", "7": "network-only",
+            }
+            profile = profile_map[choice]
+            device_id = _prompt("Device identifier", "unknown")
+            operator = _prompt("Operator name")
+            bundle_path = session.directory / f"forensics-{profile}.zip"
+            session.run(
+                [
+                    "forensics", "acquire",
+                    "--profile", profile,
+                    "--device-id", device_id,
+                    "--operator", operator or "",
+                    "--bundle", str(bundle_path),
+                ],
+                label=f"Acquisition: {profile}",
+            )
+            if bundle_path.exists():
+                print(f"\nEvidence bundle: {bundle_path.relative_to(ROOT)}")
+            _pause()
+        elif choice == "8":
+            path = _prompt("Evidence bundle path")
+            if path and path != "q":
+                session.run(["forensics", "verify", path], label="Verify evidence bundle")
+            _pause()
+        elif choice == "9":
+            _forensics_secrets_menu(session)
+        elif choice == "10":
+            _forensics_activation_menu(session)
+        elif choice == "11":
+            _forensics_passcode_menu(session)
+        elif choice in {"0", "q", ""}:
+            return
+
+
+def _forensics_secrets_menu(session: Session) -> None:
+    _clear()
+    _header(session, "iCloud / Keychain / Keybag acquisition")
+    print("Extracts iCloud tokens, Keychain items, and Keybag protection-class keys.")
+    print("Keychain/Keybag extraction requires SEP unlock (passcode or exploit).\n")
+    passcode = _prompt("Device passcode (leave blank for SEP exploit)")
+    output = session.directory / "secrets"
+    args = ["forensics", "secrets", "--output", str(output)]
+    if passcode:
+        args += ["--passcode", passcode]
+    else:
+        if _confirm("Attempt SEP exploit-based unlock"):
+            args.append("--sep-exploit")
+    session.run(args, label="Secrets acquisition")
+    _pause()
+
+
+def _forensics_activation_menu(session: Session) -> None:
+    while True:
+        _clear()
+        _header(session, "Activation / FMI / Baseband / mobileactivationd")
+        print("  1. Query activation state")
+        print("  2. Apply full activation bypass (clear records + patch daemon + inject ticket)")
+        print("  3. Clear activation records")
+        print("  4. Query FMI state (Find My iPhone)")
+        print("  5. Turn FMI OFF")
+        print("  6. Turn FMI ON")
+        print("  7. Clear FMI activation lock")
+        print("  8. Baseband status")
+        print("  9. Baseband unlock (SIM lock bypass)")
+        print(" 10. Query all activation/baseband/FMI state")
+        print("  0. Back")
+        choice = _prompt("Selection", "1")
+        if choice == "1":
+            session.run(["forensics", "activation", "status"],
+                        label="Activation status")
+            _pause()
+        elif choice == "2":
+            if _confirm("Apply full activation bypass"):
+                session.run(["forensics", "activation", "bypass"],
+                            label="Activation bypass")
+            _pause()
+        elif choice == "3":
+            if _confirm("Clear activation records"):
+                session.run(["forensics", "activation", "clear-records"],
+                            label="Clear records")
+            _pause()
+        elif choice == "4":
+            session.run(["forensics", "activation", "fmi", "status"],
+                        label="FMI status")
+            _pause()
+        elif choice == "5":
+            if _confirm("Turn FMI OFF"):
+                session.run(["forensics", "activation", "fmi", "off"],
+                            label="FMI off")
+            _pause()
+        elif choice == "6":
+            if _confirm("Turn FMI ON"):
+                session.run(["forensics", "activation", "fmi", "on"],
+                            label="FMI on")
+            _pause()
+        elif choice == "7":
+            if _confirm("Clear FMI activation lock"):
+                session.run(["forensics", "activation", "fmi", "clear-activation-lock"],
+                            label="Clear FMI lock")
+            _pause()
+        elif choice == "8":
+            session.run(["forensics", "activation", "baseband", "status"],
+                        label="Baseband status")
+            _pause()
+        elif choice == "9":
+            if _confirm("Unlock baseband (SIM lock)"):
+                session.run(["forensics", "activation", "baseband", "unlock"],
+                            label="Baseband unlock")
+            _pause()
+        elif choice == "10":
+            output = session.directory / "activation-query"
+            session.run(["forensics", "activation", "query-all", "--output", str(output)],
+                        label="Query all activation state")
+            _pause()
+        elif choice in {"0", "q", ""}:
+            return
+
+
+def _forensics_passcode_menu(session: Session) -> None:
+    while True:
+        _clear()
+        _header(session, "Passcode management")
+        print("  1. Query passcode state (on/off)")
+        print("  2. Query passcode policy")
+        print("  3. Remove passcode (requires current passcode or exploit)")
+        print("  4. Set new passcode")
+        print("  5. Change passcode")
+        print("  6. Attempt passcode bypass")
+        print("  0. Back")
+        choice = _prompt("Selection", "1")
+        if choice == "1":
+            session.run(["forensics", "passcode", "status"],
+                        label="Passcode status")
+            _pause()
+        elif choice == "2":
+            session.run(["forensics", "passcode", "policy"],
+                        label="Passcode policy")
+            _pause()
+        elif choice == "3":
+            passcode = _prompt("Current passcode (leave blank for exploit)")
+            args = ["forensics", "passcode", "remove"]
+            if passcode:
+                args += ["--passcode", passcode]
+            else:
+                args.append("--exploit")
+            if _confirm("Remove device passcode"):
+                session.run(args, label="Remove passcode")
+            _pause()
+        elif choice == "4":
+            new = _prompt("New passcode")
+            if new and len(new) >= 4:
+                session.run(["forensics", "passcode", "set", new],
+                            label="Set passcode")
+            else:
+                print("Passcode must be at least 4 characters.")
+            _pause()
+        elif choice == "5":
+            current = _prompt("Current passcode")
+            new = _prompt("New passcode")
+            if current and new and len(new) >= 4:
+                session.run(["forensics", "passcode", "change", current, new],
+                            label="Change passcode")
+            else:
+                print("Both passcodes required; new must be at least 4 characters.")
+            _pause()
+        elif choice == "6":
+            if _confirm("Attempt passcode bypass"):
+                session.run(["forensics", "passcode", "bypass"],
+                            label="Passcode bypass")
+            _pause()
+        elif choice in {"0", "q", ""}:
+            return
+
+
+def _cve_workflow(session: Session) -> None:
+    while True:
+        _clear()
+        _header(session, "CVE database & exploit chain planner")
+        print("  1. Show database statistics")
+        print("  2. Search CVEs by keyword")
+        print("  3. Query CVEs for a specific iOS version")
+        print("  4. Plan exploit chain for a goal")
+        print("  5. Suggest achievable goals for a version")
+        print("  6. List available exploit goals")
+        print("  7. Filter CVEs by criteria")
+        print("  0. Back")
+        choice = _prompt("Selection", "1")
+        if choice == "1":
+            session.run(["cve", "stats"], label="CVE database statistics")
+            _pause()
+        elif choice == "2":
+            query = _prompt("Search query")
+            if query:
+                session.run(["cve", "search", query], label=f"Search CVEs: {query}")
+            _pause()
+        elif choice == "3":
+            version = _prompt("iOS version", "16.5")
+            if version:
+                session.run(["cve", "query", version], label=f"CVEs for iOS {version}")
+            _pause()
+        elif choice == "4":
+            version = _prompt("Target iOS version", "16.5")
+            print("\nAvailable goals: jailbreak, userland-jailbreak, extraction,")
+            print("  activation-bypass, passcode-bypass, forensics-ready,")
+            print("  tethered-jailbreak, jailbreak-remote")
+            goal = _prompt("Exploit goal", "jailbreak")
+            if version and goal:
+                session.run(["cve", "chain", goal, version],
+                            label=f"Chain: {goal} on iOS {version}")
+            _pause()
+        elif choice == "5":
+            version = _prompt("Target iOS version", "16.5")
+            if version:
+                session.run(["cve", "suggest", version],
+                            label=f"Suggest goals for iOS {version}")
+            _pause()
+        elif choice == "6":
+            session.run(["cve", "goals"], label="List exploit goals")
+            _pause()
+        elif choice == "7":
+            version = _prompt("iOS version filter (blank for all)", "")
+            goal = _prompt("Goal filter (blank for all)", "")
+            component = _prompt("Component filter (blank for all)", "")
+            args = ["cve", "filter"]
+            if version:
+                args += ["--version", version]
+            if goal:
+                args += ["--goal", goal]
+            if component:
+                args += ["--component", component]
+            session.run(args, label="Filter CVEs")
+            _pause()
+        elif choice in {"0", "q", ""}:
+            return
+
+
+def _fuzzer_workflow(session: Session) -> None:
+    _clear()
+    _header(session, "Fuzzer orchestration")
+    print("  1. List available fuzz targets")
+    print("  0. Back")
+    choice = _prompt("Selection", "1")
+    if choice == "1":
+        session.run(["cve", "fuzz", "list"], label="List fuzz targets")
+        _pause()
+
+
 def _runtime_console(session: Session) -> None:
     _clear()
     _header(session, "Runtime console")
@@ -1283,6 +1553,9 @@ def run_control_panel() -> int:
         print("  8. Create a bounded environment plan")
         print("  9. Open the FBR34KER maintenance menu")
         print(" 10. View this B34ST session log")
+        print(" 11. Forensics and data acquisition")
+        print(" 12. CVE database & exploit chain planner")
+        print(" 13. Fuzzer orchestration")
         print("  0. Exit")
         choice = _prompt("Selection", "1")
         if choice == "1":
@@ -1316,6 +1589,12 @@ def run_control_panel() -> int:
             )
         elif choice == "10":
             _show_log(session)
+        elif choice == "11":
+            _forensics_workflow(session)
+        elif choice == "12":
+            _cve_workflow(session)
+        elif choice == "13":
+            _fuzzer_workflow(session)
         elif choice in {"0", "q", ""}:
             session.record("B34ST control-panel session ended")
             print(f"Session log: {session.log_path.relative_to(ROOT)}")

@@ -1,10 +1,6 @@
 # FBR34KER Tutorial
 
-This tutorial walks through the entire FBR34KER workflow: setting up the
-toolchain, building firmware targets, running the monitor in QEMU, exercising
-the jailbreak security-bypass chain, using the loader SDK, and creating a
-release package. No physical Apple hardware is required — everything up to the
-exploit-chain step runs under QEMU.
+This tutorial walks through the entire FBR34KER workflow: setting up the toolchain, building firmware targets, running the monitor in QEMU, exercising the jailbreak security-bypass chain, using the loader SDK, and creating a release package. No physical Apple hardware is required — everything up to the exploit-chain step runs under QEMU.
 
 ## Prerequisites
 
@@ -21,9 +17,7 @@ exploit-chain step runs under QEMU.
 ./fbr34ker doctor
 ```
 
-This checks for Clang, `ld.lld`, `llvm-objcopy`, `qemu-system-aarch64`, `make`,
-`pyusb`, `libusb`, and the chipset database. Address any `[MISSING]` items
-before proceeding.
+This checks for Clang, `ld.lld`, `llvm-objcopy`, `qemu-system-aarch64`, `make`, `pyusb`, `libusb`, and the chipset database. Address any `[MISSING]` items before proceeding.
 
 ## 1. Project structure
 
@@ -33,11 +27,15 @@ FBR34KER_0.2.3_Physical_Validation_Candidate/
 ├── README.md              ← project overview
 ├── CHANGELOG.md           ← version history
 ├── LICENSE                ← license terms
+├── SECURITY.md            ← security boundary and policy
+├── RELEASE_NOTES.md       ← release notes
 │
 ├── fbr34ker               ← main CLI entry point (Python)
+├── b34stctl               ← B34ST control panel
+├── b34stool.py            ← B34ST legacy tool
 ├── Makefile               ← top-level build system
 │
-├── kernel/                ← monitor firmware source
+├── kernel/                ← monitor firmware source (EXCLUDED from public release)
 │   ├── main.c             ← entry and lifecycle
 │   ├── jailbreak.c        ← A12+ jailbreak chain implementation
 │   ├── command.c          ← interactive shell and command dispatcher
@@ -45,23 +43,24 @@ FBR34KER_0.2.3_Physical_Validation_Candidate/
 │   ├── usbliter8_exploit.c ← DWC3 USB exploit for A12+
 │   └── ...
 │
-├── arch/arm64/            ← AArch64 architecture layer
+├── arch/arm64/            ← AArch64 architecture layer (EXCLUDED from public release)
 │   ├── start.S            ← boot-time entry point
 │   ├── mmu.c              ← page-table management
 │   └── cpu.c              ← EL1 register access
 │
-├── platform/              ← hardware platform support
+├── platform/              ← hardware platform support (EXCLUDED from public release)
 │   ├── qemu_virt/         ← QEMU virt machine (default)
 │   └── generic_arm64/     ← generic ARM64 (physical devices)
 │
 ├── include/fbr34ker/      ← firmware headers
-├── host/                  ← host-side Python tools
+├── host/                  ← host-side Python tools (EXCLUDED from public release)
 ├── sdk/                   ← standalone loader SDK
 ├── scripts/               ← build and release scripts
 ├── docs/                  ← full documentation (46 documents)
 ├── linker/                ← linker scripts per platform
 ├── profiles/              ← device recovery profiles
-└── tests/                 ← native test harnesses
+├── tests/                 ← native test harnesses
+└── b34st/                 ← B34ST research runtime framework
 ```
 
 ### Build outputs
@@ -69,7 +68,7 @@ FBR34KER_0.2.3_Physical_Validation_Candidate/
 | Directory | Purpose |
 |-----------|---------|
 | `build/` | QEMU virt target (fbr34ker.bin, fbr34ker.elf) |
-| `build-generic/` | Generic ARM64 target |
+| `build-generic/` | Generic ARM64 monitor |
 | `build-hardware-probe/` | Hardware probe image (read-only) |
 | `build-loader/` | QEMU handoff loader |
 | `build-sdk/` | SDK static library + examples |
@@ -119,8 +118,7 @@ make build-operational
 ./fbr34ker build --security-model
 ```
 
-This produces `build-exploit/fbr34ker-operational.bin`, which is required for
-the exploit chain and jailbreak boot on physical devices.
+This produces `build-exploit/fbr34ker-operational.bin`, which is required for the exploit chain and jailbreak boot on physical devices.
 
 ## 3. Running in QEMU
 
@@ -130,8 +128,7 @@ the exploit chain and jailbreak boot on physical devices.
 ./fbr34ker run direct
 ```
 
-This boots `build/fbr34ker.bin` under QEMU virt. You will see the monitor's
-boot banner, initialization logs, and finally the shell prompt:
+This boots `build/fbr34ker.bin` under QEMU virt. You will see the monitor's boot banner, initialization logs, and finally the shell prompt:
 
 ```
 FBR34KER 0.2.3 (validation-candidate)
@@ -185,8 +182,7 @@ Press `Ctrl-A` then `X`, or close the terminal window.
 
 ## 4. The jailbreak command
 
-The `jailbreak` command drives the A12+ security bypass and kernel boot chain.
-It is available in any build variant.
+The `jailbreak` command drives the A12+ security bypass and kernel boot chain. It is available in any build variant.
 
 ### Status
 
@@ -194,8 +190,7 @@ It is available in any build variant.
 fbr34ker> jailbreak
 ```
 
-Shows the current jailbreak state, security model status, bypass counts, kernel
-detection info, and SEP availability.
+Shows the current jailbreak state, security model status, bypass counts, kernel detection info, and SEP availability.
 
 ### Security model
 
@@ -204,9 +199,7 @@ fbr34ker> jailbreak security-model on
 fbr34ker> jailbreak security-model off
 ```
 
-Enable or disable the security model. When active, memory-write operations (e.g.
-boot-args injection) take effect immediately. In "pending" mode, operations are
-staged but not committed.
+Enable or disable the security model. When active, memory-write operations (e.g. boot-args injection) take effect immediately. In "pending" mode, operations are staged but not committed.
 
 ### Security bypasses
 
@@ -224,10 +217,7 @@ fbr34ker> jailbreak detect-kernel                    # Auto-scan DRAM
 fbr34ker> jailbreak detect-kernel --path <phys> [size] # Specify location
 ```
 
-Scans DRAM for a kernelcache (Mach-O fat binary with `LC_MAIN` command). On
-QEMU no kernelcache is present, so this will report "no kernelcache found" —
-this is expected. On a real device after the exploit chain, the kernelcache
-resides at `0x800000000`+ (A12+) or can be loaded via vendor MEM_WRITE.
+Scans DRAM for a kernelcache (Mach-O fat binary with `LC_MAIN` command). On QEMU no kernelcache is present, so this will report "no kernelcache found" — this is expected. On a real device after the exploit chain, the kernelcache resides at `0x800000000`+ (A12+) or can be loaded via vendor MEM_WRITE.
 
 ### KASLR detection
 
@@ -235,7 +225,7 @@ resides at `0x800000000`+ (A12+) or can be loaded via vendor MEM_WRITE.
 fbr34ker> jailbreak detect-kaslr [phys [size]]
 ```
 
-Reads the first `LC_SEGMENT_64` command's `vmaddr` to compute the KASLR slide.
+Reads the first `LC_SEGMENT_64` command's `vmaddr` to compute the KASLR slide. Tries both iOS 16 (`0xFFFFFFF007000000`) and iOS 17+ (`0xFFFFFFF007800000`) kernel bases.
 
 ### Boot-args injection
 
@@ -249,13 +239,15 @@ By default injects:
 -s amfi_get_out_of_my_way=1 cs_enforcement_disable=1 keepsyms=1 debug=0x2014 wdt=0
 ```
 
+Boot-args are located by scanning for magic `0xBA696F53` or `0x626F6F74` in the kernelcache range, not by fixed offset.
+
 ### SEP detection
 
 ```sh
 fbr34ker> jailbreak detect-sep [base]
 ```
 
-Probes the SEP MMIO region. Default base: `0x82D000000` (A12/A13).
+Probes the SEP MMIO region. Default base: `0x82E000000` (A13), then `0x82D000000` (A12/A12X).
 
 ### Full chain
 
@@ -263,8 +255,7 @@ Probes the SEP MMIO region. Default base: `0x82D000000` (A12/A13).
 fbr34ker> jailbreak chain-all
 ```
 
-Runs the complete chain: security bypasses → MMU enable → kernel detection →
-boot-args → SEP detection → ready to boot.
+Runs the complete chain: security bypasses → MMU enable → kernel detection → boot-args → SEP detection → ready to boot.
 
 ### Boot kernel
 
@@ -272,10 +263,7 @@ boot-args → SEP detection → ready to boot.
 fbr34ker> jailbreak boot-kernel [entry]
 ```
 
-Disables the MMU (clears `SCTLR_EL1.M`), performs a DSB+ISB barrier, and jumps
-to the kernel entry point. On a real device, the console disconnects as the
-kernel takes over. In QEMU without a loaded kernel, this will fault — this is
-expected.
+Disables the MMU (clears `SCTLR_EL1.M` and `SCTLR_EL1.WXN`), performs a DSB+ISB barrier, and jumps to the kernel entry point with boot-args pointer in `x1` (iOS 17+ compatibility). On a real device, the console disconnects as the kernel takes over. In QEMU without a loaded kernel, this will fault — this is expected.
 
 ### Chain all (one-shot)
 
@@ -283,16 +271,11 @@ expected.
 fbr34ker> jailbreak chain-all
 ```
 
-Equivalent to running `bypass-all`, `detect-kernel`, `inject-bootargs`,
-`detect-sep` sequentially, plus MMU re-initialization.
+Equivalent to running `bypass-all`, `detect-kernel`, `inject-bootargs`, `detect-sep` sequentially, plus MMU re-initialization.
 
 ## 5. Full exploit chain walkthrough (conceptual)
 
-> **Note:** This section describes the full internal toolchain. The public
-> operational release does not include the `kernel/`, `arch/`, `platform/`, or
-> `host/` source code — the exploit, jailbreak, and kernel-patching internals
-> are private. The pre-built firmware images in `build-*` contain the compiled
-> exploit chain and can be used with the operational scripts.
+> **Note:** This section describes the full internal toolchain. The public operational release does not include the `kernel/`, `arch/`, `platform/`, or `host/` source code — the exploit, jailbreak, and kernel-patching internals are private. The pre-built firmware images in `build-*` contain the compiled exploit chain and can be used with the operational scripts.
 
 The complete A12+ exploit flow requires physical hardware. Here is the flow:
 
@@ -339,11 +322,18 @@ fbr34ker> jailbreak chain-all
 fbr34ker> jailbreak boot-kernel
 ```
 
+### Key A12+ differences from checkm8 (A5-A11)
+
+- **No bootrom exploit** — A12+ uses DWC3 USB controller firmware exploit (USBliter8)
+- **Vendor requests** provide physical memory access (SET_ADDR, MEM_READ, MEM_WRITE, EXECUTE)
+- **DWC3 firmware version matters** — v1 and v2 have different exploit payloads
+- **iOS 17+ kernel base is 0xFFFFFFF007804000** vs iOS 16 `0xFFFFFFF007004000`
+- **Boot-args must be found dynamically** by scanning for magic values
+- **Kernel entry on iOS 17+ expects device tree pointer in x1**
+
 ## 6. SDK overview
 
-The FBR34KER SDK provides a standalone, freestanding C11 library for
-constructing and validating handoff ABI v4 structures. It has no dependencies
-on monitor internals or any operating system.
+The FBR34KER SDK provides a standalone, freestanding C11 library for constructing and validating handoff ABI v4 structures. It has no dependencies on monitor internals or any operating system.
 
 ### SDK contents
 
@@ -412,11 +402,7 @@ See `sdk/examples/` for complete working examples.
 make sdk-release
 ```
 
-Produces a clean public release archive in `dist/` containing everything needed
-to make the toolchain fully operational — B34ST research runtime, all build
-artifacts, scripts, tests, SDK, linker scripts, board profiles, demo modules,
-curated documentation, and tutorial — but **no private kernel/exploit/host
-source code**.
+Produces a clean public release archive in `dist/` containing everything needed to make the toolchain fully operational — B34ST research runtime, all build artifacts, scripts, tests, SDK, linker scripts, board profiles, demo modules, curated documentation, and tutorial — but **no private kernel/exploit/host source code**.
 
 | Archive | Contents |
 |---------|----------|
@@ -448,6 +434,8 @@ FBR34KER_0.2.3_Physical_Validation_Candidate/
 ├── README.md                    ← project overview
 ├── CHANGELOG.md                 ← version history
 ├── LICENSE                      ← license terms
+├── SECURITY.md                  ← security policy
+├── RELEASE_NOTES.md             ← release notes
 ├── fbr34ker                     ← CLI entry point
 ├── b34stctl                     ← B34ST control panel
 ├── b34st/                       ← B34ST research runtime framework
@@ -467,13 +455,25 @@ FBR34KER_0.2.3_Physical_Validation_Candidate/
 │   ├── test_release_tools.py, test_research_runtime.py
 │   ├── ... (31 C harnesses + 35 Python tests)
 │   └── __pycache__/ (excluded)
-├── docs/                        ← 16 curated documentation files
-│   ├── ARCHITECTURE.md, LOADER_SDK.md, BINARY_HANDOFF.md
-│   ├── HANDOFF.md, LOADER_CONFORMANCE.md, LOADER_SIMULATOR.md
-│   ├── PORTING.md, PORT_CERTIFICATION.md, FIRST_STAGE_ADAPTER.md
-│   ├── MODULE_FORMAT.md, BRIDGE_PROTOCOL.md, HOST_PROTOCOL.md
-│   ├── DEPLOYMENT_PROTOCOL.md, PLATFORM_SERVICES.md
-│   ├── BOOT_IMAGE.md, QUICK_START.md
+├── docs/                        ← 46 curated documentation files
+│   ├── ARCHITECTURE.md, EXPLOIT_CHAIN.md, QUICK_START.md
+│   ├── A12_A13_IRECOVERY.md, A12_A13_HARDWARE_BRINGUP.md
+│   ├── B34ST_DEVICE_WORKFLOW.md, B34ST_DESIGN.md, B34ST_TASKS.md
+│   ├── KERNEL_PATCHING.md, SECURE_BOOT_BYPASS.md, PERSISTENCE.md
+│   ├── LOADER_SDK.md, BINARY_HANDOFF.md, HANDOFF.md
+│   ├── BRIDGE_PROTOCOL.md, HOST_PROTOCOL.md, DEPLOYMENT_PROTOCOL.md
+│   ├── BOOT_IMAGE.md, PHYSICAL_VALIDATION_CANDIDATE.md
+│   ├── THREAT_MODEL.md, PHYSICAL_HARDWARE_PROBE.md
+│   ├── FIRST_STAGE_ADAPTER.md, PORTING.md, PORT_CERTIFICATION.md
+│   ├── MODULE_FORMAT.md, FRAMEBUFFER_CONSOLE.md, CALLBACK_SAFETY.md
+│   ├── BOARD_BRINGUP.md, HARDWARE_BRINGUP_CHECKLIST.md
+│   ├── HARDWARE_DIAGNOSTICS.md, PLATFORM_SERVICES.md
+│   ├── QEMU_GENERIC_LOADER.md, LOADER_CONFORMANCE.md
+│   ├── LOADER_SIMULATOR.md, REAL_HARDWARE_ADAPTER.md
+│   ├── MMIO.md, INTERRUPTS.md, BRINGUP_SHELL.md
+│   ├── RUNTIME_ARCHITECTURE.md, RUNTIME_VALIDATION.md
+│   ├── TRANSPORT_DEPLOYMENT.md, PROFILE_MATURITY.md
+│   ├── BYTECODE.md, PHYSICAL_DEVICE_INTEGRATION.md
 ├── sdk/                         ← full SDK source distribution
 │   ├── include/                 ← 7 public ABI headers
 │   ├── src/                     ← library source (3 modules)
@@ -549,43 +549,43 @@ QEMU will fall back to TCG emulation. This is slower but functional.
 ```
 ModuleNotFoundError: No module named 'usb'
 ```
-Install pyusb: `pip install pyusb`. This is only needed for device operations,
-not for building or QEMU.
+Install pyusb: `pip install pyusb`. This is only needed for device operations, not for building or QEMU.
 
 ```
 ModuleNotFoundError: No module named 'b34st'
 ```
-The B34ST module is part of the source tree. Ensure you are running from the
-project root.
+The B34ST module is part of the source tree. Ensure you are running from the project root.
 
 ### Runtime issues
 
 ```
 jailbreak: no kernelcache found in DRAM
 ```
-No kernelcache is loaded. On a real device, the exploit chain loads it via
-vendor MEM_WRITE. Under QEMU, this is expected.
+No kernelcache is loaded. On a real device, the exploit chain loads it via vendor MEM_WRITE. Under QEMU, this is expected.
 
 ```
 Console disconnected — TransportError
 ```
-Expected when the kernel boots — the kernel takes over the UART/USB console.
-The exploit framework handles this gracefully.
+Expected when the kernel boots — the kernel takes over the UART/USB console. The exploit framework handles this gracefully.
 
 ## 9. Further reading
 
 | Document | Description |
 |----------|-------------|
 | `docs/ARCHITECTURE.md` | System architecture overview |
+| `docs/EXPLOIT_CHAIN.md` | USBliter8 exploit chain design |
 | `docs/LOADER_SDK.md` | SDK usage in detail |
 | `docs/BINARY_HANDOFF.md` | Handoff ABI specification |
-| `docs/EXPLOIT_CHAIN.md` | Exploit chain design |
+| `docs/HANDOFF.md` | Handoff protocol details |
 | `docs/QEMU_GENERIC_LOADER.md` | QEMU loader details |
 | `docs/PHYSICAL_VALIDATION_CANDIDATE.md` | Validation methodology |
 | `docs/HARDWARE_BRINGUP_CHECKLIST.md` | Bring-up procedures |
-| `docs/SECURE_BOOT_BYPASS.md` | Secure boot bypass details |
-| `docs/KERNEL_PATCHING.md` | Kernel patching subsystem |
+| `docs/SECURE_BOOT_BYPASS.md` | Secure boot bypass state model |
+| `docs/KERNEL_PATCHING.md` | Kernel patching state model |
+| `docs/PERSISTENCE.md` | Persistence state model |
+| `docs/B34ST_DEVICE_WORKFLOW.md` | Device dashboard and workflows |
 | `docs/QUICK_START.md` | Quick reference |
 | `sdk/README.md` | SDK documentation |
 | `CHANGELOG.md` | Version history |
 | `RELEASE_NOTES.md` | Release notes |
+| `SECURITY.md` | Security boundary and policy |

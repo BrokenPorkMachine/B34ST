@@ -72,3 +72,6 @@ const char *kernel_patch_type_name(kernel_patch_type_t type);
 const char *kernel_patch_state_name(kernel_patch_state_t state);
 bool kernel_patching_available(void);
 u32 kernel_patch_applied_count(void);
+
+/* Find/return the currently set kernel base address */
+bool kernel_patches_find_base(u64 *kbase);

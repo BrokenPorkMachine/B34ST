@@ -13,92 +13,298 @@ static u16 active_cpid;
 static u64 kernel_base;
 static u64 dram_phys_base;
 
+typedef enum {
+    IOS_VERSION_UNKNOWN = 0,
+    IOS_VERSION_16,
+    IOS_VERSION_17,
+    IOS_VERSION_18,
+} ios_version_t;
+
+static ios_version_t scan_kernel_version_string(u64 base);
+
 typedef struct {
     u16 cpid;
     const char *name;
+    ios_version_t ios_ver;
     u64 amfi_offset;
     u64 task_for_pid_offset;
     u64 privilege_offset;
     u64 mount_root_offset;
     u64 codesign_offset;
     u64 sandbox_offset;
+    u64 pe_debugger_offset;
+    u64 cs_enforcement_offset;
 } soc_patch_offsets_t;
 
 static const soc_patch_offsets_t soc_offsets[] = {
+    /* ── A12 (T8015) ─────────────────────────────────────── */
     {
         .cpid = 0x8015,
-        .name = "T8015 (A12)",
-        .amfi_offset =        0x00A00000ULL,
-        .task_for_pid_offset = 0x00500000ULL,
-        .privilege_offset =   0x00E00000ULL,
-        .mount_root_offset =  0x00C00000ULL,
-        .codesign_offset =    0x00A00040ULL,
-        .sandbox_offset =     0x00B00000ULL,
+        .name = "T8015 (A12) iOS 16",
+        .ios_ver = IOS_VERSION_16,
+        .amfi_offset =          0x00A00000ULL,
+        .task_for_pid_offset =  0x00500000ULL,
+        .privilege_offset =     0x00E00000ULL,
+        .mount_root_offset =    0x00C00000ULL,
+        .codesign_offset =      0x00A00040ULL,
+        .sandbox_offset =       0x00B00000ULL,
+        .pe_debugger_offset =   0x00D00000ULL,
+        .cs_enforcement_offset = 0x00A00080ULL,
+    },
+    {
+        .cpid = 0x8015,
+        .name = "T8015 (A12) iOS 17+",
+        .ios_ver = IOS_VERSION_17,
+        .amfi_offset =          0x00B00000ULL,
+        .task_for_pid_offset =  0x00520000ULL,
+        .privilege_offset =     0x00F00000ULL,
+        .mount_root_offset =    0x00D00000ULL,
+        .codesign_offset =      0x00B00040ULL,
+        .sandbox_offset =       0x00C00000ULL,
+        .pe_debugger_offset =   0x00E00000ULL,
+        .cs_enforcement_offset = 0x00B00080ULL,
+    },
+    /* ── A13 (T8020) ─────────────────────────────────────── */
+    {
+        .cpid = 0x8020,
+        .name = "T8020 (A13) iOS 16",
+        .ios_ver = IOS_VERSION_16,
+        .amfi_offset =          0x00A00000ULL,
+        .task_for_pid_offset =  0x00500000ULL,
+        .privilege_offset =     0x00E00000ULL,
+        .mount_root_offset =    0x00C00000ULL,
+        .codesign_offset =      0x00A00040ULL,
+        .sandbox_offset =       0x00B00000ULL,
+        .pe_debugger_offset =   0x00D00000ULL,
+        .cs_enforcement_offset = 0x00A00080ULL,
     },
     {
         .cpid = 0x8020,
-        .name = "T8020 (A13)",
-        .amfi_offset =        0x00A00000ULL,
-        .task_for_pid_offset = 0x00500000ULL,
-        .privilege_offset =   0x00E00000ULL,
-        .mount_root_offset =  0x00C00000ULL,
-        .codesign_offset =    0x00A00040ULL,
-        .sandbox_offset =     0x00B00000ULL,
+        .name = "T8020 (A13) iOS 17+",
+        .ios_ver = IOS_VERSION_17,
+        .amfi_offset =          0x00B00000ULL,
+        .task_for_pid_offset =  0x00520000ULL,
+        .privilege_offset =     0x00F00000ULL,
+        .mount_root_offset =    0x00D00000ULL,
+        .codesign_offset =      0x00B00040ULL,
+        .sandbox_offset =       0x00C00000ULL,
+        .pe_debugger_offset =   0x00E00000ULL,
+        .cs_enforcement_offset = 0x00B00080ULL,
+    },
+    /* ── A14 (T8030) ─────────────────────────────────────── */
+    {
+        .cpid = 0x8030,
+        .name = "T8030 (A14) iOS 16",
+        .ios_ver = IOS_VERSION_16,
+        .amfi_offset =          0x00A00000ULL,
+        .task_for_pid_offset =  0x00500000ULL,
+        .privilege_offset =     0x00E00000ULL,
+        .mount_root_offset =    0x00C00000ULL,
+        .codesign_offset =      0x00A00040ULL,
+        .sandbox_offset =       0x00B00000ULL,
+        .pe_debugger_offset =   0x00D00000ULL,
+        .cs_enforcement_offset = 0x00A00080ULL,
     },
     {
         .cpid = 0x8030,
-        .name = "T8030 (A14)",
-        .amfi_offset =        0x00A00000ULL,
-        .task_for_pid_offset = 0x00500000ULL,
-        .privilege_offset =   0x00E00000ULL,
-        .mount_root_offset =  0x00C00000ULL,
-        .codesign_offset =    0x00A00040ULL,
-        .sandbox_offset =     0x00B00000ULL,
+        .name = "T8030 (A14) iOS 17+",
+        .ios_ver = IOS_VERSION_17,
+        .amfi_offset =          0x00B00000ULL,
+        .task_for_pid_offset =  0x00520000ULL,
+        .privilege_offset =     0x00F00000ULL,
+        .mount_root_offset =    0x00D00000ULL,
+        .codesign_offset =      0x00B00040ULL,
+        .sandbox_offset =       0x00C00000ULL,
+        .pe_debugger_offset =   0x00E00000ULL,
+        .cs_enforcement_offset = 0x00B00080ULL,
+    },
+    /* ── A12Z (T8028) ────────────────────────────────────── */
+    {
+        .cpid = 0x8028,
+        .name = "T8028 (A12Z) iOS 16",
+        .ios_ver = IOS_VERSION_16,
+        .amfi_offset =          0x00A00000ULL,
+        .task_for_pid_offset =  0x00500000ULL,
+        .privilege_offset =     0x00E00000ULL,
+        .mount_root_offset =    0x00C00000ULL,
+        .codesign_offset =      0x00A00040ULL,
+        .sandbox_offset =       0x00B00000ULL,
+        .pe_debugger_offset =   0x00D00000ULL,
+        .cs_enforcement_offset = 0x00A00080ULL,
     },
     {
         .cpid = 0x8028,
-        .name = "T8028 (A12Z)",
-        .amfi_offset =        0x00A00000ULL,
-        .task_for_pid_offset = 0x00500000ULL,
-        .privilege_offset =   0x00E00000ULL,
-        .mount_root_offset =  0x00C00000ULL,
-        .codesign_offset =    0x00A00040ULL,
-        .sandbox_offset =     0x00B00000ULL,
+        .name = "T8028 (A12Z) iOS 17+",
+        .ios_ver = IOS_VERSION_17,
+        .amfi_offset =          0x00B00000ULL,
+        .task_for_pid_offset =  0x00520000ULL,
+        .privilege_offset =     0x00F00000ULL,
+        .mount_root_offset =    0x00D00000ULL,
+        .codesign_offset =      0x00B00040ULL,
+        .sandbox_offset =       0x00C00000ULL,
+        .pe_debugger_offset =   0x00E00000ULL,
+        .cs_enforcement_offset = 0x00B00080ULL,
+    },
+    /* ── M1 (T8103) ──────────────────────────────────────── */
+    {
+        .cpid = 0x8103,
+        .name = "T8103 (M1) iOS 16",
+        .ios_ver = IOS_VERSION_16,
+        .amfi_offset =          0x00A00000ULL,
+        .task_for_pid_offset =  0x00500000ULL,
+        .privilege_offset =     0x00E00000ULL,
+        .mount_root_offset =    0x00C00000ULL,
+        .codesign_offset =      0x00A00040ULL,
+        .sandbox_offset =       0x00B00000ULL,
+        .pe_debugger_offset =   0x00D00000ULL,
+        .cs_enforcement_offset = 0x00A00080ULL,
     },
     {
         .cpid = 0x8103,
-        .name = "T8103 (M1)",
-        .amfi_offset =        0x00A00000ULL,
-        .task_for_pid_offset = 0x00500000ULL,
-        .privilege_offset =   0x00E00000ULL,
-        .mount_root_offset =  0x00C00000ULL,
-        .codesign_offset =    0x00A00040ULL,
-        .sandbox_offset =     0x00B00000ULL,
+        .name = "T8103 (M1) iOS 17+",
+        .ios_ver = IOS_VERSION_17,
+        .amfi_offset =          0x00B00000ULL,
+        .task_for_pid_offset =  0x00520000ULL,
+        .privilege_offset =     0x00F00000ULL,
+        .mount_root_offset =    0x00D00000ULL,
+        .codesign_offset =      0x00B00040ULL,
+        .sandbox_offset =       0x00C00000ULL,
+        .pe_debugger_offset =   0x00E00000ULL,
+        .cs_enforcement_offset = 0x00B00080ULL,
+    },
+    /* ── A15 (T8110) ─────────────────────────────────────── */
+    {
+        .cpid = 0x8110,
+        .name = "T8110 (A15) iOS 16",
+        .ios_ver = IOS_VERSION_16,
+        .amfi_offset =          0x00A00000ULL,
+        .task_for_pid_offset =  0x00500000ULL,
+        .privilege_offset =     0x00E00000ULL,
+        .mount_root_offset =    0x00C00000ULL,
+        .codesign_offset =      0x00A00040ULL,
+        .sandbox_offset =       0x00B00000ULL,
+        .pe_debugger_offset =   0x00D00000ULL,
+        .cs_enforcement_offset = 0x00A00080ULL,
     },
     {
         .cpid = 0x8110,
-        .name = "T8110 (A15)",
-        .amfi_offset =        0x00A00000ULL,
-        .task_for_pid_offset = 0x00500000ULL,
-        .privilege_offset =   0x00E00000ULL,
-        .mount_root_offset =  0x00C00000ULL,
-        .codesign_offset =    0x00A00040ULL,
-        .sandbox_offset =     0x00B00000ULL,
+        .name = "T8110 (A15) iOS 17+",
+        .ios_ver = IOS_VERSION_17,
+        .amfi_offset =          0x00B00000ULL,
+        .task_for_pid_offset =  0x00520000ULL,
+        .privilege_offset =     0x00F00000ULL,
+        .mount_root_offset =    0x00D00000ULL,
+        .codesign_offset =      0x00B00040ULL,
+        .sandbox_offset =       0x00C00000ULL,
+        .pe_debugger_offset =   0x00E00000ULL,
+        .cs_enforcement_offset = 0x00B00080ULL,
+    },
+    /* ── M2 (T8112) ──────────────────────────────────────── */
+    {
+        .cpid = 0x8112,
+        .name = "T8112 (M2) iOS 16",
+        .ios_ver = IOS_VERSION_16,
+        .amfi_offset =          0x00A00000ULL,
+        .task_for_pid_offset =  0x00500000ULL,
+        .privilege_offset =     0x00E00000ULL,
+        .mount_root_offset =    0x00C00000ULL,
+        .codesign_offset =      0x00A00040ULL,
+        .sandbox_offset =       0x00B00000ULL,
+        .pe_debugger_offset =   0x00D00000ULL,
+        .cs_enforcement_offset = 0x00A00080ULL,
     },
     {
         .cpid = 0x8112,
-        .name = "T8112 (M2)",
-        .amfi_offset =        0x00A00000ULL,
-        .task_for_pid_offset = 0x00500000ULL,
-        .privilege_offset =   0x00E00000ULL,
-        .mount_root_offset =  0x00C00000ULL,
-        .codesign_offset =    0x00A00040ULL,
-        .sandbox_offset =     0x00B00000ULL,
+        .name = "T8112 (M2) iOS 17+",
+        .ios_ver = IOS_VERSION_17,
+        .amfi_offset =          0x00B00000ULL,
+        .task_for_pid_offset =  0x00520000ULL,
+        .privilege_offset =     0x00F00000ULL,
+        .mount_root_offset =    0x00D00000ULL,
+        .codesign_offset =      0x00B00040ULL,
+        .sandbox_offset =       0x00C00000ULL,
+        .pe_debugger_offset =   0x00E00000ULL,
+        .cs_enforcement_offset = 0x00B00080ULL,
     },
 };
 
+static ios_version_t detect_ios_version_from_kernel(void)
+{
+    u64 kbase = kernel_base;
+    if (kbase == 0U) return IOS_VERSION_UNKNOWN;
+    if (kbase >= APPLE_IOS17_KERNEL_BASE) return IOS_VERSION_17;
+    u32 test = 0U;
+    if (mmio_probe_read32(kbase + 0x200000U, &test)) {
+        if ((test & 0xFFFF0000U) == 0xD5030000U || test == 0x14000000U) {
+            return IOS_VERSION_17;
+        }
+    }
+    ios_version_t ver = scan_kernel_version_string(kbase);
+    if (ver != IOS_VERSION_UNKNOWN) {
+        return ver;
+    }
+    return IOS_VERSION_16;
+}
+
+static ios_version_t scan_kernel_version_string(u64 base)
+{
+    static const char *const ios17_markers[] = {
+        "Darwin Kernel Version 23.",
+        "iOS 17.",
+        "iOS 18.",
+        NULL
+    };
+    static const char *const ios16_markers[] = {
+        "Darwin Kernel Version 22.",
+        "iOS 16.",
+        NULL
+    };
+    const u64 scan_limit = 0x200000U;
+    for (u64 off = 0U; off < scan_limit; off += 16U) {
+        char buf[32];
+        bool ok = true;
+        for (int i = 0; i < 32; ++i) {
+            u8 val = 0U;
+            if (!mmio_probe_read32(base + off + i, (u32 *)&val)) {
+                ok = false;
+                break;
+            }
+            buf[i] = (char)val;
+            if (val == 0U) break;
+        }
+        if (!ok) continue;
+        for (int m = 0; ios17_markers[m]; ++m) {
+            const char *marker = ios17_markers[m];
+            usize marker_len = fm_strlen(marker);
+            for (usize i = 0; i + marker_len <= 32; ++i) {
+                if (fm_strncmp(&buf[i], marker, marker_len) == 0) {
+                    log_write(LOG_LEVEL_VERBOSE, "kernel_patches: iOS 17+ version string found: %s", marker);
+                    return IOS_VERSION_17;
+                }
+            }
+        }
+        for (int m = 0; ios16_markers[m]; ++m) {
+            const char *marker = ios16_markers[m];
+            usize marker_len = fm_strlen(marker);
+            for (usize i = 0; i + marker_len <= 32; ++i) {
+                if (fm_strncmp(&buf[i], marker, marker_len) == 0) {
+                    log_write(LOG_LEVEL_VERBOSE, "kernel_patches: iOS 16 version string found: %s", marker);
+                    return IOS_VERSION_16;
+                }
+            }
+        }
+    }
+    return IOS_VERSION_UNKNOWN;
+}
+
 static const soc_patch_offsets_t *find_soc_offsets(u16 cpid)
 {
+    ios_version_t ios_ver = detect_ios_version_from_kernel();
+    for (usize i = 0U; i < sizeof(soc_offsets) / sizeof(soc_offsets[0U]); ++i) {
+        if (soc_offsets[i].cpid == cpid && soc_offsets[i].ios_ver == ios_ver) {
+            return &soc_offsets[i];
+        }
+    }
     for (usize i = 0U; i < sizeof(soc_offsets) / sizeof(soc_offsets[0U]); ++i) {
         if (soc_offsets[i].cpid == cpid) {
             return &soc_offsets[i];
@@ -125,6 +331,8 @@ static void register_default_patches(void)
     u64 mount_addr = base + soc->mount_root_offset;
     u64 csign_addr = base + soc->codesign_offset;
     u64 sand_addr = base + soc->sandbox_offset;
+    u64 debug_addr = base + soc->pe_debugger_offset;
+    u64 cs_enforce_addr = base + soc->cs_enforcement_offset;
 
     log_write(LOG_LEVEL_INFO, "kernel_patches: using offsets for %s (CPID 0x%04x)",
               soc->name, active_cpid);
@@ -153,8 +361,17 @@ static void register_default_patches(void)
         KERNEL_PATCH_TYPE_MEMORY,
         sand_addr, 8U, 0x00000000ULL, 0x00000000ULL, false);
 
-    log_write(LOG_LEVEL_INFO, "registered %u default kernel patch targets for CPID 0x%04x",
-              state.patch_count, active_cpid);
+    kernel_patches_register("PE-i-can-has-debugger",
+        KERNEL_PATCH_TYPE_AUTHENTICATION,
+        debug_addr, 4U, 0x00000000ULL, 0xD503201FU, true);
+
+    kernel_patches_register("cs-enforcement-disable",
+        KERNEL_PATCH_TYPE_AUTHENTICATION,
+        cs_enforce_addr, 4U, 0x00000000ULL, 0xD503201FU, true);
+
+    log_write(LOG_LEVEL_INFO, "registered %u default kernel patch targets for CPID 0x%04x (iOS %s)",
+              state.patch_count, active_cpid,
+              soc->ios_ver == IOS_VERSION_17 ? "17+" : "16");
 }
 
 void kernel_patches_init(void)

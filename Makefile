@@ -644,7 +644,7 @@ package: verify build-operational
 	$(PYTHON) scripts/package_release.py --release-name $(RELEASE_NAME) \
 		--output-dir $(PACKAGE_DIR) --kind all
 
-sdk-release: all build-operational build-apple
+sdk-release: all build-operational apple-boot-images
 	$(PYTHON) scripts/package_release.py --release-name $(RELEASE_NAME) \
 		--output-dir $(PACKAGE_DIR) --kind operational
 

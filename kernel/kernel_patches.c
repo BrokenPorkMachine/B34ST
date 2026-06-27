@@ -20,6 +20,8 @@ typedef enum {
     IOS_VERSION_18,
 } ios_version_t;
 
+static ios_version_t scan_kernel_version_string(u64 base);
+
 typedef struct {
     u16 cpid;
     const char *name;

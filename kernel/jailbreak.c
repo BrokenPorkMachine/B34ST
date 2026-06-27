@@ -24,6 +24,15 @@ static void *progress_ctx;
 #define KERNELCACHE_MAGIC_IM4P 0x70346d49U
 #define KERNELCACHE_MAGIC_FAT_BIN 0xBEBAFECAULL
 #define APPLE_BOOT_ARGS_MAGIC 0xBA696F53ULL
+#define APPLE_BOOT_ARGS_MAGIC_V2 0x626F6F74ULL
+#define APPLE_DEVICE_TREE_MAGIC 0xD00DF000U
+#define APPLE_KERNELCACHE_SEARCH_RANGE_A12 (0x800000000ULL)
+#define APPLE_KERNELCACHE_SEARCH_END_A12  (0x900000000ULL)
+#define APPLE_KERNELCACHE_SEARCH_RANGE_QEMU (0x40000000ULL)
+#define APPLE_KERNELCACHE_SEARCH_END_QEMU  (0x80000000ULL)
+#define SEP_BASE_A12  0x82D000000ULL
+#define SEP_BASE_A12X 0x82D000000ULL
+#define SEP_BASE_A13  0x82E000000ULL
 
 typedef struct {
     u32 magic;
@@ -189,36 +198,61 @@ bool jailbreak_detect_kaslr_slide(u64 kernelcache_phys, u64 kernelcache_size)
         return false;
     }
 
-    u64 expected_base = APPLE_IOS_KERNEL_BASE & 0xFFFFFFFFFFF00000ULL;
     u64 slide = 0U;
     bool found = false;
+    u64 kern_base_used = APPLE_IOS_KERNEL_BASE;
 
-    for (u64 offset = 0U; offset < kernelcache_size; offset += 4U) {
+    for (u64 offset = 0U; offset < kernelcache_size && offset < (256U * 1024U * 1024U); offset += 4U) {
         u32 word = 0U;
         if (!mmio_probe_read32(kernelcache_phys + offset, &word)) continue;
-        if (word == 0xFEEDFACF || word == 0xFEEDFACE) {
-            u32 hdr[8];
-            fm_memset(hdr, 0, sizeof(hdr));
-            for (u32 i = 0U; i < 8U && (offset + i * 4U) < kernelcache_size; ++i) {
-                mmio_probe_read32(kernelcache_phys + offset + i * 4U, &hdr[i]);
+        if (word != 0xFEEDFACF && word != 0xFEEDFACE) continue;
+
+        u32 hdr[8];
+        fm_memset(hdr, 0, sizeof(hdr));
+        for (u32 i = 0U; i < 8U && (offset + i * 4U) < kernelcache_size; ++i) {
+            mmio_probe_read32(kernelcache_phys + offset + i * 4U, &hdr[i]);
+        }
+        u32 ncmds = hdr[4];
+        if (ncmds == 0U || ncmds > 64U) { break; }
+        u64 cmd_off = kernelcache_phys + offset + 32U;
+        u32 lc_found = 0U;
+        u64 vmaddr = 0U;
+        for (u32 ci = 0U; ci < ncmds && ci < 64U; ++ci) {
+            u32 cmd_type = 0U, cmd_size = 0U;
+            if (!mmio_probe_read32(cmd_off, &cmd_type)) break;
+            if (!mmio_probe_read32(cmd_off + 4U, &cmd_size)) break;
+            if (cmd_size < 8U || cmd_size > 4096U) break;
+            if (cmd_type == LC_SEGMENT_64) {
+                u32 seg_words[18];
+                fm_memset(seg_words, 0, sizeof(seg_words));
+                for (u32 i = 0U; i < 18U; ++i) {
+                    mmio_probe_read32(cmd_off + i * 4U, &seg_words[i]);
+                }
+                u64 svmaddr = (u64)seg_words[6] | ((u64)seg_words[7] << 32);
+                u64 sfsize = (u64)seg_words[14] | ((u64)seg_words[15] << 32);
+                if (svmaddr >= 0xFFFFFFF007000000ULL && sfsize > 0U) {
+                    vmaddr = svmaddr;
+                    lc_found = 1U;
+                    break;
+                }
             }
-            u32 ncmds = hdr[4];
-            if (ncmds == 0U) { break; }
-            u64 seg_abs = kernelcache_phys + offset + 32U;
-            if ((offset + 32U + 72U) > kernelcache_size) { break; }
-            u32 seg_words[18];
-            fm_memset(seg_words, 0, sizeof(seg_words));
-            for (u32 i = 0U; i < 18U; ++i) {
-                mmio_probe_read32(seg_abs + i * 4U, &seg_words[i]);
-            }
-            u64 vmaddr = (u64)seg_words[6] | ((u64)seg_words[7] << 32);
-            if (vmaddr != 0U && vmaddr >= expected_base) {
-                slide = vmaddr - expected_base;
-                slide &= 0xFFFFFFFFFFF00000ULL;
+            cmd_off += cmd_size;
+        }
+
+        if (lc_found != 0U && vmaddr != 0U) {
+            u64 base_a16 = APPLE_IOS_KERNEL_BASE & 0xFFFFFFFFFFF00000ULL;
+            u64 base_a17 = APPLE_IOS17_KERNEL_BASE & 0xFFFFFFFFFFF00000ULL;
+            if (vmaddr >= base_a17 && (vmaddr - base_a17) < 0x40000000ULL) {
+                slide = vmaddr - base_a17;
+                kern_base_used = APPLE_IOS17_KERNEL_BASE;
+                found = true;
+            } else if (vmaddr >= base_a16 && (vmaddr - base_a16) < 0x40000000ULL) {
+                slide = vmaddr - base_a16;
                 found = true;
             }
-            break;
+            slide &= 0xFFFFFFFFFFF00000ULL;
         }
+        break;
     }
 
     if (!found) {
@@ -228,15 +262,15 @@ bool jailbreak_detect_kaslr_slide(u64 kernelcache_phys, u64 kernelcache_size)
     }
 
     status.kernel.kaslr_slide = slide;
-    status.kernel.kernel_base_virt = APPLE_IOS_KERNEL_BASE + slide;
+    status.kernel.kernel_base_virt = kern_base_used + slide;
     status.kernel.kernel_base_phys = kernelcache_phys;
     status.kernel.kernelcache_phys = kernelcache_phys;
     status.kernel.kernelcache_size = kernelcache_size;
     status.state = JAILBREAK_STATE_KASLR_DETECTED;
 
     log_write(LOG_LEVEL_INFO, "jailbreak: KASLR slide = 0x%llx", slide);
-    log_write(LOG_LEVEL_INFO, "jailbreak: kernel base virt = 0x%llx",
-              status.kernel.kernel_base_virt);
+    log_write(LOG_LEVEL_INFO, "jailbreak: kernel base (0x%llx) virt = 0x%llx",
+              kern_base_used, status.kernel.kernel_base_virt);
     log_write(LOG_LEVEL_INFO, "jailbreak: kernel base phys = 0x%llx",
               status.kernel.kernel_base_phys);
     report_progress("kaslr-detected", 60U);
@@ -304,11 +338,34 @@ bool jailbreak_detect_kernel(u64 kernelcache_phys, u64 kernelcache_size)
     return true;
 }
 
+static u64 scan_for_boot_args(u64 start, u64 end)
+{
+    for (u64 addr = start; addr < end && addr < (start + 0x400000ULL); addr += 0x10ULL) {
+        u32 magic = 0U;
+        if (!mmio_probe_read32(addr, &magic)) continue;
+        if (magic == APPLE_BOOT_ARGS_MAGIC || magic == APPLE_BOOT_ARGS_MAGIC_V2) {
+            return addr;
+        }
+    }
+    return 0U;
+}
+
 bool jailbreak_parse_boot_args(u64 boot_args_addr)
 {
     if (boot_args_addr == 0U) {
-        status.kernel.boot_args_phys = status.kernel.kernel_base_phys + 0x100000ULL;
-        boot_args_addr = status.kernel.boot_args_phys;
+        if (status.kernel.kernelcache_phys != 0U) {
+            boot_args_addr = scan_for_boot_args(
+                status.kernel.kernelcache_phys,
+                status.kernel.kernelcache_phys + status.kernel.kernelcache_size);
+        }
+        if (boot_args_addr == 0U && status.kernel.kernel_base_phys != 0U) {
+            boot_args_addr = scan_for_boot_args(
+                status.kernel.kernel_base_phys + 0x80000ULL,
+                status.kernel.kernel_base_phys + 0x200000ULL);
+        }
+        if (boot_args_addr == 0U) {
+            boot_args_addr = APPLE_KERNEL_PRELOAD_BASE + 0x100000ULL;
+        }
     }
     status.kernel.boot_args_phys = boot_args_addr;
 
@@ -385,7 +442,17 @@ bool jailbreak_inject_boot_args(const char *custom_args)
 bool jailbreak_detect_sep(u64 sep_mmio_base)
 {
     if (sep_mmio_base == 0U) {
-        sep_mmio_base = 0x82D000000ULL;
+        u64 bases[] = {SEP_BASE_A13, SEP_BASE_A12X, SEP_BASE_A12, 0U};
+        for (u32 i = 0U; bases[i] != 0U; ++i) {
+            u32 test = 0U;
+            if (mmio_probe_read32(bases[i], &test) && test != 0U && test != 0xFFFFFFFFU) {
+                sep_mmio_base = bases[i];
+                break;
+            }
+        }
+        if (sep_mmio_base == 0U) {
+            sep_mmio_base = SEP_BASE_A12;
+        }
     }
 
     status.sep.sep_base = sep_mmio_base;
@@ -417,7 +484,10 @@ bool jailbreak_boot_kernel(u64 entry_point)
         return false;
     }
 
-    log_write(LOG_LEVEL_WARN, "jailbreak: booting kernel at phys 0x%llx", entry_point);
+    u64 boot_args_phys = status.kernel.boot_args_phys;
+
+    log_write(LOG_LEVEL_WARN, "jailbreak: booting kernel at phys 0x%llx (boot_args=0x%llx)",
+              entry_point, boot_args_phys);
     report_progress("booting-kernel", 100U);
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
                             "jailbreak-boot", entry_point, 2U);
@@ -432,12 +502,15 @@ bool jailbreak_boot_kernel(u64 entry_point)
     if ((sctlr & MMU_SCTLR_M) != 0U) {
         log_write(LOG_LEVEL_WARN, "jailbreak: disabling MMU before kernel boot");
         sctlr &= ~MMU_SCTLR_M;
+        sctlr &= ~MMU_SCTLR_WXN;
         __asm__ volatile("msr sctlr_el1, %0" : : "r"(sctlr) : "memory");
         __asm__ volatile("isb" ::: "memory");
     }
 
+    log_write(LOG_LEVEL_WARN, "jailbreak: jumping to kernel entry (x0=0, x1=boot_args, x2=NULL)");
+
     void (*kernel_entry)(u64, u64, void *) = (void (*)(u64, u64, void *))(usize)entry_point;
-    kernel_entry(0U, 0U, NULL);
+    kernel_entry(0U, boot_args_phys, NULL);
 
     status.state = JAILBREAK_STATE_FAILED;
     log_write(LOG_LEVEL_ERROR, "jailbreak: kernel returned (unexpected)");

@@ -237,7 +237,56 @@ static ios_version_t detect_ios_version_from_kernel(void)
             return IOS_VERSION_17;
         }
     }
+    ios_version_t ver = scan_kernel_version_string(kbase);
+    if (ver != IOS_VERSION_UNKNOWN) {
+        return ver;
+    }
     return IOS_VERSION_16;
+}
+
+static ios_version_t scan_kernel_version_string(u64 base)
+{
+    static const char *const ios17_markers[] = {
+        "Darwin Kernel Version 23.",
+        "iOS 17.",
+        "iOS 18.",
+        NULL
+    };
+    static const char *const ios16_markers[] = {
+        "Darwin Kernel Version 22.",
+        "iOS 16.",
+        NULL
+    };
+    };
+    };
+    const u64 scan_limit = 0x200000U;
+    for (u64 off = 0U; off < scan_limit; off += 16U) {
+        char buf[32];
+        bool ok = true;
+        for (int i = 0; i < 32; ++i) {
+            u8 val = 0U;
+            if (!mmio_probe_read32(base + off + i, (u32 *)&val)) {
+                ok = false;
+                break;
+            }
+            buf[i] = (char)val;
+            if (val == 0U) break;
+        }
+        if (!ok) continue;
+        for (int m = 0; ios17_markers[m]; ++m) {
+            if (string_contains(buf, ios17_markers[m])) {
+                log_write(LOG_LEVEL_VERBOSE, "kernel_patches: iOS 17+ version string found: %s", ios17_markers[m]);
+                return IOS_VERSION_17;
+            }
+        }
+        for (int m = 0; ios16_markers[m]; ++m) {
+            if (string_contains(buf, ios16_markers[m])) {
+                log_write(LOG_LEVEL_VERBOSE, "kernel_patches: iOS 16 version string found: %s", ios16_markers[m]);
+                return IOS_VERSION_16;
+            }
+        }
+    }
+    return IOS_VERSION_UNKNOWN;
 }
 
 static const soc_patch_offsets_t *find_soc_offsets(u16 cpid)

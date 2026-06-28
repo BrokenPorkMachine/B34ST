@@ -1,5 +1,8 @@
 # B34ST Unified Multi-Tool Implementation Plan
 
+> **Historical planning document.** b34stool.py is implemented and functional.
+> This plan describes its original design; the current source is the authoritative reference.
+
 ## Phase 1: Core Structure
 1. Create b34stool.py with shebang and imports
 2. Implement Session class for artifact management

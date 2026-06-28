@@ -3,7 +3,7 @@
 
 """
 B34ST provides deterministic physical validation and bridge verification
-for A12/A13 iPhone hardware bring-up with evidence-based maturity enforcement.
+for A12+ iPhone/iPad hardware bring-up with evidence-based maturity enforcement.
 
 This is the main package for the B34ST validation framework.
 """

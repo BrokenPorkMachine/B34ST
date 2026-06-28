@@ -292,8 +292,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.version:
-        print("B34ST 0.2.3 (FBR34KER Runtime Authentication Tool)")
-        print("Physical Validation Candidate")
+        print("B34ST 0.3.0 (FBR34KER Runtime Authentication Tool)")
+        print("Beta")
         return 0
     if args.command is None:
         parser.print_help()

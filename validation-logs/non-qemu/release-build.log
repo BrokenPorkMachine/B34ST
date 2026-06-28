@@ -59,7 +59,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
     "image_size": 237568,
     "profile_id": "apple-a12-recovery",
     "project": "FBR34KER",
-    "release_version": "0.2.3",
+    "release_version": "0.3.0",
     "schema_version": 1
   },
   "path": "build-apple/a12/boot.img",
@@ -113,7 +113,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
     "image_size": 237568,
     "profile_id": "apple-a12x-a12z-recovery-experimental",
     "project": "FBR34KER",
-    "release_version": "0.2.3",
+    "release_version": "0.3.0",
     "schema_version": 1
   },
   "path": "build-apple/a12x/boot.img",
@@ -167,7 +167,7 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
     "image_size": 237568,
     "profile_id": "apple-a13-recovery",
     "project": "FBR34KER",
-    "release_version": "0.2.3",
+    "release_version": "0.3.0",
     "schema_version": 1
   },
   "path": "build-apple/a13/boot.img",

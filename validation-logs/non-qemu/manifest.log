@@ -99,7 +99,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
     "image_size": 237568,
     "profile_id": "apple-a12-recovery",
     "project": "FBR34KER",
-    "release_version": "0.2.3",
+    "release_version": "0.3.0",
     "schema_version": 1
   },
   "path": "build-apple/a12/boot.img",
@@ -153,7 +153,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
     "image_size": 237568,
     "profile_id": "apple-a12x-a12z-recovery-experimental",
     "project": "FBR34KER",
-    "release_version": "0.2.3",
+    "release_version": "0.3.0",
     "schema_version": 1
   },
   "path": "build-apple/a12x/boot.img",
@@ -207,7 +207,7 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
     "image_size": 237568,
     "profile_id": "apple-a13-recovery",
     "project": "FBR34KER",
-    "release_version": "0.2.3",
+    "release_version": "0.3.0",
     "schema_version": 1
   },
   "path": "build-apple/a13/boot.img",
@@ -244,8 +244,8 @@ python3 host/physical_validation.py validate-session \
 python3 host/physical_validation.py validate-session \
 		build-apple/physical-validation-candidate/recovered-session.zip >/dev/null
 python3 scripts/release_manifest.py \
-		--version 0.2.3 --channel validation-candidate \
-		--source-id 0.2.3-validation-candidate --release-name FBR34KER_0.2.3_Physical_Validation_Candidate \
+		--version 0.3.0 --channel beta \
+		--source-id 0.3.0-beta --release-name FBR34KER_0.3.0_Beta \
 		--output RELEASE_MANIFEST.json --checksums CHECKSUMS.sha256 \
 		build/fbr34ker.bin build/fbr34ker.elf build/fbr34ker.map \
 		build-generic/fbr34ker-generic.bin build-generic/fbr34ker-generic.elf \

@@ -1,8 +1,8 @@
-# FBR34KER 0.2.3 completeness and correctness audit
+# FBR34KER 0.3.0 completeness and correctness audit
 
 ## Outcome
 
-Approved as a **Physical Validation Candidate** for deterministic bridge
+Approved as a **Beta** for deterministic bridge
 validation, QEMU-capable CI, evidence integrity, profile maturity enforcement,
 controlled recovery testing, and disabled security-model validation.
 

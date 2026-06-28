@@ -847,7 +847,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
     report = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "version": "0.2.3",
+        "version": "0.3.0",
         "operation": "usbliter8-pwn-and-inspect",
         "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
         "authorization": "confirmed",

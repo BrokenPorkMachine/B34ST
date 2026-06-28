@@ -4,8 +4,8 @@
 Defines version information for B34ST and provides version-related utilities.
 """
 
-__version__ = "0.2.3"
-__release_name__ = "B34ST_0.2.3_Physical_Validation_Candidate"
+__version__ = "0.3.0"
+__release_name__ = "B34ST_0.3.0_Beta"
 
 
 class VersionError(Exception):
@@ -20,7 +20,7 @@ class B34STVersion:
     VERSION = __version__
     RELEASE_NAME = __release_name__
     PROJECT = "FBR34KER"
-    STATUS = "Physical Validation Candidate"
+    STATUS = "Beta"
 
     @staticmethod
     def get_version_string() -> str:
@@ -87,8 +87,8 @@ def main():
         description="Display B34ST version information",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-The B34ST (B34KER/STAR) version is part of the FBR34KER 0.2.3 release.
-This is a Physical Validation Candidate version with evidence-based
+The B34ST (B34KER/STAR) version is part of the FBR34KER 0.3.0 release.
+This is a Beta version with evidence-based
 profile maturity enforcement and deterministic validation.
         """,
     )
@@ -130,10 +130,10 @@ profile maturity enforcement and deterministic validation.
         print(f"  Version: {info['version']}")
         print(f"  Release Name: {info['release_name']}")
         print(f"  Status: {info['status']}")
-        print(f"  Source: FBR34KER 0.2.3 Physical Validation Candidate")
+        print(f"  Source: FBR34KER 0.3.0 Beta")
 
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

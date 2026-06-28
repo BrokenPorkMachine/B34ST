@@ -3,16 +3,15 @@
 FBR34KER is a generic ARM64 research monitor, loader-contract testbed, bounded
 deployment simulator, and optional authorized recovery-image sender.
 
-## Exploit subsystem boundary (0.2.3)
+## Exploit subsystem boundary (0.3.0)
 
-The tree contains state-machine prototypes named for kernel patching,
-secure-boot bypass, and persistence. They are test models only: no target
-memory writes, Apple trust-policy changes, filesystem installation, process
-hiding, or reboot-surviving storage are implemented.
+The tree contains exploit chain subsystems for kernel patching, secure boot
+bypass, and persistence. These are compile-time gated by the
+`FBR34KER_ENABLE_SECURITY_MODEL` flag. The default build (`make`) omits this
+flag, so mutation paths return failure and the subsystems report status only.
 
-Release builds do not define `FBR34KER_ENABLE_SECURITY_MODEL`, so every
-mutation gate remains closed. Immutable probe images remain locked regardless
-of build options.
+Build with `SECURITY_MODEL=1` to enable the full exploit chain. Immutable
+probe images remain locked regardless of build options.
 
 ## Apple recovery boundary
 
@@ -54,7 +53,7 @@ The B34ST environment planner creates and validates manifests for simulation
 or an already-authorized research runtime. It requires explicit owner
 authorization.
 
-## First-stage adapter boundary (0.2.3)
+## First-stage adapter boundary (0.3.0)
 
 The first-stage adapter is trusted code supplied by the operator. FBR34KER
 validates its ABI version, output size, device identity, memory-map shape,
@@ -67,7 +66,7 @@ increments the generation and invalidates authorization. The simulator stores
 only a hash of the authorization identifier. External adapters must provide
 equivalent or stronger handling.
 
-## Persistent bridge boundary (0.2.3)
+## Persistent bridge boundary (0.3.0)
 
 The persistent bridge is a local operator-controlled integration contract. It
 uses bounded JSON-lines messages, strictly increasing sequence numbers, a 1 MiB

@@ -5,10 +5,10 @@ This file contains project configuration for the B34ST (B34KER/STAR) runtime aut
 ## Project Identity
 
 - **Name**: B34ST (B34KER/STAR)
-- **Version**: 0.2.3 (as part of FBR34KER 0.2.3)
-- **Status**: Physical Validation Candidate
-- **Release Channel**: validation-candidate
-- **Release Name**: B34ST_0.2.3_Physical_Validation_Candidate
+- **Version**: 0.3.0 (as part of FBR34KER 0.3.0)
+- **Status**: Beta
+- **Release Channel**: beta
+- **Release Name**: B34ST_0.3.0_Beta
 
 ## Project Purpose
 
@@ -45,7 +45,7 @@ B34ST integrates with existing FBR34KER components:
 
 ### Primary Validation
 
-1. **Physical Validation Candidate**: Deterministic candidate generation
+1. **Beta**: Deterministic candidate generation
 2. **Runtime Bundle Validation**: Session bundle verification
 3. **Profile Maturity Enforcement**: Evidence-gated claims
 4. **Bridge Verification**: Persistent bridge authentication
@@ -310,7 +310,7 @@ b34st-validation:
 
 ### Upgrading from Earlier Versions
 
-When migrating to B34ST 0.2.3:
+When migrating to B34ST 0.3.0:
 
 1. **Source Repo**: Source code now maintained in private repository
 2. **Release Process**: Public releases contain only artifacts, not source

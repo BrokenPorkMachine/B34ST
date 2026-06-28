@@ -1,6 +1,6 @@
 # Physical device integration preview
 
-Version 0.2.3 prepares FBR34KER for an authorized, user-owned A12/A12X/A12Z/A13 test device without embedding an exploit, signature bypass, or stock-iBoot patch.
+Version 0.3.0 prepares FBR34KER for an authorized, user-owned A12/A12X/A12Z/A13 test device without embedding an exploit, signature bypass, or stock-iBoot patch.
 
 ## Workflow
 
@@ -26,7 +26,7 @@ These profiles constrain CPID and product type but deliberately do not invent ph
 
 ## Evidence bundle
 
-Every 0.2.3 session ZIP contains:
+Every 0.3.0 session ZIP contains:
 
 - `session.json` and compatibility alias `summary.json`
 - `device.json`

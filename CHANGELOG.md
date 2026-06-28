@@ -1,19 +1,29 @@
 # Changelog
 
-## 0.2.3 -- Physical Validation Candidate
+## 0.3.0 -- Beta
 
-- Added bounded, non-operational state models for patch, boot-policy, and
-  persistence concepts.
-- Added status commands for the disabled security models.
-- Added a release-default compile gate and native regression harness proving
-  mutation paths remain unavailable.
-- Added Makefile targets (kernel-patches, secure-boot-bypass, persistence,
-  exploit-chain, start-exploit, establish-persistence)
-- Added shell scripts (scripts/start_exploit.sh, scripts/establish_persistence.sh)
-- Added gating functions in hardware_probe for security-model access control
-- Added documentation for the security models and their non-operational scope
-- Removed ephemeral documentation (11 stale files consolidated)
-- Updated the threat model to exclude target mutation and persistence
+- Completed full completeness/correctness audit of all exploit source code and
+  documentation (kernel/usbliter8_exploit.c, jailbreak.c, kernel_patches.c,
+  command.c, apple_platform.h) — verified all header-declared functions have
+  implementations, all subsystem constants are correct, and security-model gating
+  is properly layered
+- Fixed 4 categories of source-documentation discrepancy: corrected T8027→T8028
+  (A12Z) across all docs and RELEASE_NOTES; added T8110 (A15) to all SoC tables;
+  fixed 8 profile JSON files with wrong CPIDs; fixed CPID tables in
+  A12_A13_IRECOVERY.md and KERNEL_PATCHING.md (expanded 3→7 SoCs)
+- Completed B34ST audit covering all 11 Python modules, 5 docs, 4 test files,
+  and entry-point scripts — fixed 5 discrepancies: disclaimer broadened to A12+,
+  added missing research-runtime subcommand to no-args help, removed duplicate
+  version banner, broadened package docstrings, expanded compatible_profiles
+  from 4→8 entries, corrected category count 13→14
+- Fixed 6 test file CPIDs (0x8030→0x8020, 0x8020→0x8015) to match SoC hardware
+- Fixed scripts/package_release.py verify_archive — PRIVATE_SOURCE_DIRS check now
+  gated on operational=True only
+- Added CHIP_ID_T8028 (0x8028U) and CHIP_ID_T8110 (0x8110U) to apple_platform.h
+- Updated all documentation to reflect A12+ (7 SoC) coverage with iOS version
+  gating notes (SPTM/TXM only on 27+)
+- All C harnesses (29) and non-QEMU Python tests (420+) passing
+- Version bump to 0.3.0; release promoted from Physical Validation Candidate to Beta
 
 ## 0.2.2 -- Physical Device Integration Preview
 

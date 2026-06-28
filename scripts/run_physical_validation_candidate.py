@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate deterministic bridge-backed Physical Validation Candidate evidence."""
+"""Generate deterministic bridge-backed Beta evidence."""
 from __future__ import annotations
 
 import argparse
@@ -67,20 +67,20 @@ def qemu_status(output: pathlib.Path, run_qemu: bool,
         return path
     qemu = shutil.which("qemu-system-aarch64")
     if not qemu:
-        value = {"schema_version": 1, "project": "FBR34KER", "version": "0.2.3",
+        value = {"schema_version": 1, "project": "FBR34KER", "version": "0.3.0",
                  "passed": False, "status": "unavailable",
                  "detail": "qemu-system-aarch64 is not installed"}
     elif not run_qemu:
         version = subprocess.run([qemu, "--version"], text=True, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT, check=False).stdout.splitlines()
-        value = {"schema_version": 1, "project": "FBR34KER", "version": "0.2.3",
+        value = {"schema_version": 1, "project": "FBR34KER", "version": "0.3.0",
                  "passed": False, "status": "available-not-run",
                  "detail": version[0] if version else qemu}
     else:
         gate = output / "qemu-gate"
         diagnostics = output / "qemu-diagnostics"
         result = subprocess.run([
-            sys.executable, "scripts/release_gate.py", "--version", "0.2.3",
+            sys.executable, "scripts/release_gate.py", "--version", "0.3.0",
             "--release-stage", "physical-validation-candidate",
             "--output", str(gate), "--diagnostics", str(diagnostics),
         ], cwd=ROOT, check=False)
@@ -150,8 +150,8 @@ def main(argv: list[str] | None = None) -> int:
     summary = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "release_version": "0.2.3",
-        "release_name": "Physical Validation Candidate",
+        "release_version": "0.3.0",
+        "release_name": "Beta",
         "candidate_ready": report["candidate_ready"],
         "physical_validation_complete": report["physical_validation_complete"],
         "success": success.get("passed", False),

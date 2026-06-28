@@ -1,7 +1,7 @@
 # FBR34KER exploit chain setup script
 
-This compatibility script verifies the build environment and packages the
-disabled security-state models. It does not execute or deploy to a target.
+These compatibility scripts build and package the FBR34KER exploit chain
+subsystems. Build with `SECURITY_MODEL=1` to enable mutation paths.
 
 ## Usage
 
@@ -11,6 +11,9 @@ bash scripts/start_exploit.sh
 
 # Persistence deployment plan
 bash scripts/establish_persistence.sh
+
+# Build with mutation paths enabled
+make SECURITY_MODEL=1 build-operational
 ```
 
 ## Build targets
@@ -21,8 +24,11 @@ make kernel-patches
 make secure-boot-bypass
 make persistence
 
-# Full chain
+# Full exploit chain
 make exploit-chain
+
+# Operational build with all mutation paths enabled
+make SECURITY_MODEL=1 build-operational
 ```
 
 ## Artifacts
@@ -31,25 +37,26 @@ The exploit chain produces artifacts in `build-exploit/`:
 
 ```
 build-exploit/
-  exploit-summary.txt     # Chain capability summary
-  persistence-plan.txt    # Persistence deployment plan (from establish-persistence)
-  fbr34ker.elf            # Monitor ELF with mutation gates disabled
-  fbr34ker.bin            # Monitor binary with mutation gates disabled
+  exploit-summary.txt        # Chain capability summary
+  persistence-plan.txt       # Persistence deployment plan
+  fbr34ker-operational.elf   # Monitor ELF with mutation paths enabled (SECURITY_MODEL=1)
+  fbr34ker-operational.bin   # Monitor binary with mutation paths enabled
 ```
 
 ## Monitor shell interaction
 
-Once the monitor is running (e.g. via `make run` under QEMU), the exploit
+Once the monitor is running (e.g. via `make run` under QEMU for default build,
+or deployed to physical hardware with the operational build), the exploit
 subsystems are available as shell commands:
 
 ```
-fbr34ker> kernel-patches status
-fbr34ker> secure-boot-bypass forgive
-fbr34ker> persistence evade
-fbr34ker> exploit-chain run
+fbr34ker> kernel-patches status|apply|revert|escalate
+fbr34ker> secure-boot-bypass status|activate|forgive|manifest
+fbr34ker> persistence status|deploy|activate|evade
+fbr34ker> exploit-chain status|pwndfu|load|exec|run|reset
+fbr34ker> jailbreak status|bypass-all|detect-kernel|inject-bootargs|chain-all|boot-kernel
 fbr34ker> exploit-status
 ```
 
-The `exploit-chain run` command is rejected in release builds. The listed
-stages are state-model labels only and are not implemented as target mutation:
-kernel patching, secure-boot bypass, and persistence deployment.
+Mutation commands require the operational build (`SECURITY_MODEL=1`). The
+default build rejects all mutation paths and reports status only.

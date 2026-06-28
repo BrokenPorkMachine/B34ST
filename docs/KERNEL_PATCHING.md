@@ -1,14 +1,44 @@
-# Kernel-patch state model
+# Kernel patching subsystem
 
-This module is a bounded, in-memory state model for validating status
-reporting, policy gates, event wiring, and failure handling.
+## Overview
 
-It does not write target memory, modify page tables, replace syscall or
-interrupt handlers, change privilege level, or hook a secure monitor.
+The kernel patching subsystem provides per-SoC kernel patch offset tables for
+Apple A12/A13/A14/A12Z/A15/M1/M2 across iOS 16 and iOS 17+. It supports
+registration, application, reversion, and privilege escalation operations on
+the modeled patch state. iOS 18 is detected via the iOS 17+ version string
+scanner (Darwin 23.x).
 
-Release builds do not define `FBR34KER_ENABLE_SECURITY_MODEL`; therefore
-registration, apply, revert, and escalation operations return failure. The
-native `security_model_harness` verifies that boundary.
+## Supported SoCs and offsets
 
-The `kernel-patches status` shell command may be used to inspect the inactive
-model. Other subcommands are rejected by the release policy gate.
+| SoC | Target | iOS versions | Offsets |
+|-----|--------|-------------|---------|
+| T8015 | A12 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
+| T8020 | A13 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
+| T8030 | A14 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
+| T8028 | A12Z | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
+| T8103 | M1 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
+| T8110 | A15 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
+| T8112 | M2 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
+
+## Build modes
+
+**Default build (`make`):** Mutation paths disabled. `kernel-patches apply|revert|escalate` return failure.
+
+**Operational build (`make SECURITY_MODEL=1 build-operational`):** All mutation paths active. The
+`kernel-patches` commands perform full state transitions on the kernel patch model.
+
+## Shell commands
+
+```
+kernel-patches [status|apply|revert|escalate]
+```
+
+- `status` — Show registered patches, SoC target, and current state
+- `apply` — Apply all registered kernel patches to the active state model
+- `revert` — Revert all applied patches
+- `escalate` — Escalate privileges via the privilege_offset patch
+
+## Event bus integration
+
+Kernel patch operations publish `kernel-patch-*` events for each lifecycle
+transition (apply, revert, escalate, failure).

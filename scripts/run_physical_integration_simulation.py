@@ -58,7 +58,7 @@ def main(argv=None) -> int:
     summary = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "release_version": "0.2.3",
+        "release_version": "0.3.0",
         "workflow": "persistent-first-stage-bridge-simulation",
         "success": success["passed"],
         "failure_observed": not failure["passed"],

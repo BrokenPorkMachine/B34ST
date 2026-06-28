@@ -29,7 +29,7 @@ def prepare(args: argparse.Namespace) -> int:
     result = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "release_version": "0.2.3",
+        "release_version": "0.3.0",
         "operation": "physical-validation-prepare",
         "ready": True,
         "mutation_performed": False,

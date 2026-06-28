@@ -19,8 +19,8 @@ import tempfile
 from datetime import datetime
 from typing import Any
 
-__version__ = "0.2.3"
-__release_name__ = "B34ST_0.2.3_Physical_Validation_Candidate"
+__version__ = "0.3.0"
+__release_name__ = "B34ST_0.3.0_Beta"
 
 
 class BuildError(Exception):
@@ -37,7 +37,7 @@ class B34STBuilder:
         self.build_dir = pathlib.Path("build-b34st")
         self.runtime_dir = pathlib.Path("runtime-artifacts/b34st")
         self.package_dir = pathlib.Path("dist")
-        self.source_id = f"{__version__}-validation-candidate"
+        self.source_id = f"{__version__}-beta"
 
     def log(self, message: str):
         """Log a message with timestamp."""
@@ -287,7 +287,7 @@ if __name__ == "__main__":
             "project": "B34ST",
             "version": __version__,
             "release_name": __release_name__,
-            "release_channel": "validation-candidate",
+            "release_channel": "beta",
             "source_id": self.source_id,
             "created_at": datetime.now().isoformat(),
             "artifacts": [
@@ -342,7 +342,7 @@ if __name__ == "__main__":
                 },
             ],
             "dependencies": [
-                "FBR34KER-0.2.3",
+                "FBR34KER-0.3.0",
                 "Python-3.13+",
             ],
             "requirements": [
@@ -358,9 +358,13 @@ if __name__ == "__main__":
             },
             "compatible_profiles": [
                 "profiles/apple-a12-iphone-recovery.json",
-                "profiles/apple-a13-iphone-recovery.json",
                 "profiles/apple-a12-ipad-recovery.json",
+                "profiles/apple-a12-recovery.json",
+                "profiles/apple-a12x-ipad-recovery.json",
+                "profiles/apple-a12x-recovery.json",
+                "profiles/apple-a13-iphone-recovery.json",
                 "profiles/apple-a13-ipad-recovery.json",
+                "profiles/apple-a13-recovery.json",
             ],
         }
 
@@ -464,7 +468,7 @@ for A12/A13 iPhone hardware bring-up with evidence-based maturity enforcement.
 
 This release contains the B34ST Python launcher, its package sources, and
 validation evidence. Validation wrapper commands require a compatible
-FBR34KER 0.2.3 checkout or installation.
+FBR34KER 0.3.0 checkout or installation.
 
 ## Contents
 
@@ -511,7 +515,7 @@ After extracting this package:
 ## Technical Details
 
 - **B34ST Version:** {__version__}
-- **Status:** Physical Validation Candidate
+- **Status:** Beta
 - **Evidence Classes:** Simulator, Bridge, Console, Boot-evidence
 - **Profile Maturity:** Evidence-gated (simulated → physical-runtime-verified)
 - **Security:** No exploit delivery, read-only hardware preparation

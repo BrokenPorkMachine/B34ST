@@ -2,7 +2,7 @@
 """B34ST (B34KER/STAR) - Runtime Authentication Tool
 
 B34ST provides deterministic physical validation and bridge verification
-for A12/A13 iPhone hardware bring-up with evidence-based maturity enforcement.
+for A12+ iPhone/iPad hardware bring-up with evidence-based maturity enforcement.
 
 This is the main entry point for the B34ST validation framework.
 """
@@ -25,13 +25,10 @@ def main() -> int:
             return run_control_panel()
         print("B34ST - FBR34KER Runtime Authentication Tool")
         print(f"Version {__version__} ({__release_name__})")
-        print("\nB34ST (B34KER/STAR) - Runtime Authentication Tool")
-        print(f"Version {__version__} ({__release_name__})")
-        print("\nB34ST provides deterministic physical validation and bridge verification")
-        print("for A12/A13 iPhone hardware bring-up with evidence-based maturity enforcement.")
-        print("\nThis is the main entry point for the B34ST validation framework.\n")
-        print("\nAvailable commands:")
+        print()
+        print("Available commands:")
         print("  b34st control-panel           Open the operator control panel")
+        print("  b34st research-runtime        Run the evidence-gated runtime orchestrator")
         print("  b34st validate-session         Validate a session bundle")
         print("  b34st physical-validation       Perform physical validation operations")
         print("  b34st hardware-prepare         Read-only hardware preparation")
@@ -54,7 +51,7 @@ def main() -> int:
         print("  b34st validate-session --bundle runtime-artifacts/success-session.zip")
         print("  b34st physical-validation candidate-report --success success.zip --failure failure.zip --recovered recovered.zip --output report.json")
         print("  b34st hardware-prepare --save-checklists ./checklists/\n")
-        print("B34ST v0.2.3 is part of FBR34KER 0.2.3 Physical Validation Candidate\n")
+        print("B34ST v0.3.0 is part of FBR34KER 0.3.0 Beta\n")
         print("For detailed documentation, see b34st/README.md and b34st/.b34st-config\n")
         return 0
 

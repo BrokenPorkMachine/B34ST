@@ -7,7 +7,7 @@ class HardwareBringupTests(unittest.TestCase):
     def fixture(self, root):
         monitor=root/'monitor.bin'; monitor.write_bytes(b'B'*4096)
         image=root/'boot.img'; build_image(image,ROOT/'profiles/apple-a13-recovery.json',[Component('monitor',monitor,0x80000000,0x80000000)])
-        device=root/'device.json'; device.write_text(json.dumps({'cpid':'0x8030','mode':'DFU','ecid':'abcd'}))
+        device=root/'device.json'; device.write_text(json.dumps({'cpid':'0x8020','mode':'DFU','ecid':'abcd'}))
         return image,device
     def command(self,root,image,device,*extra):
         return [sys.executable,'host/hardware_bringup.py','run','--state-dir',str(root/'state'),'--device-info',str(device),'--profile','profiles/apple-a13-recovery.json','--image',str(image),'--authorized-session','--authorization-id','authorized-test-session','--acknowledge-unsigned-code',*extra]
@@ -32,7 +32,7 @@ class HardwareBringupTests(unittest.TestCase):
             root=pathlib.Path(d)
             monitor=root/'monitor.bin'; monitor.write_bytes(b'C'*4096)
             image=root/'boot.img'; build_image(image,ROOT/'profiles/apple-a13-iphone-recovery.json',[Component('monitor',monitor,0x80000000,0x80000000)])
-            device=root/'device.json'; device.write_text(json.dumps({'cpid':'0x8030','mode':'DFU','ecid':'abcd','product':'iPhone12,1'}))
+            device=root/'device.json'; device.write_text(json.dumps({'cpid':'0x8020','mode':'DFU','ecid':'abcd','product':'iPhone12,1'}))
             bridge=shlex.join([sys.executable,str(ROOT/'host/reference_bridge.py'),'--state-dir',str(root/'bridge-state'),'--device-info',str(device)])
             evidence=root/'physical-session.zip'
             command=[sys.executable,'host/hardware_bringup.py','run','--state-dir',str(root/'unused'),'--device-info',str(device),'--profile','profiles/apple-a13-iphone-recovery.json','--image',str(image),'--bridge-command',bridge,'--authorized-session','--authorization-id','authorized-test-session','--acknowledge-unsigned-code','--evidence',str(evidence)]

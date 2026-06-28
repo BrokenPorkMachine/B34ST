@@ -1,6 +1,6 @@
 {
   "name": "hello-dynamic",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "flags": 0,
   "command": "hello-dynamic-run",
   "state_slots": 2,

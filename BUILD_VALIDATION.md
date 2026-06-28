@@ -1,4 +1,4 @@
-# FBR34KER 0.2.3 Physical Validation Candidate validation
+# FBR34KER 0.3.0 Beta validation
 
 Validation date: 2026-06-24
 
@@ -48,8 +48,7 @@ generic-loader smoke, immutable-probe smoke, and diagnostics collection.
 - Direct QEMU monitor, generic ARM64 monitor, immutable probe, reference
   loader, SDK archive, and FMBC module builds passed.
 - Deterministic A12, A12X/A12Z, and A13 FBRI images passed inspection.
-- Deployment, one-shot bring-up, persistent-bridge integration, and Physical
-  Validation Candidate conformance passed.
+- Deployment, one-shot bring-up, persistent-bridge integration, and Beta conformance passed.
 - Candidate evidence proves bridge-backed console and boot-evidence capture,
   four controlled failure classes, authorization invalidation after reset,
   and recovery after reauthorization.
@@ -70,5 +69,5 @@ generic-loader smoke, immutable-probe smoke, and diagnostics collection.
 
 `qemu-system-aarch64` 11.0.0 and `irecovery` 1.3.1 were available on the
 packaging host. No physical A12/A13 device or external first-stage loader was
-tested, so the release remains a validation candidate rather than a completed
+tested, so the release remains a beta rather than a completed
 physical validation.

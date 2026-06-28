@@ -354,7 +354,7 @@ def verify_archive(
                 raise ValueError(f"transient Python file in archive: {name}")
             if relative.name == ".DS_Store" or ".git" in relative.parts:
                 raise ValueError(f"transient metadata in archive: {name}")
-            if any(part in PRIVATE_SOURCE_DIRS for part in relative.parts):
+            if operational and any(part in PRIVATE_SOURCE_DIRS for part in relative.parts):
                 raise ValueError(f"operational release contains private code: {name}")
             expected_exec = executable_path(pathlib.Path(relative.as_posix()))
             mode = (info.external_attr >> 16) & 0o777

@@ -49,7 +49,7 @@ def _read_json_source(source: str, *, timeout: float) -> Any:
             raise IPSWError(f"firmware catalog file does not exist: {path}")
         request = urllib.request.Request(
             source,
-            headers={"User-Agent": "B34ST/0.2.3 IPSW catalog client"},
+            headers={"User-Agent": "B34ST/0.3.0 IPSW catalog client"},
         )
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:

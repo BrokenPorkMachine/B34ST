@@ -22,7 +22,7 @@ class HardwareWorkflowTests(unittest.TestCase):
             build_image(image, ROOT / "profiles/apple-a13-iphone-recovery.json",
                         [Component("monitor", monitor, 0x80000000, 0x80000000)])
             device = root / "device.json"
-            device.write_text(json.dumps({"cpid": "0x8030", "mode": "DFU",
+            device.write_text(json.dumps({"cpid": "0x8020", "mode": "DFU",
                                           "ecid": "abcd", "product": "iPhone12,1"}))
             result = subprocess.run([
                 sys.executable, "host/hardware_workflow.py", "prepare",

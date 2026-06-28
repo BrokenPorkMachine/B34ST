@@ -36,7 +36,7 @@ class IRecoveryBootTests(unittest.TestCase):
             build_image(image, ROOT / "profiles/apple-a12-recovery.json",
                         [Component("monitor", monitor)])
             device = root / "device.json"
-            device.write_text(json.dumps({"cpid": "0x8020", "mode": "DFU", "ecid": "1"}))
+            device.write_text(json.dumps({"cpid": "0x8015", "mode": "DFU", "ecid": "1"}))
             result = subprocess.run(
                 [sys.executable, "host/irecovery_boot.py", "send",
                  "--profile", "profiles/apple-a12-recovery.json",
@@ -55,7 +55,7 @@ class IRecoveryBootTests(unittest.TestCase):
             build_image(image, ROOT / "profiles/apple-a13-recovery.json",
                         [Component("monitor", monitor)])
             device = root / "device.json"
-            device.write_text(json.dumps({"cpid": "0x8030", "mode": "DFU", "ecid": "abcd"}))
+            device.write_text(json.dumps({"cpid": "0x8020", "mode": "DFU", "ecid": "abcd"}))
             log = root / "irecovery.log"
             fake = root / "irecovery"
             fake.write_text("#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$FBR_TEST_LOG\"\nexit 0\n")
@@ -84,7 +84,7 @@ class IRecoveryBootTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)
             device = root / "device.json"
-            device.write_text(json.dumps({"cpid": "0x8030", "mode": "DFU", "ecid": "abcd"}))
+            device.write_text(json.dumps({"cpid": "0x8020", "mode": "DFU", "ecid": "abcd"}))
             evidence = root / "verify.json"
             result = subprocess.run(
                 [sys.executable, "host/irecovery_boot.py", "verify",

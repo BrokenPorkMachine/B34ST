@@ -195,5 +195,5 @@ python3 -m b34st.b34st forensics verify runtime-artifacts/forensics/bundle.zip
 ## Requirements and status
 
 B34ST uses the same Python 3.10+ requirement and security boundary as
-FBR34KER. Version 0.2.3 is a Physical Validation Candidate, not proof of
-physical A12/A13 execution or stock-iBoot compatibility.
+FBR34KER. Version 0.3.0 is a Beta, not proof of
+physical A12+ execution or stock-iBoot compatibility.

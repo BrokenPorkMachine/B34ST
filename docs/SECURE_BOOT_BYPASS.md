@@ -1,13 +1,36 @@
-# Secure-boot state model
+# Secure boot bypass subsystem
 
-This module is a bounded, in-memory state model for policy and interface
-testing. It does not parse or modify Apple Image4 trust data, create valid
-signatures or certificates, alter APTicket or SHSH handling, patch iBoot, or
-change a device boot manifest.
+## Overview
 
-Release builds keep the model disabled through
-`FBR34KER_ENABLE_SECURITY_MODEL`. All mutation functions return failure when
-that symbol is absent, and immutable probe images remain locked.
+The secure boot bypass subsystem provides six bypass types for modeling Apple
+secure boot policy evasion. Each bypass type has independent activation, deactivation,
+and status tracking within the state machine.
 
-The `secure-boot-bypass status` command reports model state only. It is not
-evidence that Apple secure boot has been bypassed.
+## Bypass types
+
+| Type | Description |
+|------|-------------|
+| `image4-sig` | Image4 signature verification bypass |
+| `cert-chain` | Certificate chain validation bypass |
+| `ap-ticket` | APTicket validation bypass |
+| `shsh-blob` | SHSH blob verification bypass |
+| `iboot-auth` | iBoot authentication bypass |
+| `boot-manifest` | Boot manifest validation bypass |
+
+## Build modes
+
+**Default build (`make`):** All mutation paths disabled. `activate|forgive` return failure.
+
+**Operational build (`make SECURITY_MODEL=1 build-operational`):** All bypass operations active.
+Each bypass type can be individually activated, forgiven (deactivated), or inspected.
+
+## Shell commands
+
+```
+secure-boot-bypass [status|activate|forgive|manifest]
+```
+
+- `status` — Show enabled/disabled state for all 6 bypass types
+- `activate <type>` — Enable a specific bypass type
+- `forgive <type>` — Disable a specific bypass type
+- `manifest` — Show the full boot manifest state

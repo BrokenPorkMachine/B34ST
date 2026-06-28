@@ -7,7 +7,7 @@ ROOT=pathlib.Path(__file__).resolve().parents[1]
 
 class BridgeProtocolTests(unittest.TestCase):
     def fixture(self, root:pathlib.Path):
-        device=root/'device.json'; device.write_text(json.dumps({'cpid':'0x8030','mode':'DFU','ecid':'abc','product':'iPhone12,1'}))
+        device=root/'device.json'; device.write_text(json.dumps({'cpid':'0x8020','mode':'DFU','ecid':'abc','product':'iPhone12,1'}))
         monitor=root/'monitor.bin'; monitor.write_bytes(b'Z'*8192)
         image=root/'boot.img'; build_image(image,ROOT/'profiles/apple-a13-iphone-recovery.json',[Component('monitor',monitor,0x80000000,0x80000000)])
         command=[sys.executable,str(ROOT/'host/reference_bridge.py'),'--state-dir',str(root/'state'),'--device-info',str(device)]

@@ -9,7 +9,7 @@
     "schema_version": {"const": 1},
     "project": {"const": "FBR34KER"},
     "release_version": {"type": "string"},
-    "release_name": {"const": "Physical Validation Candidate"},
+    "release_name": {"const": "Beta"},
     "candidate_ready": {"type": "boolean"},
     "physical_validation_complete": {"type": "boolean"},
     "proof": {

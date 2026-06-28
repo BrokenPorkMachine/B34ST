@@ -11,7 +11,7 @@ b34stool.py (unified entry point)
     │   └── evidence/*.json for operation results
     │
     ├── Menu System
-    │   ├── main_menu() - 13 category selection
+    │   ├── main_menu() - 14 category selection
     │   ├── submenu handlers for each category
     │   └── run_and_log() - wrap subprocess calls
     │

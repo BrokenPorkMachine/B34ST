@@ -1,8 +1,8 @@
 PROJECT := fbr34ker
-VERSION := 0.2.3
-RELEASE_CHANNEL := validation-candidate
-RELEASE_NAME := FBR34KER_$(VERSION)_Physical_Validation_Candidate
-SOURCE_ID := $(VERSION)-validation-candidate
+VERSION := 0.3.0
+RELEASE_CHANNEL := beta
+RELEASE_NAME := FBR34KER_$(VERSION)_Beta
+SOURCE_ID := $(VERSION)-beta
 BUILD_DIR ?= build
 SECURITY_MODEL ?= 0
 EXTRA_CFLAGS += $(if $(filter 1,$(SECURITY_MODEL)),-DFBR34KER_ENABLE_SECURITY_MODEL,)

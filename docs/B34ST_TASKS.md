@@ -1,5 +1,8 @@
 # B34ST Unified Multi-Tool Task List
 
+> **Historical document.** All tasks are complete as of B34ST 0.3.0.
+> The current source code is the authoritative reference.
+
 - [x] Create b34stool.py with:
   - [x] Session class for artifact directory management
   - [x] Colors class for TTY-aware output

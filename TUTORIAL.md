@@ -22,7 +22,7 @@ This checks for Clang, `ld.lld`, `llvm-objcopy`, `qemu-system-aarch64`, `make`, 
 ## 1. Project structure
 
 ```
-FBR34KER_0.2.3_Physical_Validation_Candidate/
+FBR34KER_0.3.0_Beta/
 ├── TUTORIAL.md            ← this file
 ├── README.md              ← project overview
 ├── CHANGELOG.md           ← version history
@@ -131,8 +131,8 @@ This produces `build-exploit/fbr34ker-operational.bin`, which is required for th
 This boots `build/fbr34ker.bin` under QEMU virt. You will see the monitor's boot banner, initialization logs, and finally the shell prompt:
 
 ```
-FBR34KER 0.2.3 (validation-candidate)
-Target: qemu_virt; source: 0.2.3-validation-candidate
+FBR34KER 0.3.0 (beta)
+Target: qemu_virt; source: 0.3.0-beta
 Protocol 4; handoff 4; module ABI 1; FMOD 1; FMBC 1
 
 interactive shell ready
@@ -406,7 +406,7 @@ Produces a clean public release archive in `dist/` containing everything needed 
 
 | Archive | Contents |
 |---------|----------|
-| `FBR34KER_0.2.3_..._operational.zip` | Public release — no private code |
+| `FBR34KER_0.3.0_..._operational.zip` | Public release — no private code |
 
 ### Internal full-source release
 
@@ -421,15 +421,15 @@ Produces two archives in `dist/`:
 
 | Archive | Contents |
 |---------|----------|
-| `FBR34KER_0.2.3_..._source.zip` | All source code, docs, scripts (excludes build artifacts) |
-| `FBR34KER_0.2.3_..._complete.zip` | Source + all build artifacts, SDK, boot images, simulations |
+| `FBR34KER_0.3.0_..._source.zip` | All source code, docs, scripts (excludes build artifacts) |
+| `FBR34KER_0.3.0_..._complete.zip` | Source + all build artifacts, SDK, boot images, simulations |
 
 Each archive has a corresponding `.sha256` checksum file.
 
 ### Operational package contents
 
 ```
-FBR34KER_0.2.3_Physical_Validation_Candidate/
+FBR34KER_0.3.0_Beta/
 ├── TUTORIAL.md                  ← this tutorial
 ├── README.md                    ← project overview
 ├── CHANGELOG.md                 ← version history
@@ -453,7 +453,7 @@ FBR34KER_0.2.3_Physical_Validation_Candidate/
 │   ├── test_loader_simulator.py, test_qemu_boot.py
 │   ├── test_deployment.py, test_hardware_bringup.py
 │   ├── test_release_tools.py, test_research_runtime.py
-│   ├── ... (31 C harnesses + 35 Python tests)
+│   ├── ... (30 C harnesses + 37 Python tests)
 │   └── __pycache__/ (excluded)
 ├── docs/                        ← 46 curated documentation files
 │   ├── ARCHITECTURE.md, EXPLOIT_CHAIN.md, QUICK_START.md

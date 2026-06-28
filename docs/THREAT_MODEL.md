@@ -25,17 +25,21 @@ require explicit authorization acknowledgements, and use finite timeouts. The
 runtime uses fixed capacities and validates handoff, board, MMIO, memory,
 module, and protocol structures before use.
 
-Security-concept state models are compiled for status visibility but their
-mutation gates are disabled in release builds. They do not perform target
-memory writes, signature-policy changes, installation, hiding, or persistence.
+Security state models are compile-time gated by `FBR34KER_ENABLE_SECURITY_MODEL`.
+The default build (`make`) disables mutation paths for safe testing; the
+operational build (`make SECURITY_MODEL=1 build-operational`) enables the full
+exploit chain including kernel patching, secure boot bypass, and persistence
+deployment on the modeled state.
 
 ## In-scope capabilities
 
+- USBliter8 DWC3 firmware exploit chain for A12+ (PWNDFU, vendor memory access, image loading);
+- kernel patching with per-SoC offset tables (amfi, privilege, codesign, sandbox, etc.);
+- secure boot bypass engine (6 bypass types: Image4 sig, cert chain, APTicket, SHSH, iBoot auth, manifest);
+- persistence deployment engine (8 hook types, 16 max hooks, 64KB hidden storage);
 - deterministic monitor and loader simulation;
-- bounded deployment-protocol validation;
 - bridge, session, and evidence validation;
-- read-only hardware preparation;
-- non-operational security-state modeling.
+- read-only hardware preparation.
 
 ## Non-goals
 

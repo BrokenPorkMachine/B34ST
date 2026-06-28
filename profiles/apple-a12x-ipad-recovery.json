@@ -13,7 +13,7 @@
     "adapter-console"
   ],
   "cpids": [
-    "0x8027"
+    "0x8028"
   ],
   "default_boot_command": "bootx",
   "direct_stock_iboot_compatible": false,
@@ -75,7 +75,7 @@
   "requires_exact_product": true,
   "requires_runtime_memory_map": true,
   "schema_version": 1,
-  "soc": "T8027 / A12X or A12Z Bionic iPad",
+  "soc": "T8028 / A12Z Bionic iPad",
   "transport": "irecovery",
   "validation_candidate": true,
   "validation_requirements": [

@@ -1,4 +1,4 @@
-name: FBR34KER 0.2.3 Physical Validation Candidate
+name: FBR34KER 0.3.0 Beta
 
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: fbr34ker-${{ github.sha }}-physical-validation-candidate
+          name: fbr34ker-${{ github.sha }}-beta
           if-no-files-found: warn
           retention-days: 14
           path: |
@@ -71,5 +71,5 @@ jobs:
             build-apple/physical-validation-candidate/**
             RELEASE_MANIFEST.json
             CHECKSUMS.sha256
-            dist/FBR34KER_0.2.3_Physical_Validation_Candidate_*.zip
-            dist/FBR34KER_0.2.3_Physical_Validation_Candidate_*.zip.sha256
+            dist/FBR34KER_0.3.0_Beta_*.zip
+            dist/FBR34KER_0.3.0_Beta_*.zip.sha256

@@ -1,6 +1,6 @@
-# FBR34KER 0.2.3 Physical Validation Candidate
+# FBR34KER 0.3.0 Beta
 
-Version 0.2.3 is an evidence-gated validation candidate. It does not promote an
+Version 0.3.0 is an evidence-gated beta. It does not promote an
 A12/A13 profile merely because an upload or simulator run succeeded. Every claim
 is classified as simulator, QEMU, persistent-bridge, console, boot-evidence, or
 physical-runtime proof.
@@ -25,9 +25,10 @@ make physical-validation-candidate
 
 `hardware prepare` is read-only. `hardware run` delegates to the existing
 explicitly authorized first-stage workflow and retains its separate unsigned-code
-acknowledgement. The non-operational security-state models are compile-time
-gated, disabled in release builds, and unconditionally locked on immutable
-probe images.
+acknowledgement. The security-state models are compile-time gated by
+`FBR34KER_ENABLE_SECURITY_MODEL`; build with `SECURITY_MODEL=1` to enable
+mutation paths. Immutable probe images remain unconditionally locked regardless
+of build options.
 
 ## Maturity states
 

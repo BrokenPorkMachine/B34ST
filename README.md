@@ -1,4 +1,4 @@
-# FBR34KER 0.3.0
+# B34ST - FBR34KER 0.3.0
 
 FBR34KER is a freestanding ARM64 preboot monitor, USBliter8 exploit chain, and authorized loader-integration research toolkit. Version 0.3.0 is a Beta providing deterministic simulation, bridge validation, DWC3 firmware exploitation, kernel patching, boot-policy bypass, persistence modeling, and evidence collection.
 

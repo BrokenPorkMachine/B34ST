@@ -34,8 +34,9 @@ HARDWARE_PROBE_BUILD_DIR ?= build-hardware-probe
 HARDWARE_PROBE_TARGET ?= $(HARDWARE_PROBE_BUILD_DIR)/fbr34ker-hardware-probe
 SDK_BUILD_DIR ?= build-sdk
 SDK_LIBRARY ?= $(SDK_BUILD_DIR)/libfbr34ker_sdk.a
-HANDOFF_BLOB ?= $(LOADER_SIM_DIR)/handoff-v4.fbhb
-SDK_CONFORMANCE_REPORT ?= $(LOADER_SIM_DIR)/sdk-conformance.json
+HANDOFF_DIR ?= build/handoff
+HANDOFF_BLOB ?= $(HANDOFF_DIR)/handoff-v4.fbhb
+SDK_CONFORMANCE_REPORT ?= $(HANDOFF_DIR)/sdk-conformance.json
 DEPLOYMENT_SIM_DIR ?= $(BUILD_DIR)/deployment-simulation
 APPLE_BOOT_DIR ?= build-apple
 A12_BOOT_DIR := $(APPLE_BOOT_DIR)/a12
@@ -440,7 +441,7 @@ loader-check: loader-simulate
 	@$(PYTHON) -c 'import json, pathlib, sys; p=pathlib.Path("$(LOADER_SIM_DIR)/loader-conformance.json"); d=json.loads(p.read_text()); sys.exit(0 if d.get("result") == "pass" else 1)'
 
 handoff-binary:
-	@mkdir -p $(LOADER_SIM_DIR)
+	@mkdir -p $(HANDOFF_DIR)
 	$(PYTHON) host/fbr34kctl.py handoff-build examples/handoff-v4.json $(HANDOFF_BLOB) >/dev/null
 	$(PYTHON) host/fbr34kctl.py handoff-roundtrip $(HANDOFF_BLOB) >/dev/null
 

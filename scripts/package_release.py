@@ -92,9 +92,10 @@ COMPLETE_ARTIFACTS = (
     pathlib.Path("build-sdk/examples/callback_console"),
     pathlib.Path("build-sdk/examples/framebuffer_loader"),
     pathlib.Path("build-sdk/tests/sdk_harness"),
+    # Handoff binary and conformance
+    pathlib.Path("build/handoff/handoff-v4.fbhb"),
+    pathlib.Path("build/handoff/sdk-conformance.json"),
     # Loader simulation outputs
-    pathlib.Path("build/loader-simulation/handoff-v4.fbhb"),
-    pathlib.Path("build/loader-simulation/sdk-conformance.json"),
     pathlib.Path("build/loader-simulation/loader-conformance.json"),
     pathlib.Path("build/loader-simulation/normalized-handoff.json"),
     pathlib.Path("build/loader-simulation/sparse-memory.json"),

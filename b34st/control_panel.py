@@ -2356,7 +2356,7 @@ def run_control_panel() -> int:
             print(f"       {Colors.DIM}{desc}{Colors.RESET}")
         print()
 
-        choice = _enhanced_prompt("\n  Selection", {k: v for _, v, _ in main_menu_options}, "1")
+        choice = _enhanced_prompt("\n  Selection", {key: label for key, label, _ in main_menu_options}, "1")
 
         choice = choice.lower()
 

@@ -16,7 +16,12 @@ from typing import Sequence
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "host"))
-from boot_image import BootImageError, inspect_image, load_profile, parse_int  # noqa: E402
+try:
+    from .boot_image import BootImageError, inspect_image, load_profile, parse_int
+    from .project_version import RELEASE_VERSION
+except ImportError:
+    from boot_image import BootImageError, inspect_image, load_profile, parse_int  # noqa: E402
+    from project_version import RELEASE_VERSION  # noqa: E402
 
 QUERY_TOKEN = re.compile(r"\b([A-Za-z][A-Za-z0-9_-]{1,15})\s*:\s*([^\s]+)")
 MAX_EVIDENCE_SIZE = 512 * 1024
@@ -239,7 +244,7 @@ def send_image(args: argparse.Namespace) -> int:
     evidence = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "release_version": "0.4.3b",
+        "release_version": RELEASE_VERSION,
         "operation": "irecovery-send",
         "profile_id": profile["profile_id"],
         "device": device.public_dict(),
@@ -311,8 +316,8 @@ def main(argv: list[str] | None = None) -> int:
             evidence = {
                 "schema_version": 1,
                 "project": "FBR34KER",
-        "release_version": "0.4.3b",
-        "operation": "irecovery-verify",
+                "release_version": RELEASE_VERSION,
+                "operation": "irecovery-verify",
                 "passed": True,
                 "profile_id": profile["profile_id"],
                 "profile_maturity": profile.get("maturity", "unverified"),

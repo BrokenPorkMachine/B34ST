@@ -16,7 +16,12 @@ import struct
 from dataclasses import dataclass, asdict
 from typing import Iterable, Any
 
-from handoff_schema import load_and_validate, HandoffSchemaError
+try:
+    from .handoff_schema import load_and_validate, HandoffSchemaError
+    from .project_version import RELEASE_VERSION
+except ImportError:
+    from handoff_schema import load_and_validate, HandoffSchemaError
+    from project_version import RELEASE_VERSION
 
 ELF_HEADER = struct.Struct("<16sHHIQQQIHHHHHH")
 PROGRAM_HEADER = struct.Struct("<IIQQQQQQ")
@@ -498,7 +503,7 @@ def simulate_loader(handoff_path: pathlib.Path, image_path: pathlib.Path,
     report = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "version": "0.4.3b",
+        "version": RELEASE_VERSION,
         "result": "fail" if invalid_or_unsafe else "pass",
         "offline_only": True,
         "entry_point": f"0x{image.entry:x}",

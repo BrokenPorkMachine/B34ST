@@ -55,6 +55,14 @@ cat > "$BIN_DIR/fbr34ker" <<'EOF_WRAPPER'
 #!/usr/bin/env sh
 set -eu
 BIN_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+if [ -z "${FBR34KER_SOURCE_ROOT:-}" ]; then
+    if [ -f "$PWD/fbr34ker" ] && [ -d "$PWD/host" ] && [ -f "$PWD/Makefile" ]; then
+        FBR34KER_SOURCE_ROOT=$PWD
+    else
+        FBR34KER_SOURCE_ROOT=$BIN_ROOT/share/fbr34ker
+    fi
+    export FBR34KER_SOURCE_ROOT
+fi
 exec python3 "$BIN_ROOT/share/fbr34ker/fbr34ker" "$@"
 EOF_WRAPPER
 chmod 0755 "$BIN_DIR/fbr34ker"
@@ -62,7 +70,15 @@ cat > "$BIN_DIR/B34ST" <<'EOF_WRAPPER'
 #!/usr/bin/env sh
 set -eu
 BIN_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-cd "$BIN_ROOT/share/fbr34ker"
+if [ -z "${FBR34KER_SOURCE_ROOT:-}" ]; then
+    if [ -f "$PWD/fbr34ker" ] && [ -d "$PWD/host" ] && [ -f "$PWD/Makefile" ]; then
+        FBR34KER_SOURCE_ROOT=$PWD
+    else
+        FBR34KER_SOURCE_ROOT=$BIN_ROOT/share/fbr34ker
+    fi
+    export FBR34KER_SOURCE_ROOT
+fi
+cd "$FBR34KER_SOURCE_ROOT"
 exec python3 -m b34st.b34st "$@"
 EOF_WRAPPER
 chmod 0755 "$BIN_DIR/B34ST"

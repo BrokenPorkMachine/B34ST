@@ -1,5 +1,15 @@
 #!/usr/bin/env sh
 set -eu
-ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-cd "$ROOT"
+BIN_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+if [ -z "${FBR34KER_SOURCE_ROOT:-}" ]; then
+    if [ -f "$PWD/fbr34ker" ] && [ -d "$PWD/host" ] && [ -f "$PWD/Makefile" ]; then
+        FBR34KER_SOURCE_ROOT=$PWD
+    elif [ -f "$BIN_ROOT/fbr34ker" ] && [ -d "$BIN_ROOT/host" ] && [ -f "$BIN_ROOT/Makefile" ]; then
+        FBR34KER_SOURCE_ROOT=$BIN_ROOT
+    else
+        FBR34KER_SOURCE_ROOT=$BIN_ROOT/share/fbr34ker
+    fi
+    export FBR34KER_SOURCE_ROOT
+fi
+cd "$FBR34KER_SOURCE_ROOT"
 exec python3 -m b34st.b34st "$@"

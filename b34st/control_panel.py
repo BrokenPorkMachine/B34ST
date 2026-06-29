@@ -21,7 +21,9 @@ SECURITY_MODEL_CONFIG_PATH = pathlib.Path(
     "~/.config/fbr34ker/security-model"
 ).expanduser()
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = pathlib.Path(
+    os.environ.get("FBR34KER_SOURCE_ROOT", pathlib.Path(__file__).resolve().parent.parent)
+).resolve()
 ARTIFACT_ROOT = ROOT / "runtime-artifacts" / "b34st" / "control-panel"
 AUTHORIZATION_TEXT = "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE"
 
@@ -119,11 +121,11 @@ class Session:
                     )
                 else:
                     return_code = subprocess.run(
-                        arguments, cwd=ROOT, check=False
+                        command, cwd=ROOT, check=False
                     ).returncode
             else:
                 process = subprocess.Popen(
-                    arguments,
+                    command,
                     cwd=ROOT,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,

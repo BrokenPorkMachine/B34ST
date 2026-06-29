@@ -122,10 +122,6 @@ def analyze_menu_capabilities():
     print("\nPotentially Missing Features:")
     print("-" * 70)
     
-    # Check for functions that are exposed but not in main menu
-    from b34st.control_panel import *
-    from b34st.engine import B34STEngine
-    
     # List of key functions/classes that should be exposed
     expected_exposed = {
         "run_control_panel", "run", "validate", "physical_validation",

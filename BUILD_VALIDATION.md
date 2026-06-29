@@ -1,10 +1,10 @@
-# FBR34KER 0.4.5b Beta validation
+# FBR34KER 0.5.0b Beta validation
 
 Validation date: 2026-06-28
 
 ## Result
 
-The 0.4.5b Beta release preparation passed the canonical non-QEMU gate, the
+The 0.5.0b Beta release preparation passed the canonical non-QEMU gate, the
 complete QEMU-backed release gate, deterministic package construction,
 checksum verification, and an extracted operational-package smoke test.
 
@@ -16,7 +16,7 @@ checksum verification, and an extracted operational-package smoke test.
   the isolated non-QEMU run and executed by the integration stage.
 - **QEMU integration:** all **6 tests passed**.
 - **Version consistency:** all **20 active release surfaces** matched
-  `0.4.5b-beta`.
+  `0.5.0b-beta`.
 - **Source validation:** 142 Python files and 23 shell files passed syntax
   validation.
 
@@ -43,9 +43,9 @@ and diagnostics collection.
   security-model build passed.
 - Deterministic FBRI bundles for A12, A12X/A12Z, A13, A14, A15, M1, and M2
   passed inspection and manifest validation.
-- The release manifest contains 72 artifacts and identifies version `0.4.5b`,
-  channel `beta`, source ID `0.4.5b-beta`, and release root
-  `FBR34KER_0.4.5b_Beta`.
+- The release manifest contains 72 artifacts and identifies version `0.5.0b`,
+  channel `beta`, source ID `0.5.0b-beta`, and release root
+  `FBR34KER_0.5.0b_Beta`.
 - Deployment, bring-up, persistent-bridge, failure-matrix, reset-invalidation,
   and recovery-after-reauthorization simulations passed.
 
@@ -53,10 +53,10 @@ and diagnostics collection.
 
 The following deterministic archives were built and verified:
 
-- `FBR34KER_0.4.5b_Beta_source.zip`
-- `FBR34KER_0.4.5b_Beta_complete.zip`
-- `FBR34KER_0.4.5b_Beta_sdk.zip`
-- `FBR34KER_0.4.5b_Beta_operational.zip`
+- `FBR34KER_0.5.0b_Beta_source.zip`
+- `FBR34KER_0.5.0b_Beta_complete.zip`
+- `FBR34KER_0.5.0b_Beta_sdk.zip`
+- `FBR34KER_0.5.0b_Beta_operational.zip`
 
 All four SHA-256 sidecars passed `shasum -a 256 -c`. The operational archive
 was extracted and successfully ran:

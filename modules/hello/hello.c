@@ -23,7 +23,7 @@ static void hello_finalize(void)
 const fbr34ker_module_descriptor_t hello_module_descriptor = {
     .abi_version = FBR34KER_MODULE_ABI,
     .name = "hello",
-    .version = "0.4.1",
+    .version = "0.4.2b",
     .description = "Built-in example demonstrating the FBR34KER module API.",
     .initialize = hello_initialize,
     .finalize = hello_finalize,

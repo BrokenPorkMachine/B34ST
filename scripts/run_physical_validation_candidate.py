@@ -67,20 +67,20 @@ def qemu_status(output: pathlib.Path, run_qemu: bool,
         return path
     qemu = shutil.which("qemu-system-aarch64")
     if not qemu:
-        value = {"schema_version": 1, "project": "FBR34KER", "version": "0.4.1",
+        value = {"schema_version": 1, "project": "FBR34KER", "version": "0.4.2b",
                  "passed": False, "status": "unavailable",
                  "detail": "qemu-system-aarch64 is not installed"}
     elif not run_qemu:
         version = subprocess.run([qemu, "--version"], text=True, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT, check=False).stdout.splitlines()
-        value = {"schema_version": 1, "project": "FBR34KER", "version": "0.4.1",
+        value = {"schema_version": 1, "project": "FBR34KER", "version": "0.4.2b",
                  "passed": False, "status": "available-not-run",
                  "detail": version[0] if version else qemu}
     else:
         gate = output / "qemu-gate"
         diagnostics = output / "qemu-diagnostics"
         result = subprocess.run([
-            sys.executable, "scripts/release_gate.py", "--version", "0.4.1",
+            sys.executable, "scripts/release_gate.py", "--version", "0.4.2b",
             "--release-stage", "physical-validation-candidate",
             "--output", str(gate), "--diagnostics", str(diagnostics),
         ], cwd=ROOT, check=False)
@@ -150,7 +150,7 @@ def main(argv: list[str] | None = None) -> int:
     summary = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "release_version": "0.4.1",
+        "release_version": "0.4.2b",
         "release_name": "Beta",
         "candidate_ready": report["candidate_ready"],
         "physical_validation_complete": report["physical_validation_complete"],

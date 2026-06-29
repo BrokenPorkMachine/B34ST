@@ -35,7 +35,7 @@ class LauncherTests(unittest.TestCase):
             capture_output=True,
             text=True,
         )
-        self.assertEqual(result.stdout.strip(), "FBR34KER 0.4.1")
+        self.assertEqual(result.stdout.strip(), "FBR34KER 0.4.2b")
 
     def test_unknown_flag_is_rejected(self) -> None:
         result = subprocess.run(
@@ -85,7 +85,7 @@ class LauncherTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("B34ST 0.4.1", result.stdout)
+        self.assertIn("B34ST 0.4.2b", result.stdout)
 
     def test_canonical_source_tree_b34st_launcher(self) -> None:
         result = subprocess.run(
@@ -95,7 +95,7 @@ class LauncherTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("B34ST 0.4.1", result.stdout)
+        self.assertIn("B34ST 0.4.2b", result.stdout)
 
     def test_b34st_backend_passthrough(self) -> None:
         result = subprocess.run(
@@ -105,7 +105,7 @@ class LauncherTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("FBR34KER 0.4.1", result.stdout)
+        self.assertIn("FBR34KER 0.4.2b", result.stdout)
 
     def test_control_panel_forensics_alias(self) -> None:
         result = subprocess.run(

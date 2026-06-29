@@ -1,8 +1,8 @@
-# FBR34KER Tutorial — 0.4.1 Beta
+# FBR34KER Tutorial — 0.4.2b Beta
 
 ## 1. Introduction
 
-This tutorial walks through the complete FBR34KER 0.4.1 Beta workflow: toolchain setup, building all targets, running the monitor in QEMU, exercising the jailbreak security-bypass chain, launching the B34ST unified control panel, navigating the 16-category menu system, using the CVE database and exploit chain planner, performing forensic acquisition, running the evidence-gated research-runtime orchestrator, planning and validating research environments, managing sessions, using the loader SDK, creating release packages, and understanding the full boot chain integration. No physical Apple hardware is required for sections 1-6 and most of 7, 9, 10, 12-16, and 18-19 — everything up to the exploit chain runs under QEMU.
+This tutorial walks through the complete FBR34KER 0.4.2b Beta workflow: toolchain setup, building all targets, running the monitor in QEMU, exercising the jailbreak security-bypass chain, launching the B34ST unified control panel, navigating the 16-category menu system, using the CVE database and exploit chain planner, performing forensic acquisition, running the evidence-gated research-runtime orchestrator, planning and validating research environments, managing sessions, using the loader SDK, creating release packages, and understanding the full boot chain integration. No physical Apple hardware is required for sections 1-6 and most of 7, 9, 10, 12-16, and 18-19 — everything up to the exploit chain runs under QEMU.
 
 ## 2. Prerequisites and environment setup
 

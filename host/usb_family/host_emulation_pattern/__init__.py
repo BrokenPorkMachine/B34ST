@@ -612,12 +612,12 @@ def test_payload(payload_path):
         # TODO: Submit to device via USB transport
         return True
     except Exception as e:
-        print(f"Error: {{e}}")
+        print(f"Error: {e}")
         return False
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: {{sys.argv[0]}} <payload_file>")
+        print(f"Usage: {sys.argv[0]} <payload_file>")
         sys.exit(1)
     success = test_payload(sys.argv[1])
     sys.exit(0 if success else 1)

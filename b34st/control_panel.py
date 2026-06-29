@@ -119,11 +119,11 @@ class Session:
                     )
                 else:
                     return_code = subprocess.run(
-                        command, cwd=ROOT, check=False
+                        arguments, cwd=ROOT, check=False
                     ).returncode
             else:
                 process = subprocess.Popen(
-                    command,
+                    arguments,
                     cwd=ROOT,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
@@ -171,7 +171,7 @@ class Session:
         label: str,
         interactive: bool = False,
     ) -> int:
-        printable = shlex.join(command)
+        printable = shlex.join(arguments)
         self.record(f"START {label}: {printable}")
         print(f"\n[{label}]")
         print(f"$ {printable}\n")
@@ -184,7 +184,7 @@ class Session:
                         self.directory / f"{safe_label or 'interactive'}.typescript"
                     )
                     return_code = subprocess.run(
-                        [script_tool, "-q", str(transcript), *command],
+                        [script_tool, "-q", str(transcript), *arguments],
                         cwd=ROOT,
                         check=False,
                     ).returncode
@@ -193,11 +193,11 @@ class Session:
                     )
                 else:
                     return_code = subprocess.run(
-                        command, cwd=ROOT, check=False
+                        arguments, cwd=ROOT, check=False
                     ).returncode
             else:
                 process = subprocess.Popen(
-                    command,
+                    arguments,
                     cwd=ROOT,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,

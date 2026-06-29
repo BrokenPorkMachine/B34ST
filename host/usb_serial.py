@@ -128,7 +128,7 @@ def _safe_str(value: object) -> str | None:
         if isinstance(value, bytes):
             return value.decode("utf-8", errors="replace")
         return str(value)
-    except Exception:
+    except (UnicodeError, TypeError, ValueError):
         return None
 
 
@@ -587,7 +587,7 @@ def _readable_cpid(device: usb.core.Device) -> int | None:
 def detect_device_chipset(device: usb.core.Device) -> ChipsetInfo | None:
     try:
         prod = str(device.product or "")
-    except Exception:
+    except (UnicodeError, TypeError, ValueError):
         prod = ""
     cpid = _readable_cpid(device)
     if cpid is not None:

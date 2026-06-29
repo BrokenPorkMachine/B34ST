@@ -2034,6 +2034,7 @@ class B34STCLI:
                     capture_output=True,
                     text=True,
                     timeout=120,
+                    check=False,
                 )
                 if result.returncode != 0:
                     self.log(f"Build failed: {result.stderr}", "ERROR")

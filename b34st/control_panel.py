@@ -1590,7 +1590,8 @@ def _usbliter8_jailbreak(session: Session) -> int:
     command = [
         sys.executable,
         str(exploit_script),
-        "--auto",
+        "--monitor",
+        str(operational_bin),
         "--evidence",
         str(evidence_path),
         "--timeout",
@@ -1668,7 +1669,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
         return 1
 
     try:
-        from scripts.run_exploit import BootChain, ExploitError
+        from scripts.run_exploit import ExploitError
     except ImportError:
         print("run_exploit.py not found in scripts/", file=sys.stderr)
         session.record("USBliter8 pwn-and-inspect aborted: run_exploit.py missing")
@@ -1678,6 +1679,18 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
     exploit_script = ROOT / "scripts" / "run_exploit.py"
     evidence_path = session.directory / "usbliter8-inspect.json"
     report_path = session.directory / "pwn-inspect-report.json"
+    operational_bin = ROOT / "build-exploit" / "fbr34ker-operational.bin"
+
+    if not operational_bin.is_file():
+        print("No operational image found. Building now...")
+        build_rc = session.run_command(
+            ["make", "build-operational"],
+            label="Build operational image",
+        )
+        if build_rc != 0:
+            print("Inspection cannot proceed without an operational image.")
+            _pause()
+            return 1
 
     pwndfu_ok = False
     chipset_info = None
@@ -1688,7 +1701,8 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
     pwndfu_cmd = [
         sys.executable,
         str(exploit_script),
-        "--auto",
+        "--monitor",
+        str(operational_bin),
         "--evidence",
         str(evidence_path),
         "--timeout",
@@ -1752,12 +1766,8 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
         inspection_commands = [
             ("exploit-chain status", "Protection scheme state"),
             ("usb-status", "USB DWC3 controller status"),
-            (
-                "hardware-prepare --list-categories",
-                "Available hardware inspection categories",
-            ),
-            ("chipsets", "Supported A12+ SoC database"),
-            ("boot-evidence status", "Boot evidence collection status"),
+            ("board-info", "Selected board and device inventory"),
+            ("boot-evidence", "Boot evidence collection status"),
         ]
 
         print(f"\n[*] Running {len(inspection_commands)} inspection commands...\n")

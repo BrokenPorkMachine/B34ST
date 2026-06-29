@@ -162,7 +162,7 @@ irecovery -q | grep CPID    # Should show 0x8015 (A12), 0x8020 (A13), etc.
 ### Phase 3 — Apply USBliter8 DWC3 exploit (FBR34KER)
 
 ```sh
-python3 scripts/run_exploit.py --monitor build-operational/fbr34ker-operational.bin --auto
+python3 scripts/run_exploit.py --monitor build-exploit/fbr34ker-operational.bin
 ```
 
 This loads FBR34KER into physical DRAM via DWC3 vendor requests and executes

@@ -1969,6 +1969,8 @@ class B34STCLI:
             return e.code
 
         return_code = 0
+        evidence_dir = pathlib.Path("runtime-artifacts/b34st/usbliter8")
+        evidence_dir.mkdir(parents=True, exist_ok=True)
 
         if not args.skip_hardware_prep:
             self.log("USBliter8 hardware preparation")
@@ -1987,18 +1989,17 @@ class B34STCLI:
                     print("    -> Skipped")
                 else:
                     print("    -> Done")
-            evidence_dir = pathlib.Path("runtime-artifacts/b34st/usbliter8")
-            evidence_dir.mkdir(parents=True, exist_ok=True)
             prep_record = evidence_dir / "hardware-prep.json"
-            prep_record.write_text(
-                json.dumps({
-                    "schema_version": 1,
-                    "stage": "hardware_preparation",
-                    "status": "verified",
-                    "items": [{"item": item, "status": "done"} for item, _ in items],
-                }, indent=2)
-            )
-            self.log(f"Hardware preparation record: {prep_record}")
+            if not args.skip_evidence:
+                prep_record.write_text(
+                    json.dumps({
+                        "schema_version": 1,
+                        "stage": "hardware_preparation",
+                        "status": "verified",
+                        "items": [{"item": item, "status": "done"} for item, _ in items],
+                    }, indent=2)
+                )
+                self.log(f"Hardware preparation record: {prep_record}")
 
         operational_bin = ROOT / "build-exploit" / "fbr34ker-operational.bin"
         if args.force_rebuild or not operational_bin.is_file():
@@ -2006,6 +2007,10 @@ class B34STCLI:
                 self.log("Found existing operational image, rebuilding (--force-rebuild)")
             else:
                 self.log("Operational image not found, building now")
+            if args.skip_build:
+                self.log("Operational image missing but build was skipped", "ERROR")
+                print("Operational image not found and --skip-build was requested.")
+                return 1
             if not args.skip_build:
                 result = subprocess.run(
                     ["make", "build-operational"],
@@ -2032,14 +2037,15 @@ class B34STCLI:
             self.log(f"Exploit script not found: {exploit_script}", "ERROR")
             return 1
 
-        evidence = args.evidence or evidence_dir / "usbliter8-jailbreak.json"
+        evidence = None if args.skip_evidence else (args.evidence or evidence_dir / "usbliter8-jailbreak.json")
         cmd = [
             sys.executable,
             str(exploit_script),
-            "--auto",
-            "--evidence", str(evidence),
+            "--monitor", str(operational_bin),
             "--timeout", str(args.timeout),
         ]
+        if evidence is not None:
+            cmd.extend(["--evidence", str(evidence)])
         if args.no_dfu_wait:
             cmd.append("--no-dfu-wait")
 

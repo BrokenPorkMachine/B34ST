@@ -1114,7 +1114,230 @@ Verify a bundle:
 B34ST forensics verify evidence-bundle.zip
 ```
 
-## 15. Research runtime orchestrator
+## 15. USB family fuzzing campaigns
+
+B34ST includes a comprehensive **USB family fuzzing framework** for iPhone hardware security research. This framework targets both USB device and USB host roles on supported iOS devices, enabling systematic vulnerability discovery through USB protocol fuzzing. The campaigns are integrated into the CVE fuzzer framework (`host/cve/fuzzer.py`) as new fuzz targets.
+
+### Overview
+
+The USB family campaigns are implemented in `host/usb_family/` with two primary patterns:
+
+| Pattern | Role | Description |
+|---------|------|-------------|
+| `device_cdcacm_pattern/` | iPhone as USB device | Fuzz requests sent to the iPhone (enumeration, control transfers, vendor requests, accessory protocols, recovery/diagnostic messages, partial/aborted transfers) |
+| `host_emulation_pattern/` | iPhone as USB host | Emulate malicious/malformed peripherals targeting iPhone (HID, Audio, Storage, Network adapter, Hub, Composite device, rapid descriptor changes) |
+
+### iPhone as USB device campaigns
+
+When the iPhone acts as a USB device, the framework fuzzes the following attack surfaces:
+
+| Campaign | Description | Target Surface |
+|----------|-------------|----------------|
+| **Enumeration** | Initial device enumeration, descriptor requests, standard device requests | USB device descriptor, configuration, interface, endpoint descriptors |
+| **Control transfers** | Standard and vendor-specific control requests on EP0 | GET_STATUS, CLEAR_FEATURE, SET_FEATURE, SET_ADDRESS, GET/SET_DESCRIPTOR, GET/SET_CONFIGURATION, GET/SET_INTERFACE |
+| **Vendor-specific requests** | Custom vendor requests on EP0 for physical memory access | SET_ADDR, MEM_READ, MEM_WRITE, EXECUTE (DWC3 PWNDFU) |
+| **Accessory protocols** | Apple accessory protocol messages and authentication | iAP2, EA, and proprietary accessory handshakes |
+| **Recovery/diagnostic messages** | Recovery mode and diagnostic protocol messages | Recovery command parser, diagnostic service requests |
+| **Partial/aborted transfers** | Truncated, overlong, and malformed control transfers | Zero-length, overlong, null-data, truncated packets |
+
+### iPhone as USB host campaigns
+
+When the iPhone acts as a USB host (supported on USB-C devices), the framework emulates malicious or malformed peripherals:
+
+| Campaign | Description | Target Surface |
+|----------|-------------|----------------|
+| **HID** | Malicious keyboard/mouse/gamepad emulation | Report descriptors, input/output/interrupt endpoints |
+| **Audio** | Malformed audio control/streaming interfaces | Audio class descriptors, format/type endpoints |
+| **Storage** | Mass storage (SCSI/BOT) with malformed CBW/CSW | SCSI commands, CBW/CSW, endpoint configurations |
+| **Network adapter** | CDC-ECM/NCM/RNDIS network device emulation | Ethernet control model, network control/notification endpoints |
+| **Hub** | Multi-port hub with malicious topology | Hub descriptors, port status/change, TT descriptors |
+| **Composite device** | Multi-interface devices with conflicting descriptors | IAD, multiple configurations, alternate settings |
+| **Rapid descriptor changes** | Fast configuration/interface switching | SET_CONFIGURATION, SET_INTERFACE flooding |
+
+### Specialized mode campaigns
+
+#### DFU-mode campaign
+
+Targets the DFU (Device Firmware Upgrade) mode USB stack:
+
+| Component | Description |
+|-----------|-------------|
+| **USB PHY & device controller** | Physical layer and DWC3 controller state |
+| **Control-request handling** | EP0 enumeration, GET_DESCRIPTOR, vendor requests |
+| **Boot ROM request dispatcher** | DFU command parsing (GETSTATUS, CLRSTATUS, UPLOAD, DOWNLOAD, ABORT, DETACH) |
+| **Memory/clock/reset support** | Early platform initialization paths |
+| **Image download/validation** | Firmware image transfer, signature verification, validation logic |
+| **Watchdog/reboot logic** | Watchdog timer, reset on failure |
+
+**Fuzzing methodology:**
+1. **Record valid behavior** — Capture legitimate DFU interactions (enumeration, descriptor requests, restore initiation, image download, cancellation, cable removal, timeout/retry)
+2. **Build state model** — Powered off → DFU enumeration → initial request → transfer established → data accepted/rejected → validation → reset/remain in DFU
+3. **Validity-preserving mutations** — Request length ±1, zero/max-length, unusual packet boundaries, request reordering, premature status completion, truncation at structural boundaries, disconnect between data/status phases, timeout replay, duplicate final block, conflicting inner/outer lengths
+4. **Behavioral coverage** — New USB status/stall, timing classes, descriptor changes, device stops responding, re-enumeration, full vs USB-controller reset, persistent DFU failure, current-draw changes
+
+#### Recovery-mode campaign
+
+Targets the Recovery mode USB stack with iBoot and restore functionality:
+
+| Component | Description |
+|-----------|-------------|
+| **USB recovery command parser** | Recovery protocol message parsing |
+| **Restore-session state machine** | Session initialization, state transitions, rollback |
+| **Image4/container metadata** | Image4 parsing, manifest property-list processing |
+| **Ramdisk/image handoff** | Ramdisk loading, kernel handoff, device tree |
+| **Baseband/coprocessor orchestration** | Baseband update, SEP firmware update |
+| **Error-report serialization** | Error codes, retry logic, rollback paths |
+
+**Fuzzing campaigns:**
+- **Message fuzzing** — Mutate individual structured messages
+- **Sequence fuzzing** — Reorder, repeat, omit valid messages
+- **Lifecycle fuzzing** — Disconnect/reconnect at precise phases
+- **Container fuzzing** — Mutate non-cryptographic structure around signed objects
+- **Error-path fuzzing** — Provoke recoverable failures, mutate retry messages
+
+**Health checks after every test:**
+- Recovery USB still responds
+- Device can reboot normally
+- Storage not left in incomplete restore state
+- SEP-dependent functions return after normal boot
+- No persistent restore loop created
+
+#### Diagnostics-mode campaign
+
+Targets Apple's iPhone Diagnostics mode (Self Service Repair / System Configuration):
+
+| Component | Description |
+|-----------|-------------|
+| **Battery & charging tests** | Charge cycles, health metrics, charging protocol |
+| **Thermal sensor queries** | Temperature readings, thermal throttling |
+| **Display & touch tests** | Panel self-test, touch controller diagnostics |
+| **Camera & audio test paths** | ISP, microphone, speaker validation |
+| **Storage health queries** | NAND wear, ECC statistics, SMART data |
+| **Sensor sampling** | Accelerometer, gyroscope, proximity, ambient light |
+| **Radio self-tests** | Wi-Fi, Bluetooth, cellular radio diagnostics |
+| **Component identity & calibration** | Serial numbers, calibration data, pairing records |
+| **Diagnostic-result serialization** | Result encoding, transmission, storage |
+
+**Safety allowlist (start with these):**
+- Query status
+- Read sensor
+- Start bounded test
+- Stop test
+- Retrieve synthetic result
+- Reset diagnostic session
+
+**Exclude until fully understood:**
+- Write calibration
+- Rewrite component identity
+- Erase storage
+- Program battery data
+- Modify secure configuration
+- Write radio provisioning
+- Permanent fuse or NVRAM operations
+
+### New fuzz targets added
+
+The following fuzz targets have been added to the CVE fuzzer framework:
+
+| Target | Category | Description |
+|--------|----------|-------------|
+| `usb-family-device` | `hardware_family` | iPhone as USB device: enumeration, control transfers, vendor requests, accessory protocols, recovery/diagnostic messages, partial/aborted transfers |
+| `usb-family-host` | `hardware_family` | iPhone as USB host: malicious peripheral emulation (HID, audio, storage, network, hub, composite), rapid descriptor changes |
+| `dfu-mode` | `hardware_family`, `dfu` | DFU-mode USB PHY, device controller, control requests, boot ROM dispatcher, image download/validation, watchdog/reboot |
+| `recovery-mode` | `hardware_family`, `recovery` | Recovery command parser, restore session, Image4 metadata, manifest parsing, ramdisk handoff, baseband orchestration |
+| `diagnostics-mode` | `hardware_family`, `diagnostics` | Self Service Repair diagnostics: battery, thermal, display, camera, audio, storage, sensors, radio, component identity |
+
+### Running USB family campaigns
+
+```bash
+# List all fuzz targets (includes USB family)
+b34st cve fuzz list
+
+# Run USB family campaigns
+b34st cve run usb-family-device --runs 10000
+b34st cve run usb-family-host --runs 10000
+b34st cve run dfu-mode --runs 10000
+b34st cve run recovery-mode --runs 10000
+b34st cve run diagnostics-mode --runs 10000
+```
+
+### Corpus generation for honggfuzz
+
+Generate fuzzing corpora for use with honggfuzz:
+
+```bash
+# USB device fuzzing corpus
+python3 -m host.usb_family.device_cdcacm_pattern \
+  --output ./usb_device_corpus \
+  --num-cases 500 \
+  --seed 0xDEADBEEF
+
+# USB host emulation corpus
+python3 -m host.usb_family.host_emulation_pattern \
+  --output ./usb_host_corpus \
+  --num-cases 500 \
+  --seed 0xDEADBEEF
+```
+
+Then run with honggfuzz:
+
+```bash
+honggfuzz --input ./usb_device_corpus/corpus \
+  --output ./usb_device_results \
+  -- ./usb_device_corpus/test_harness.py
+```
+
+### Universal fuzzing loop
+
+All USB family campaigns follow the universal fuzzing methodology:
+
+1. **Record valid behavior** — Capture legitimate interactions
+2. **Infer minimum state machine** — Model protocol states
+3. **Create small valid corpus** — Baseline test cases
+4. **Mutate one structural dimension at a time** — Controlled mutations
+5. **Run automatic health check** — Verify device responsiveness
+6. **Reset to known state** — Robust recovery automation
+7. **Cluster anomalous results** — Group similar findings
+8. **Reproduce anomalies 3×** — Confirm reliability
+9. **Minimize input and sequence** — Reduce to minimal trigger
+10. **Determine fault boundary** — Classify component failure
+
+### Result classification
+
+Each finding is classified as:
+
+| Classification | Description |
+|----------------|-------------|
+| `host-tool failure` | Host-side tooling error |
+| `USB transport failure` | USB bus/transport error |
+| `userland process crash` | iOS userspace crash |
+| `driver/kernel panic` | XNU kernel panic |
+| `coprocessor reset` | SEP/baseband/GPU firmware reset |
+| `persistent state corruption` | State corruption across reboot |
+| `security-policy failure` | Unauthorized operation succeeds |
+
+### Strong findings prioritized
+
+- Out-of-bounds read or stale-buffer disclosure
+- Cross-client data exposure
+- Kernel/firmware panic from unprivileged interface
+- Use-after-free or stale handle reuse
+- Unauthorized operation after cancellation/deletion
+- Persistent corruption across restart
+- Controlled influence over pointer/length/command field
+- Protected operation succeeding without required policy
+
+### Recommended campaign order
+
+1. Booted userland parsers
+2. Booted IOKit/XPC interfaces
+3. Recovery protocol and image parsers
+4. Diagnostics workflows
+5. DFU Boot ROM and USB state machine
+
+This order builds corpus management, reset automation, and triage infrastructure on easier targets before applying to the slower, low-observability DFU environment.
+
+## 16. Research runtime orchestrator
 
 ### Overview
 
@@ -1206,7 +1429,7 @@ Attestation written to:
 Runtime state: runtime-artifacts/b34st/research-runtime/.../runtime-state.json
 ```
 
-## 16. Environment planning
+## 17. Environment planning
 
 ### Plan an iOS 17+ research environment
 

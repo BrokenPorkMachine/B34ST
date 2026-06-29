@@ -39,9 +39,48 @@ static void emit_text(emit_fn emit, void *context, const char *text,
     }
 }
 
+static usize text_length(const char *text)
+{
+    if (text == NULL) {
+        return sizeof("(null)") - 1U;
+    }
+    usize length = 0U;
+    while (text[length] != '\0') {
+        ++length;
+    }
+    return length;
+}
+
+static void emit_padding(emit_fn emit, void *context, unsigned count,
+                         char padding, int *written)
+{
+    while (count > 0U) {
+        emit(padding, context);
+        ++(*written);
+        --count;
+    }
+}
+
+static void emit_padded_text(emit_fn emit, void *context, const char *text,
+                             unsigned width, bool left_align, int *written)
+{
+    const usize length = text_length(text);
+    const unsigned padding = length < (usize)width
+        ? width - (unsigned)length
+        : 0U;
+    if (!left_align) {
+        emit_padding(emit, context, padding, ' ', written);
+    }
+    emit_text(emit, context, text, written);
+    if (left_align) {
+        emit_padding(emit, context, padding, ' ', written);
+    }
+}
+
 static void emit_unsigned(emit_fn emit, void *context, u64 value,
                           u32 base, bool uppercase, unsigned width,
-                          char padding, int *written)
+                          char padding, bool left_align, char prefix,
+                          int *written)
 {
     char digits[65];
     unsigned count = 0U;
@@ -52,14 +91,26 @@ static void emit_unsigned(emit_fn emit, void *context, u64 value,
         value /= base;
     } while (value != 0U && count < ARRAY_COUNT(digits));
 
-    while (count < width) {
-        emit(padding, context);
+    const unsigned field_count = count + (prefix != '\0' ? 1U : 0U);
+    const unsigned padding_count = field_count < width
+        ? width - field_count
+        : 0U;
+    if (!left_align && padding == ' ') {
+        emit_padding(emit, context, padding_count, padding, written);
+    }
+    if (prefix != '\0') {
+        emit(prefix, context);
         ++(*written);
-        --width;
+    }
+    if (!left_align && padding != ' ') {
+        emit_padding(emit, context, padding_count, padding, written);
     }
     while (count > 0U) {
         emit(digits[--count], context);
         ++(*written);
+    }
+    if (left_align) {
+        emit_padding(emit, context, padding_count, ' ', written);
     }
 }
 
@@ -84,9 +135,25 @@ static int format_core(emit_fn emit, void *context, const char *format,
         }
 
         char padding = ' ';
-        if (*format == '0') {
-            padding = '0';
-            ++format;
+        bool left_align = false;
+        bool parsing_flags = true;
+        while (parsing_flags) {
+            switch (*format) {
+            case '-':
+                left_align = true;
+                ++format;
+                break;
+            case '0':
+                padding = '0';
+                ++format;
+                break;
+            default:
+                parsing_flags = false;
+                break;
+            }
+        }
+        if (left_align) {
+            padding = ' ';
         }
 
         unsigned width = 0U;
@@ -96,61 +163,89 @@ static int format_core(emit_fn emit, void *context, const char *format,
         }
 
         unsigned length = 0U;
-        while (*format == 'l' && length < 2U) {
-            ++length;
+        if (*format == 'z') {
+            length = 3U;
             ++format;
+        } else {
+            while (*format == 'l' && length < 2U) {
+                ++length;
+                ++format;
+            }
         }
 
         switch (*format) {
         case 'c': {
             const char value = (char)va_arg(arguments, int);
+            if (!left_align && width > 1U) {
+                emit_padding(emit, context, width - 1U, ' ', &written);
+            }
             emit(value, context);
             ++written;
+            if (left_align && width > 1U) {
+                emit_padding(emit, context, width - 1U, ' ', &written);
+            }
             break;
         }
         case 's':
-            emit_text(emit, context, va_arg(arguments, const char *), &written);
+            emit_padded_text(emit, context,
+                             va_arg(arguments, const char *), width,
+                             left_align, &written);
             break;
         case 'd':
         case 'i': {
-            const i64 signed_value = length != 0U
-                ? va_arg(arguments, i64)
-                : (i64)va_arg(arguments, int);
+            i64 signed_value;
+            if (length == 3U) {
+                signed_value = (i64)va_arg(arguments, isize);
+            } else if (length != 0U) {
+                signed_value = va_arg(arguments, i64);
+            } else {
+                signed_value = (i64)va_arg(arguments, int);
+            }
             u64 magnitude;
+            char prefix = '\0';
             if (signed_value < 0) {
-                emit('-', context);
-                ++written;
+                prefix = '-';
                 magnitude = (u64)(-(signed_value + 1)) + 1U;
             } else {
                 magnitude = (u64)signed_value;
             }
             emit_unsigned(emit, context, magnitude, 10U, false, width,
-                          padding, &written);
+                          padding, left_align, prefix, &written);
             break;
         }
         case 'u': {
-            const u64 value = length != 0U
-                ? va_arg(arguments, u64)
-                : (u64)va_arg(arguments, unsigned int);
+            u64 value;
+            if (length == 3U) {
+                value = (u64)va_arg(arguments, usize);
+            } else if (length != 0U) {
+                value = va_arg(arguments, u64);
+            } else {
+                value = (u64)va_arg(arguments, unsigned int);
+            }
             emit_unsigned(emit, context, value, 10U, false, width,
-                          padding, &written);
+                          padding, left_align, '\0', &written);
             break;
         }
         case 'x':
         case 'X': {
             const bool uppercase = *format == 'X';
-            const u64 value = length != 0U
-                ? va_arg(arguments, u64)
-                : (u64)va_arg(arguments, unsigned int);
+            u64 value;
+            if (length == 3U) {
+                value = (u64)va_arg(arguments, usize);
+            } else if (length != 0U) {
+                value = va_arg(arguments, u64);
+            } else {
+                value = (u64)va_arg(arguments, unsigned int);
+            }
             emit_unsigned(emit, context, value, 16U, uppercase, width,
-                          padding, &written);
+                          padding, left_align, '\0', &written);
             break;
         }
         case 'p': {
             const u64 value = (u64)(usize)va_arg(arguments, void *);
             emit_text(emit, context, "0x", &written);
             emit_unsigned(emit, context, value, 16U, false, 16U, '0',
-                          &written);
+                          false, '\0', &written);
             break;
         }
         case '\0':

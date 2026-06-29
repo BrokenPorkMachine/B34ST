@@ -110,6 +110,11 @@ class QemuBootTests(unittest.TestCase):
     def test_framed_protocol_fdt_health_and_module_lifecycle(self) -> None:
         hello = self.client.hello()
         self.assertIn(b"protocol=1", hello)
+        help_text = self.client.command("help")
+        self.assertIn(b"help                      List available commands.", help_text)
+        self.assertIn(b"Total commands available: ", help_text)
+        self.assertNotIn(b"%-25s", help_text)
+        self.assertNotIn(b"%zu", help_text)
         info = self.client.command("info")
         self.assertIn(b"framed v1", info)
         health = self.client.command("health")

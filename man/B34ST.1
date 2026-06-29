@@ -17,6 +17,27 @@ Firmware workflows include target-specific IPSW discovery, Apple-hosted
 downloads, signed update or erase-restore execution, and tethered downgrade
 plans delegated to an external authorized boot adapter.
 .PP
+For an unsigned target, select
+.B Guided tethered downgrade.
+The guide chooses a local or catalog-downloaded IPSW, validates the exact
+product and manifest, saves a readiness plan, preflights a separately installed
+external adapter, and only then offers execution. B34ST does not bundle the
+target-specific adapter. Without one, the guide stops safely after planning.
+The external tethered boot must run again after every device restart.
+.PP
+The tether adapter is a separately installed, target-specific executable: a
+program, script, or reviewed wrapper around device boot tooling. It communicates
+with the device in DFU/recovery mode and performs the external boot sequence.
+It is not the IPSW, USB cable, idevicerestore, or a universal B34ST component.
+B34ST validates and orchestrates; the adapter performs the device-side boot
+work and returns structured JSON.
+.PP
+Public checkm8-era projects such as Legacy iOS Kit, Semaphorin, and palera1n
+target A11 or earlier hardware and are not drop-in adapters for B34ST's current
+A12+ profiles. futurerestore uses a separate SHSH/SEP/baseband restore model.
+See the compatibility table in
+.IR docs/TETHERED_DOWNGRADE.md .
+.PP
 The initial dashboard displays the connected product, mode, board, reviewed
 launch firmware, current firmware when available, latest signed firmware,
 matching profiles, and device-specific available or blocked actions.
@@ -52,6 +73,19 @@ Generate read-only hardware preparation material.
 .TP
 .BI "fbr34ker " arguments
 Run a lower-level FBR34KER backend command.
+.SH TETHERED DOWNGRADE ADAPTER
+Set
+.B B34ST_TETHER_ADAPTER
+to the reviewed adapter executable and arguments, or enter the command when
+prompted. The adapter reads one request JSON object on standard input and
+writes one response JSON object containing
+.B {"ok": true}
+or
+.B {"ok": false, "error": "..."}
+to standard output. See
+.I docs/TETHERED_DOWNGRADE.md
+and
+.I schemas/tethered-downgrade-adapter-v1.json.
 .SH SOURCE TREE
 From the unpacked source tree, run:
 .PP

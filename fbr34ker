@@ -27,6 +27,8 @@ Advanced tools:
   control-panel        B34ST operator control panel
   b34st [args...]      Run a B34ST command
   b34stool [args...]   B34ST interactive multi-tool
+  forensics [args...]  Run B34ST forensics and data acquisition
+  cve [args...]        Run the B34ST CVE database and chain planner
   deploy [args...]     Deploy to device
   module [args...]     Interact with FBR34KER modules
   hardware [args...]   Hardware bring-up workflow
@@ -39,6 +41,7 @@ Advanced tools:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import pathlib
@@ -48,6 +51,8 @@ import subprocess
 import sys
 import time
 import textwrap
+
+from host.process_support import preserved_stdio_flags
 
 ROOT = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "host"))
@@ -81,13 +86,23 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def run(cmd, *, capture=False, timeout=120, cwd=ROOT, check=True, env=None):
+def run(
+    cmd,
+    *,
+    capture=False,
+    timeout=120,
+    cwd=ROOT,
+    check=True,
+    env=None,
+    preserve_stdio=False,
+):
     kwargs = dict(cwd=cwd, timeout=timeout)
     if capture:
         kwargs.update(stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     if env is not None:
         kwargs["env"] = env
-    proc = subprocess.run([str(x) for x in cmd], **kwargs)
+    with preserved_stdio_flags() if preserve_stdio else contextlib.nullcontext():
+        proc = subprocess.run([str(x) for x in cmd], **kwargs)
     if check and proc.returncode != 0:
         raise CliError(f"command failed: {' '.join(str(x) for x in cmd)}", proc.returncode)
     return proc
@@ -98,7 +113,16 @@ def require_qemu():
         raise CliError("qemu-system-aarch64 required")
 
 
-def make(targets, jobs=4, extra_vars=None, capture=False, check=True, extra_env=None):
+def make(
+    targets,
+    jobs=4,
+    extra_vars=None,
+    capture=False,
+    check=True,
+    extra_env=None,
+    timeout=120,
+    preserve_stdio=False,
+):
     cmd = ["make", "--no-print-directory", f"-j{jobs}"]
     if extra_vars:
         cmd.extend(extra_vars)
@@ -106,7 +130,15 @@ def make(targets, jobs=4, extra_vars=None, capture=False, check=True, extra_env=
     run_env = os.environ.copy()
     if extra_env:
         run_env.update(extra_env)
-    return run(cmd, cwd=ROOT, capture=capture, check=check, env=run_env)
+    return run(
+        cmd,
+        cwd=ROOT,
+        capture=capture,
+        check=check,
+        env=run_env,
+        timeout=timeout,
+        preserve_stdio=preserve_stdio,
+    )
 
 
 # ── Subcommands ──────────────────────────────────────────────────────────
@@ -170,6 +202,13 @@ def cmd_doctor(args):
 
     # irecovery
     checks["irecovery"] = shutil.which("irecovery") is not None
+
+    # TLS trust store used by IPSW and firmware-catalog clients.
+    from host.tls_support import tls_ca_status
+    tls_ok, _tls_path, tls_detail = tls_ca_status()
+    checks["tls-ca-certificates"] = tls_ok
+    if not tls_ok:
+        note("MISSING", tls_detail)
 
     # Chipset DB
     try:
@@ -477,7 +516,11 @@ def cmd_run(args):
     target = {"direct": "run", "generic": "generic-qemu-run", "probe": "probe-qemu-smoke"}[profile]
     label = {"direct": "QEMU virt", "generic": "QEMU generic loader", "probe": "QEMU hardware probe"}[profile]
     print(f"  Starting {label}...")
-    return make([target]).returncode
+    return make(
+        [target],
+        timeout=None,
+        preserve_stdio=True,
+    ).returncode
 
 
 def cmd_package(args):
@@ -1123,6 +1166,11 @@ def build_parser():
     b34stool_parser.add_argument("arguments", nargs=argparse.REMAINDER)
     b34st_parser = sub.add_parser("b34st")
     b34st_parser.add_argument("arguments", nargs=argparse.REMAINDER)
+    for b34st_command in ("forensics", "cve"):
+        b34st_command_parser = sub.add_parser(
+            b34st_command, help=f"Alias for 'b34st {b34st_command}'"
+        )
+        b34st_command_parser.add_argument("arguments", nargs=argparse.REMAINDER)
     runtime_parser = sub.add_parser("research-runtime")
     runtime_parser.add_argument("arguments", nargs=argparse.REMAINDER)
     sub.add_parser("help")  # alias for --help
@@ -1155,6 +1203,9 @@ def main(argv=None):
     if raw[0] == "b34st":
         from b34st.engine import B34STCLI
         return B34STCLI().run(raw[1:])
+    if raw[0] in {"forensics", "cve"}:
+        from b34st.engine import B34STCLI
+        return B34STCLI().run(raw)
     if raw[0] == "research-runtime":
         from b34st.research_runtime import main as research_runtime_main
         return research_runtime_main(raw[1:])

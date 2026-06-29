@@ -55,7 +55,7 @@ cat > "$BIN_DIR/fbr34ker" <<'EOF_WRAPPER'
 #!/usr/bin/env sh
 set -eu
 BIN_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-exec python3 "$BIN_ROOT/share/fbr34ker/host/fbr34ker_cli.py" "$@"
+exec python3 "$BIN_ROOT/share/fbr34ker/fbr34ker" "$@"
 EOF_WRAPPER
 chmod 0755 "$BIN_DIR/fbr34ker"
 cat > "$BIN_DIR/B34ST" <<'EOF_WRAPPER'

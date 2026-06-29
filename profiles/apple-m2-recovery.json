@@ -1,0 +1,70 @@
+{
+  "adapter_abi": 1,
+  "allowed_modes": [
+    "DFU",
+    "Recovery",
+    "Recovery Mode"
+  ],
+  "authorization_policy": "explicit-per-session-and-after-reset",
+  "board_configurations": [],
+  "bridge_console_verified": false,
+  "console_transports": [
+    "first-stage-bridge",
+    "adapter-console"
+  ],
+  "cpids": [
+    "0x8112"
+  ],
+  "default_boot_command": "bootx",
+  "direct_stock_iboot_compatible": false,
+  "evidence_requirements": [
+    "device-identity",
+    "image-hash",
+    "memory-map",
+    "stage-results",
+    "adapter-transcript"
+  ],
+  "execution_contract": "external-authorized-loader",
+  "family": "m2",
+  "maturity": "simulated",
+  "max_image_size": 33554432,
+  "memory_policy": "adapter-reported-only",
+  "physical_execution_verified": false,
+  "product_types": [],
+  "profile_id": "apple-m2-recovery",
+  "qemu_runtime_verified": false,
+  "representative_products": [
+    "Mac14,2",
+    "Mac14,7",
+    "Mac14,9",
+    "Mac14,10",
+    "Mac14,3",
+    "Mac14,6",
+    "iPad14,3",
+    "iPad14,4"
+  ],
+  "required_bringup_stages": [
+    "console",
+    "board-inventory",
+    "memory-map",
+    "timer",
+    "interrupts",
+    "watchdog",
+    "boot-evidence"
+  ],
+  "requires_authorized_session": true,
+  "requires_exact_product": false,
+  "requires_runtime_memory_map": true,
+  "schema_version": 1,
+  "soc": "T8112 / M2",
+  "transport": "irecovery",
+  "validation_candidate": true,
+  "validation_requirements": [
+    "exact-profile-match",
+    "verified-image-hash",
+    "adapter-memory-map",
+    "console-entry-evidence",
+    "boot-evidence",
+    "safe-reset-evidence"
+  ]
+}

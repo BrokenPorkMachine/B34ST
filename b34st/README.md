@@ -55,12 +55,23 @@ The control panel includes:
 - resumable Apple-CDN IPSW downloads;
 - `BuildManifest.plist` and `Restore.plist` inspection;
 - signed data-preserving upgrades and explicit erase restores;
-- unsigned tethered-downgrade plans;
-- bounded external tether-adapter execution.
+- a guided local/download → validation → plan → adapter-preflight tethered
+  downgrade workflow;
+- bounded external tether-adapter execution when a separately installed,
+  reviewed adapter is configured.
 
 Stock upgrades require a catalog record marked as signed and remain subject to
 Apple TSS acceptance. B34ST does not make unsigned restores persistent or
 bypass Apple signing.
+
+The tether adapter is a separately installed target-specific executable or
+reviewed wrapper around device boot tooling. It communicates with the device
+in DFU/recovery mode and performs the external boot sequence; it is not the
+IPSW, cable, `idevicerestore`, or a universal component included with B34ST.
+
+For the exact operator flow, adapter input/output contract, plan-only behavior,
+public-project compatibility table, contract-only example, and troubleshooting
+messages, see `docs/TETHERED_DOWNGRADE.md`.
 
 The control panel opens with a live connected-device dashboard. Each available
 action includes required materials, numbered steps, a how-to-proceed note,

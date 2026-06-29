@@ -79,7 +79,7 @@ const apple_soc_config_t apple_a14_config = {
     .dram_base = 0x800000000ULL,
     .dram_size = 0x400000000ULL,
     .usb_dwc3_base = 0x860000000ULL,
-    .uart_base = 0x823000000ULL,
+    .uart_base = 0x81D000000ULL,
     .gic_base = 0x82F100000ULL,
     .i2c_base = 0x83500000ULL,
     .pmgr_base = 0x83D000000ULL,
@@ -111,10 +111,10 @@ const apple_soc_config_t apple_a15_config = {
     .dram_base = 0x800000000ULL,
     .dram_size = 0x400000000ULL,
     .usb_dwc3_base = 0x860000000ULL,
-    .uart_base = 0x823000000ULL,
+    .uart_base = 0x81D000000ULL,
     .gic_base = 0x82F100000ULL,
     .i2c_base = 0x83500000ULL,
-    .pmgr_base = 0x83D000000ULL,
+    .pmgr_base = 0x83D600000ULL,
     .gic_version = 3U,
 };
 
@@ -130,7 +130,7 @@ const apple_soc_config_t apple_m2_config = {
     .uart_base = 0x823000000ULL,
     .gic_base = 0x82F100000ULL,
     .i2c_base = 0x83500000ULL,
-    .pmgr_base = 0x83D000000ULL,
+    .pmgr_base = 0x83D600000ULL,
     .gic_version = 3U,
 };
 
@@ -207,13 +207,30 @@ void apple_setup_mmio(void)
 
 bool apple_probe_soc(void)
 {
-    const apple_soc_config_t *soc = apple_soc_for_cpid(APPLE_A13_CPID);
+    u16 probe_cpids[] = {APPLE_M2_CPID, APPLE_A15_CPID, APPLE_M1_CPID,
+                         APPLE_A14_CPID, APPLE_A13_CPID, APPLE_A12Z_CPID,
+                         APPLE_A12X_CPID, APPLE_A12_CPID};
+    const apple_soc_config_t *soc = NULL;
+
+    for (u32 i = 0U; i < sizeof(probe_cpids) / sizeof(probe_cpids[0U]); ++i) {
+        const apple_soc_config_t *candidate = apple_soc_for_cpid(probe_cpids[i]);
+        if (candidate == NULL) continue;
+        u32 test = 0U;
+        if (mmio_probe_read32(candidate->usb_dwc3_base, &test) && test != 0U && test != 0xFFFFFFFFU) {
+            soc = candidate;
+            log_write(LOG_LEVEL_INFO, "Apple SoC detected: %s (CPID 0x%04x) via DWC3 probe",
+                      soc->soc_name, soc->cpid);
+            break;
+        }
+    }
+
     if (soc == NULL) {
-        log_write(LOG_LEVEL_WARN, "no known Apple SoC detected, defaulting to A13");
+        log_write(LOG_LEVEL_WARN, "no known Apple SoC detected by DWC3 probe, defaulting to A13");
         soc = &apple_a13_config;
     }
 
-    log_write(LOG_LEVEL_INFO, "Apple SoC: %s (%s)", soc->soc_name, soc->product_type);
+    log_write(LOG_LEVEL_INFO, "Apple SoC: %s (%s) CPID 0x%04x",
+              soc->soc_name, soc->product_type, soc->cpid);
 
     board_add_device("dwc3-usb", "snps,dwc3", FBR34KER_DEVICE_USB,
                      FBR34KER_DEVICE_FLAG_MMIO_READ | FBR34KER_DEVICE_FLAG_MMIO_WRITE,

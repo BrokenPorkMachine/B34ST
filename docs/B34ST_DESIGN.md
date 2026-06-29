@@ -46,6 +46,7 @@ Session path format: `runtime-artifacts/b34st/b34stool/YYYYMMDD-HHMMSS-microseco
 | Release | 1-4 | fbr34ker package/gate/permissions |
 | Module | 1-5 | fbr34ker module commands |
 | Research Runtime | 1-3 | b34st research-runtime commands |
+| Frontier | 1-4 | fbr34ker research-runtime/chipsets/b34st cve |
 | B34ST | 1-4 | b34st environment-plan/control-panel |
 
 ## Evidence Schema

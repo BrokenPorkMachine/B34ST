@@ -15,6 +15,10 @@ import tempfile
 from dataclasses import asdict, dataclass
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from host.tls_support import tls_ca_status
+
 MINIMUM_PYTHON = (3, 10)
 
 
@@ -105,6 +109,15 @@ def run_checks(require_qemu: bool) -> tuple[list[Check], dict[str, object]]:
         python_ok,
         sys.executable,
         f"Python {platform.python_version()} (requires >= 3.10)",
+    ))
+
+    tls_ok, tls_path, tls_detail = tls_ca_status()
+    checks.append(Check(
+        "tls-ca-certificates",
+        True,
+        tls_ok,
+        tls_path,
+        tls_detail,
     ))
 
     specifications = (

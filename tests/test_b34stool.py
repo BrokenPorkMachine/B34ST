@@ -13,11 +13,14 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 class B34SToolTests(unittest.TestCase):
-    def test_thirteen_categories_are_registered(self) -> None:
-        self.assertEqual(len(b34stool.CATEGORIES), 14)
+    def test_fifteen_categories_are_registered(self) -> None:
+        self.assertEqual(len(b34stool.CATEGORIES), 15)
         self.assertIn("forensics.acquire", b34stool.ACTION_MAP)
         self.assertIn("forensics.verify", b34stool.ACTION_MAP)
         self.assertIn("research-runtime.validate-evidence", b34stool.ACTION_MAP)
+        guided = b34stool.ACTION_MAP["ipsw.tethered-downgrade"]
+        self.assertIn("tethered-downgrade-guide", guided.command)
+        self.assertTrue(guided.interactive)
 
     def test_noninteractive_command_writes_session_log_and_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

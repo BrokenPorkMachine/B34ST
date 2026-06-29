@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Unified FBR34KER public developer-preview command line."""
 from __future__ import annotations
-import argparse, json, os, pathlib, re, shutil, subprocess, sys
+import argparse, contextlib, json, os, pathlib, re, shutil, subprocess, sys
+try:
+    from .process_support import preserved_stdio_flags
+except ImportError:
+    from process_support import preserved_stdio_flags
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 VERSION_RE=re.compile(r'^#define FBR34KER_MONITOR_VERSION "([^"]+)"$',re.M)
 VERSION=VERSION_RE.search((ROOT/'include/fbr34ker/version.h').read_text()).group(1)
@@ -9,8 +13,9 @@ VERSION=VERSION_RE.search((ROOT/'include/fbr34ker/version.h').read_text()).group
 class CliError(RuntimeError):
     def __init__(self,message,code=1): super().__init__(message); self.code=code
 
-def execute(command, *, json_mode=False, cwd=ROOT):
-    proc=subprocess.run([str(x) for x in command],cwd=cwd,text=True,stdout=subprocess.PIPE if json_mode else None,stderr=subprocess.STDOUT if json_mode else None,check=False)
+def execute(command, *, json_mode=False, cwd=ROOT, preserve_stdio=False):
+    with preserved_stdio_flags() if preserve_stdio else contextlib.nullcontext():
+        proc=subprocess.run([str(x) for x in command],cwd=cwd,text=True,stdout=subprocess.PIPE if json_mode else None,stderr=subprocess.STDOUT if json_mode else None,check=False)
     if json_mode:
         print(json.dumps({'ok':proc.returncode==0,'exit_code':proc.returncode,'command':[str(x) for x in command],'output':proc.stdout},sort_keys=True))
     return proc.returncode
@@ -73,7 +78,7 @@ def main(argv=None):
         if cmd=='gate': return make(['release-gate'],j)
         if cmd=='permissions': return make(['permissions'],j)
         if cmd=='run':
-            require_qemu(); target={'direct':'run','generic':'generic-qemu-run','probe':'probe-qemu-smoke'}[args.profile]; return make([target],j)
+            require_qemu(); target={'direct':'run','generic':'generic-qemu-run','probe':'probe-qemu-smoke'}[args.profile]; return execute(['make','--no-print-directory',target],json_mode=j,preserve_stdio=True)
         if cmd in {'deploy','recover','inspect','evidence'}:
             action={'recover':'reset'}.get(cmd,cmd)
             return execute([sys.executable,'host/fbr34kdeploy.py',action,*args.arguments],json_mode=j)
@@ -95,8 +100,11 @@ def main(argv=None):
         if cmd=='hardware': return execute([sys.executable,'host/hardware_workflow.py',*args.arguments],json_mode=j)
         if cmd=='physical-validation': return execute([sys.executable,'host/physical_validation.py',*args.arguments],json_mode=j)
         if cmd=='b34stool': return execute([sys.executable,'b34stool.py',*args.arguments],json_mode=j)
-        if cmd=='forensics': return execute([sys.executable,'b34st','forensics',*args.arguments],json_mode=j)
-        if cmd=='cve': return execute([sys.executable,'b34st','cve',*args.arguments],json_mode=j)
+        if cmd in {'forensics','cve'}:
+            return execute(
+                [sys.executable,'-m','b34st.b34st',cmd,*args.arguments],
+                json_mode=j,
+            )
         if cmd.startswith('new-'):
             argv2=[sys.executable,'scripts/scaffold.py',cmd[4:],args.name,args.destination]
             if args.force: argv2.append('--force')

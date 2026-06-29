@@ -1,0 +1,75 @@
+{
+  "adapter_abi": 1,
+  "allowed_modes": [
+    "DFU",
+    "Recovery",
+    "Recovery Mode"
+  ],
+  "authorization_policy": "explicit-per-session-and-after-reset",
+  "board_configurations": [],
+  "bridge_console_verified": false,
+  "console_transports": [
+    "first-stage-bridge",
+    "adapter-console"
+  ],
+  "cpids": [
+    "0x8103"
+  ],
+  "default_boot_command": "bootx",
+  "direct_stock_iboot_compatible": false,
+  "evidence_requirements": [
+    "device-identity",
+    "image-hash",
+    "memory-map",
+    "stage-results",
+    "adapter-transcript"
+  ],
+  "execution_contract": "external-authorized-loader",
+  "family": "m1",
+  "maturity": "simulated",
+  "max_image_size": 33554432,
+  "memory_policy": "adapter-reported-only",
+  "physical_execution_verified": false,
+  "product_types": [],
+  "profile_id": "apple-m1-recovery",
+  "qemu_runtime_verified": false,
+  "representative_products": [
+    "MacBookAir10,1",
+    "MacBookPro17,1",
+    "Macmini9,1",
+    "iMac21,1",
+    "iMac21,2",
+    "iPad13,4",
+    "iPad13,5",
+    "iPad13,6",
+    "iPad13,7",
+    "iPad13,8",
+    "iPad13,9",
+    "iPad13,10",
+    "iPad13,11"
+  ],
+  "required_bringup_stages": [
+    "console",
+    "board-inventory",
+    "memory-map",
+    "timer",
+    "interrupts",
+    "watchdog",
+    "boot-evidence"
+  ],
+  "requires_authorized_session": true,
+  "requires_exact_product": false,
+  "requires_runtime_memory_map": true,
+  "schema_version": 1,
+  "soc": "T8103 / M1",
+  "transport": "irecovery",
+  "validation_candidate": true,
+  "validation_requirements": [
+    "exact-profile-match",
+    "verified-image-hash",
+    "adapter-memory-map",
+    "console-entry-evidence",
+    "boot-evidence",
+    "safe-reset-evidence"
+  ]
+}

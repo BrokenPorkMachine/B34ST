@@ -69,6 +69,14 @@ class DeviceDashboardTests(unittest.TestCase):
             actions = {item["id"]: item for item in snapshot["actions"]}
             self.assertTrue(actions["research-runtime"]["available"])
             self.assertTrue(actions["tethered-downgrade"]["available"])
+            self.assertEqual(
+                actions["tethered-downgrade"]["title"],
+                "Guided tethered downgrade",
+            )
+            self.assertIn(
+                "separately installed external tether adapter",
+                actions["tethered-downgrade"]["reason"],
+            )
 
     def test_normal_mode_reports_current_version(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

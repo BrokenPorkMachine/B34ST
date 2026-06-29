@@ -28,11 +28,19 @@ static void *progress_ctx;
 #define APPLE_DEVICE_TREE_MAGIC 0xD00DF000U
 #define APPLE_KERNELCACHE_SEARCH_RANGE_A12 (0x800000000ULL)
 #define APPLE_KERNELCACHE_SEARCH_END_A12  (0x900000000ULL)
+#define APPLE_KERNELCACHE_SEARCH_RANGE_A14 (0x800000000ULL)
+#define APPLE_KERNELCACHE_SEARCH_END_A14  (0xC00000000ULL)
+#define APPLE_KERNELCACHE_SEARCH_RANGE_M1  (0x800000000ULL)
+#define APPLE_KERNELCACHE_SEARCH_END_M1   (0x1800000000ULL)
 #define APPLE_KERNELCACHE_SEARCH_RANGE_QEMU (0x40000000ULL)
 #define APPLE_KERNELCACHE_SEARCH_END_QEMU  (0x80000000ULL)
 #define SEP_BASE_A12  0x82D000000ULL
 #define SEP_BASE_A12X 0x82D000000ULL
 #define SEP_BASE_A13  0x82E000000ULL
+#define SEP_BASE_A14  0x82F000000ULL
+#define SEP_BASE_M1   0x82D000000ULL
+#define SEP_BASE_A15  0x82F000000ULL
+#define SEP_BASE_M2   0x830000000ULL
 
 typedef struct {
     u32 magic;
@@ -280,9 +288,19 @@ bool jailbreak_detect_kaslr_slide(u64 kernelcache_phys, u64 kernelcache_size)
 bool jailbreak_detect_kernel(u64 kernelcache_phys, u64 kernelcache_size)
 {
     if (kernelcache_phys == 0U || kernelcache_size == 0U) {
-        kernelcache_phys = scan_for_kernelcache(0x800000000ULL, 0x900000000ULL);
+        kernelcache_phys = scan_for_kernelcache(APPLE_KERNELCACHE_SEARCH_RANGE_A12,
+                                                 APPLE_KERNELCACHE_SEARCH_END_A12);
         if (kernelcache_phys == 0U) {
-            kernelcache_phys = scan_for_kernelcache(0x40000000ULL, 0x80000000ULL);
+            kernelcache_phys = scan_for_kernelcache(APPLE_KERNELCACHE_SEARCH_RANGE_A14,
+                                                     APPLE_KERNELCACHE_SEARCH_END_A14);
+        }
+        if (kernelcache_phys == 0U) {
+            kernelcache_phys = scan_for_kernelcache(APPLE_KERNELCACHE_SEARCH_RANGE_M1,
+                                                     APPLE_KERNELCACHE_SEARCH_END_M1);
+        }
+        if (kernelcache_phys == 0U) {
+            kernelcache_phys = scan_for_kernelcache(APPLE_KERNELCACHE_SEARCH_RANGE_QEMU,
+                                                     APPLE_KERNELCACHE_SEARCH_END_QEMU);
         }
         if (kernelcache_phys == 0U) {
             log_write(LOG_LEVEL_WARN, "jailbreak: no kernelcache found in DRAM");
@@ -442,7 +460,8 @@ bool jailbreak_inject_boot_args(const char *custom_args)
 bool jailbreak_detect_sep(u64 sep_mmio_base)
 {
     if (sep_mmio_base == 0U) {
-        u64 bases[] = {SEP_BASE_A13, SEP_BASE_A12X, SEP_BASE_A12, 0U};
+        u64 bases[] = {SEP_BASE_M2, SEP_BASE_A15, SEP_BASE_A14, SEP_BASE_A13,
+                       SEP_BASE_M1, SEP_BASE_A12X, SEP_BASE_A12, 0U};
         for (u32 i = 0U; bases[i] != 0U; ++i) {
             u32 test = 0U;
             if (mmio_probe_read32(bases[i], &test) && test != 0U && test != 0xFFFFFFFFU) {

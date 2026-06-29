@@ -165,7 +165,7 @@ B34ST is the unified control panel that wraps all FBR34KER operations. Launch it
 
 After installation, run `B34ST` from anywhere. Direct subcommands remain available through `./fbr34ker` for automation.
 
-### 14 menu categories
+### 15 menu categories
 
 | Category | Description |
 |----------|-------------|
@@ -181,8 +181,9 @@ After installation, run `B34ST` from anywhere. Direct subcommands remain availab
 | Release | Package, gate, permissions, release management |
 | Module | FMOD/FMBC module operations |
 | Research Runtime | Guided evidence-gated workflow |
-| Forensics | Evidence acquisition, secrets extraction |
+| Frontier | A13+/M-series exploit research, chipset catalog, CVE planning |
 | B34ST | Environment plan, control panel configuration |
+| Forensics | Evidence acquisition, secrets extraction |
 
 ### Session logging system
 
@@ -251,7 +252,15 @@ Erase restore adds `idevicerestore --erase`. Intentionally separate from upgrade
 
 ### Tethered downgrade
 
-Unsigned firmware is never sent through the signed stock restore path. B34ST first produces a tethered downgrade plan. Execution requires a reviewed external adapter implementing `schemas/tethered-downgrade-adapter-v1.json`. A tethered runtime is not persistent — the external boot chain must run again after every restart.
+Choose **Guided tethered downgrade**. B34ST validates a local or downloaded
+unsigned IPSW, preflights a separately installed external adapter, saves the
+plan, and only then offers execution. It does not bundle a target-specific
+adapter or use the signed stock restore path. Without an adapter, the guide
+stops safely after planning. The external boot stage must run again after every
+restart. The adapter is a separately installed executable or reviewed wrapper
+that performs the target-specific DFU/recovery boot sequence; it is not the
+IPSW, cable, or `idevicerestore`. See
+[`docs/TETHERED_DOWNGRADE.md`](docs/TETHERED_DOWNGRADE.md).
 
 ### Failure and return behavior
 
@@ -711,7 +720,7 @@ B34ST includes targeted firmware discovery, Apple-CDN downloads, IPSW manifest i
 fbr34ker ipsw catalog --product iPhone12,1 --signed-only
 fbr34ker ipsw download --product iPhone12,1 --version 17.6.1
 fbr34ker ipsw upgrade --product iPhone12,1 --ipsw file.ipsw
-fbr34ker ipsw tethered-downgrade --product iPhone12,1 --ipsw old.ipsw
+fbr34ker ipsw tethered-downgrade-guide
 ```
 
 ### IPSW catalog
@@ -733,7 +742,20 @@ The catalog command queries Apple's firmware signing window. Results include bui
 
 ### Tethered downgrade
 
-Unsigned firmware never passes through the signed stock restore path. B34ST produces a tethered downgrade plan requiring a reviewed external adapter implementing `schemas/tethered-downgrade-adapter-v1.json`. Tethered runtime requires re-boot after every restart.
+Use B34ST's **Guided tethered downgrade** workflow. It selects or downloads the
+target IPSW, validates the exact product/manifest/SHA-256, preflights the
+external adapter, saves a human-readable and JSON plan, and only then offers
+execution. B34ST does not bundle the target-specific adapter; without one the
+guide stops safely after planning. Tethered runtime requires the external boot
+stage after every restart. The adapter is the separately installed
+target-specific executable that performs the device-side boot sequence and
+returns JSON to B34ST. See
+[`docs/TETHERED_DOWNGRADE.md`](docs/TETHERED_DOWNGRADE.md).
+
+Public checkm8-era projects such as Legacy iOS Kit, Semaphorin, and palera1n
+target A11 or earlier hardware and are not drop-in adapters for B34ST's A12+
+profiles. The full guide includes a compatibility table and a contract-only
+example adapter.
 
 ---
 

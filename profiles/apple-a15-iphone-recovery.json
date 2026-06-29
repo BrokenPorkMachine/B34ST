@@ -1,0 +1,75 @@
+{
+  "adapter_abi": 1,
+  "allowed_modes": [
+    "DFU",
+    "Recovery",
+    "Recovery Mode"
+  ],
+  "authorization_policy": "explicit-per-session-and-after-reset",
+  "board_configurations": [],
+  "bridge_console_verified": false,
+  "console_transports": [
+    "first-stage-bridge",
+    "adapter-console"
+  ],
+  "cpids": [
+    "0x8110"
+  ],
+  "default_boot_command": "bootx",
+  "direct_stock_iboot_compatible": false,
+  "evidence_requirements": [
+    "device-identity",
+    "image-hash",
+    "memory-map",
+    "stage-results",
+    "adapter-transcript"
+  ],
+  "execution_contract": "external-authorized-loader",
+  "family": "a15",
+  "generic_family_fallback": "apple-a15-recovery",
+  "maturity": "simulated",
+  "max_image_size": 16777216,
+  "memory_policy": "adapter-reported-only",
+  "physical_execution_verified": false,
+  "product_types": [
+    "iPhone14,2",
+    "iPhone14,3",
+    "iPhone14,4",
+    "iPhone14,5",
+    "iPhone14,6"
+  ],
+  "profile_id": "apple-a15-iphone-recovery",
+  "profile_scope": "exact-product-group",
+  "qemu_runtime_verified": false,
+  "representative_products": [
+    "iPhone14,2",
+    "iPhone14,3",
+    "iPhone14,4",
+    "iPhone14,5",
+    "iPhone14,6"
+  ],
+  "required_bringup_stages": [
+    "console",
+    "board-inventory",
+    "memory-map",
+    "timer",
+    "interrupts",
+    "watchdog",
+    "boot-evidence"
+  ],
+  "requires_authorized_session": true,
+  "requires_exact_product": true,
+  "requires_runtime_memory_map": true,
+  "schema_version": 1,
+  "soc": "T8110 / A15 Bionic iPhone",
+  "transport": "irecovery",
+  "validation_candidate": true,
+  "validation_requirements": [
+    "exact-profile-match",
+    "verified-image-hash",
+    "adapter-memory-map",
+    "console-entry-evidence",
+    "boot-evidence",
+    "safe-reset-evidence"
+  ]
+}

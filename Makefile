@@ -42,6 +42,10 @@ APPLE_BOOT_DIR ?= build-apple
 A12_BOOT_DIR := $(APPLE_BOOT_DIR)/a12
 A12X_BOOT_DIR := $(APPLE_BOOT_DIR)/a12x
 A13_BOOT_DIR := $(APPLE_BOOT_DIR)/a13
+A14_BOOT_DIR := $(APPLE_BOOT_DIR)/a14
+M1_BOOT_DIR  := $(APPLE_BOOT_DIR)/m1
+A15_BOOT_DIR := $(APPLE_BOOT_DIR)/a15
+M2_BOOT_DIR  := $(APPLE_BOOT_DIR)/m2
 APPLE_BRINGUP_SIM_DIR := $(APPLE_BOOT_DIR)/bringup-simulation
 PHYSICAL_INTEGRATION_SIM_DIR := $(APPLE_BOOT_DIR)/physical-integration-simulation
 PHYSICAL_VALIDATION_DIR := $(APPLE_BOOT_DIR)/physical-validation-candidate
@@ -244,6 +248,9 @@ check-install:
 	./scripts/install.sh --prefix /usr/local --destdir $(CURDIR)/$(BUILD_DIR)/install-test
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker version >/dev/null
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker abi-check >/dev/null
+	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker ipsw --help >/dev/null
+	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker forensics list-profiles >/dev/null
+	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker cve stats >/dev/null
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/B34ST --version >/dev/null
 	./scripts/uninstall.sh --prefix /usr/local --destdir $(CURDIR)/$(BUILD_DIR)/install-test
 	@test ! -e $(BUILD_DIR)/install-test/usr/local/bin/fbr34ker
@@ -254,6 +261,10 @@ permissions:
 
 check-native:
 	@mkdir -p $(BUILD_DIR)/tests
+	$(CC) -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		kernel/format.c kernel/string.c tests/format_console_stub.c \
+		tests/format_harness.c -o $(BUILD_DIR)/tests/format_harness
+	$(BUILD_DIR)/tests/format_harness
 	$(CC) -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
 		kernel/sha256.c kernel/string.c tests/sha256_harness.c \
 		-o $(BUILD_DIR)/tests/sha256_harness
@@ -531,9 +542,25 @@ apple-boot-images: generic modules handoff-binary
 	$(PYTHON) host/boot_image.py build --profile profiles/apple-a13-recovery.json \
 		$(APPLE_BOOT_COMMON) --output $(A13_BOOT_DIR)/boot.img \
 		--raw-output $(A13_BOOT_DIR)/boot.raw
+	$(PYTHON) host/boot_image.py build --profile profiles/apple-a14-recovery.json \
+		$(APPLE_BOOT_COMMON) --output $(A14_BOOT_DIR)/boot.img \
+		--raw-output $(A14_BOOT_DIR)/boot.raw
+	$(PYTHON) host/boot_image.py build --profile profiles/apple-a15-recovery.json \
+		$(APPLE_BOOT_COMMON) --output $(A15_BOOT_DIR)/boot.img \
+		--raw-output $(A15_BOOT_DIR)/boot.raw
+	$(PYTHON) host/boot_image.py build --profile profiles/apple-m1-recovery.json \
+		$(APPLE_BOOT_COMMON) --output $(M1_BOOT_DIR)/boot.img \
+		--raw-output $(M1_BOOT_DIR)/boot.raw
+	$(PYTHON) host/boot_image.py build --profile profiles/apple-m2-recovery.json \
+		$(APPLE_BOOT_COMMON) --output $(M2_BOOT_DIR)/boot.img \
+		--raw-output $(M2_BOOT_DIR)/boot.raw
 	$(PYTHON) host/boot_image.py inspect $(A12_BOOT_DIR)/boot.img --json >/dev/null
 	$(PYTHON) host/boot_image.py inspect $(A12X_BOOT_DIR)/boot.img --json >/dev/null
 	$(PYTHON) host/boot_image.py inspect $(A13_BOOT_DIR)/boot.img --json >/dev/null
+	$(PYTHON) host/boot_image.py inspect $(A14_BOOT_DIR)/boot.img --json >/dev/null
+	$(PYTHON) host/boot_image.py inspect $(A15_BOOT_DIR)/boot.img --json >/dev/null
+	$(PYTHON) host/boot_image.py inspect $(M1_BOOT_DIR)/boot.img --json >/dev/null
+	$(PYTHON) host/boot_image.py inspect $(M2_BOOT_DIR)/boot.img --json >/dev/null
 
 
 apple-bringup-simulate: apple-boot-images
@@ -559,8 +586,7 @@ physical-validation-candidate: apple-boot-images
 		--output $(PHYSICAL_VALIDATION_DIR) \
 		--image $(A13_BOOT_DIR)/boot.img \
 		--profile profiles/apple-a13-iphone-recovery.json \
-		--device-info examples/a13-device-info.json \
-		$(if $(wildcard $(RUNTIME_ARTIFACT_DIR)/gate/summary.json),--qemu-summary $(RUNTIME_ARTIFACT_DIR)/gate/summary.json,)
+		--device-info examples/a13-device-info.json$(if $(wildcard $(RUNTIME_ARTIFACT_DIR)/gate/summary.json), --qemu-summary $(RUNTIME_ARTIFACT_DIR)/gate/summary.json,)
 	$(PYTHON) host/physical_validation.py validate-session \
 		$(PHYSICAL_VALIDATION_DIR)/success-session.zip >/dev/null
 	$(PYTHON) host/physical_validation.py validate-session \
@@ -595,6 +621,14 @@ manifest: all generic hardware-probe modules loader-check loader-conformance-tes
 		$(A12X_BOOT_DIR)/boot.raw $(A12X_BOOT_DIR)/boot.raw.json \
 		$(A13_BOOT_DIR)/boot.img $(A13_BOOT_DIR)/boot.img.json \
 		$(A13_BOOT_DIR)/boot.raw $(A13_BOOT_DIR)/boot.raw.json \
+		$(A14_BOOT_DIR)/boot.img $(A14_BOOT_DIR)/boot.img.json \
+		$(A14_BOOT_DIR)/boot.raw $(A14_BOOT_DIR)/boot.raw.json \
+		$(A15_BOOT_DIR)/boot.img $(A15_BOOT_DIR)/boot.img.json \
+		$(A15_BOOT_DIR)/boot.raw $(A15_BOOT_DIR)/boot.raw.json \
+		$(M1_BOOT_DIR)/boot.img $(M1_BOOT_DIR)/boot.img.json \
+		$(M1_BOOT_DIR)/boot.raw $(M1_BOOT_DIR)/boot.raw.json \
+		$(M2_BOOT_DIR)/boot.img $(M2_BOOT_DIR)/boot.img.json \
+		$(M2_BOOT_DIR)/boot.raw $(M2_BOOT_DIR)/boot.raw.json \
 		$(APPLE_BRINGUP_SIM_DIR)/simulation-summary.json \
 		$(APPLE_BRINGUP_SIM_DIR)/success-evidence.zip \
 		$(APPLE_BRINGUP_SIM_DIR)/failure-evidence.zip \
@@ -632,6 +666,10 @@ verify-layouts:
 	$(PYTHON) host/boot_image.py inspect $(A12_BOOT_DIR)/boot.img --json >/dev/null
 	$(PYTHON) host/boot_image.py inspect $(A12X_BOOT_DIR)/boot.img --json >/dev/null
 	$(PYTHON) host/boot_image.py inspect $(A13_BOOT_DIR)/boot.img --json >/dev/null
+	$(PYTHON) host/boot_image.py inspect $(A14_BOOT_DIR)/boot.img --json >/dev/null
+	$(PYTHON) host/boot_image.py inspect $(A15_BOOT_DIR)/boot.img --json >/dev/null
+	$(PYTHON) host/boot_image.py inspect $(M1_BOOT_DIR)/boot.img --json >/dev/null
+	$(PYTHON) host/boot_image.py inspect $(M2_BOOT_DIR)/boot.img --json >/dev/null
 	@test -s $(APPLE_BRINGUP_SIM_DIR)/simulation-summary.json
 	@test -s $(PHYSICAL_INTEGRATION_SIM_DIR)/simulation-summary.json
 	@test -s $(PHYSICAL_VALIDATION_DIR)/summary.json

@@ -374,8 +374,8 @@ def _ipsw_workflows(session: Session) -> None:
         print("  5. Plan a signed update preserving data")
         print("  6. Execute a signed update preserving data")
         print("  7. Plan or execute an erase restore")
-        print("  8. Plan a tethered downgrade")
-        print("  9. Execute through an external tether adapter")
+        print("  8. Guided tethered downgrade (recommended)")
+        print("  9. Explain tethered downgrade requirements")
         print("  0. Back")
         choice = _prompt("Selection", "1")
         if choice in {"1", "2"}:
@@ -436,38 +436,70 @@ def _ipsw_workflows(session: Session) -> None:
                 ]
             session.run(command, label="Signed IPSW restore", interactive=True)
             _pause()
-        elif choice in {"8", "9"}:
-            product = _prompt("Apple product identifier", "iPhone12,1")
-            path = _prompt("Unsigned target IPSW path")
-            command = [
-                "ipsw",
-                "tethered-downgrade",
-                "--product",
-                product,
-                "--ipsw",
-                path,
-                "--evidence",
-                str(session.directory / "tethered-downgrade.json"),
-            ]
-            if choice == "9":
-                adapter = _prompt("External tether adapter command")
-                owner = _prompt(
-                    f'Type "{AUTHORIZATION_TEXT.replace("TEST", "RESTORE")}"'
-                )
-                confirm = _prompt('Type "START TETHERED DOWNGRADE"')
-                command += [
-                    "--adapter-command",
-                    adapter,
-                    "--execute",
-                    "--owner-authorization",
-                    owner,
-                    "--confirm",
-                    confirm,
-                ]
-            session.run(command, label="Tethered downgrade", interactive=True)
+        elif choice == "8":
+            _guided_tethered_downgrade(session)
+            _pause()
+        elif choice == "9":
+            _explain_tethered_downgrade()
             _pause()
         elif choice in {"0", "q", ""}:
             return
+
+
+def _explain_tethered_downgrade() -> None:
+    print(
+        "\nTethered downgrade: what it means\n"
+        "---------------------------------\n"
+        "• The target IPSW is unsigned and cannot use Apple's stock restore path.\n"
+        "• The result is temporary. The external boot stage must run after every restart.\n"
+        "• B34ST validates the IPSW, records the plan, and invokes an adapter.\n"
+        "• B34ST does not bundle the target-specific external tether adapter.\n"
+        "• The adapter reads request JSON on stdin and writes response JSON on stdout.\n"
+        "\nWhat the tether adapter is:\n"
+        "  A separately installed, target-specific executable—a program, script,\n"
+        "  or reviewed wrapper around lab boot tooling. It communicates with the\n"
+        "  device in DFU/recovery mode and performs the external boot sequence\n"
+        "  B34ST cannot perform itself.\n"
+        "\nWhat it is not:\n"
+        "  It is not the IPSW, a USB cable, idevicerestore, or a generic component\n"
+        "  bundled with B34ST.\n"
+        "\nPublic options and compatibility:\n"
+        "  Semaphorin and other checkm8-era tools target A11 and earlier hardware.\n"
+        "  palera1n is a jailbreak, futurerestore is a blob-based restore workflow,\n"
+        "  and libirecovery/idevicerestore are components rather than adapters.\n"
+        "  None is a verified drop-in adapter for B34ST's current A12+ profiles.\n"
+        "\nRecommended path:\n"
+        "  1. Select Guided tethered downgrade.\n"
+        "  2. Choose a local IPSW or an Apple catalog download.\n"
+        "  3. Provide the reviewed adapter command, or leave it blank for plan-only.\n"
+        "  4. Review the exact target and SHA-256 before authorizing execution.\n"
+        "\nAdapter configuration:\n"
+        "  export B34ST_TETHER_ADAPTER='/absolute/path/to/adapter [arguments]'\n"
+        "\nFull guide: docs/TETHERED_DOWNGRADE.md"
+    )
+
+
+def _guided_tethered_downgrade(
+    session: Session,
+    *,
+    product: str | None = None,
+    ecid: str | None = None,
+) -> int:
+    command = [
+        "ipsw",
+        "tethered-downgrade-guide",
+        "--evidence",
+        str(session.directory / "tethered-downgrade.json"),
+    ]
+    if product:
+        command += ["--product", product]
+    if ecid:
+        command += ["--ecid", ecid]
+    return session.run(
+        command,
+        label="Guided tethered downgrade",
+        interactive=True,
+    )
 
 
 def _modification_workflows(session: Session) -> None:
@@ -1445,41 +1477,11 @@ def _run_device_action(session: Session, snapshot: dict, action: dict) -> None:
         _physical_flow(session)
         return
     if action_id == "tethered-downgrade":
-        path = _prompt("Verified unsigned target IPSW path")
-        if not path:
-            return
-        plan = [
-            "ipsw",
-            "tethered-downgrade",
-            "--product",
-            product,
-            "--ipsw",
-            path,
-            "--evidence",
-            str(session.directory / "tethered-downgrade.json"),
-        ]
-        if session.run(plan, label="Tethered downgrade plan") != 0:
-            _pause()
-            return
-        if not _confirm("Plan reviewed. Continue to external tether adapter"):
-            _pause()
-            return
-        adapter = _prompt("External tether adapter command")
-        owner = _prompt('Type "I OWN OR AM AUTHORIZED TO RESTORE THIS DEVICE"')
-        confirm = _prompt('Type "START TETHERED DOWNGRADE"')
-        session.run(
-            plan
-            + [
-                "--adapter-command",
-                adapter,
-                "--execute",
-                "--owner-authorization",
-                owner,
-                "--confirm",
-                confirm,
-            ],
-            label="External tethered downgrade",
-            interactive=True,
+        device = snapshot.get("device") or {}
+        _guided_tethered_downgrade(
+            session,
+            product=product,
+            ecid=str(device.get("ecid")) if device.get("ecid") else None,
         )
         _pause()
         return

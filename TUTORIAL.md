@@ -248,19 +248,18 @@ Press `Ctrl-A` then `X`, or close the terminal window.
 ./scripts/B34ST
 ```
 
-This launches the B34ST interactive menu system. The initial screen shows the 14-category menu:
+This launches the B34ST interactive menu system. The initial screen shows the 15-category menu:
 
 ```
 FBR34KER B34ST v0.3.0 — Unified Multi-Tool Control Panel
 
- 1.  System           7.  Hardware         13. Research Runtime
- 2.  Device           8.  Session          14. B34ST
- 3.  USBliter8        9.  Validation
- 4.  IPSW            10.  Release
- 5.  Boot Image      11.  Module
- 6.  Deployment      12.  CVE
+ 1.  System           6.  Deployment      11.  Module
+ 2.  Device           7.  Hardware        12.  Research Runtime
+ 3.  USBliter8        8.  Session         13.  Frontier
+ 4.  IPSW             9.  Validation      14.  B34ST
+ 5.  Boot Image      10.  Release         15.  Forensics
 
-Select category (1-14, q quit, h help):
+Select category (1-15, q quit, h help):
 ```
 
 ### Session logging
@@ -797,10 +796,17 @@ Adds `idevicerestore --erase`. Backups and Find My requirements are shown before
 #### Tethered downgrade
 
 ```sh
-# Within B34ST: select Device → Tethered Downgrade
+# Within B34ST: select the device action → Guided tethered downgrade
 ```
 
-B34ST first produces a tethered downgrade plan. Execution requires a reviewed external adapter implementing `schemas/tethered-downgrade-adapter-v1.json`. A tethered runtime is not persistent — the external boot chain must run again after every restart.
+The guided flow accepts a local IPSW or an Apple catalog download, validates
+the exact target and SHA-256, preflights the separately installed external
+adapter, saves a plan, and only then offers execution. Without an adapter it
+stops safely after planning. A tethered runtime is not persistent—the external
+boot chain must run again after every restart. The adapter is a separately
+installed target-specific executable or reviewed wrapper that performs the
+DFU/recovery boot sequence; it is not the IPSW, cable, or `idevicerestore`. See
+`docs/TETHERED_DOWNGRADE.md`.
 
 #### Failure and return behavior
 
@@ -858,10 +864,12 @@ Requires `idevicerestore`. B34ST runs a preflight check first, then performs the
 ### Tethered downgrade
 
 ```sh
-./fbr34ker ipsw tethered-downgrade --product iPhone12,1 --version 17.0 --ipsw path/to/17.0.ipsw
+./fbr34ker ipsw tethered-downgrade-guide
 ```
 
-Produces a tethered downgrade plan. Execution requires an external tether adapter. After every restart, the external boot chain must be re-run.
+The guide creates a validated plan and optionally invokes a reviewed external
+tether adapter. B34ST does not bundle that target-specific adapter. After
+every restart, the external boot chain must be re-run.
 
 ## 13. CVE database and exploit chain planner
 

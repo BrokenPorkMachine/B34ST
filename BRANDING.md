@@ -1,8 +1,8 @@
 # FBR34KER branding
 
 Project: **FBR34KER**
-Release: **0.4.5b Beta**
-Release root: `B34ST_0.4.5b_Beta`
+Release: **0.5.0b Beta**
+Release root: `B34ST_0.5.0b_Beta`
 
 FBR34KER is a generic ARM64 preboot monitor and authorized loader-integration
 research toolkit. It includes disabled, non-operational security-state models

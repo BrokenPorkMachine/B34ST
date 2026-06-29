@@ -640,49 +640,47 @@ The CVE subsystem includes a fuzzer framework with available fuzz targets for di
 
 ---
 
-## Forensics capabilities
+## Forensic acquisition
 
-B34ST provides a comprehensive forensics and data acquisition subsystem.
+B34ST provides comprehensive forensics and data acquisition capabilities.
 
-### Commands
+B34ST forensic acquisition supports:
 
-```sh
-B34ST forensics guided             # interactive guided forensics workflow
-B34ST forensics acquire            # standard evidence acquisition
-B34ST forensics verify             # verify a forensics evidence bundle
-B34ST forensics list-profiles      # list built-in acquisition profiles
-```
+- `b34st forensics acquire --profile full            # full forensic acquisition`
+- `b34st forensics verify evidence-bundle.zip       # validate an evidence bundle`
+- `b34st forensics acquire --profile with-secrets  # include secrets extraction`
+- `b34st forensics acquire --profile with-activation  # include activation bypass`
+- `b34st forensics acquire --profile with-passcode  # include passcode operations`
 
-### Acquisition profiles
+All acquisition stages include chain-of-custody logging and structured evidence output:
 
-- `quick` — Fast targeted acquisition
-- `full` — Complete device acquisition
-- `memory-only` — Volatile memory capture
-- `storage-only` — Non-volatile storage capture
-- `filesystem-only` — Filesystem logical acquisition
-- `network-only` — Network traffic capture
+- `session.json` - session configuration and evidence gate results
+- `console.log` - console output and CLI interactions
+- `device.json` - device identity and hardware configuration  
+- `transfer.log` - data transfer and acquisition process
+- `trace.json` - framework traces and event logs
+- `boot-evidence.json` - boot chain attestation
+- `crash-report.json` - crash traces and fault injection results
+- `checksums.sha256` - evidence integrity verification
 
-### Secrets extraction
+## Forensic research tools
 
-```sh
-B34ST forensics secrets            # iCloud/Keychain/Keybag extraction
-```
+B34ST also includes specialized forensic research tools for SEP/sepOS vulnerability discovery and evidence-gated research:
 
-### Activation and FMI control
+- `b34st sep-research run --transport simulator     # full SEP Research Pipeline (26 stages, 126 test variations, evidence-gated)`
+- `b34st sep-research list-stages                  # list pipeline stages`
+- `b34st sep-research info                         # show pipeline information`
 
-```sh
-B34ST forensics activation         # activation bypass, baseband, FMI control
-```
+The SEP Research Pipeline provides evidence-gated automated fuzzing for iOS/system/kernel security boundaries and includes comprehensive chain-of-custody logging.
 
-### Passcode operations
+## SEP fuzzing
 
-```sh
-B34ST forensics passcode           # passcode on/off/change/bypass
-```
+The B34ST SEP Key Fuzzer enables automated discovery of SEP-specific vulnerabilities:
 
-### Chain of custody
-
-All forensics operations include chain-of-custody logging, acquisition reports, and structured evidence output.
+- 40 differential tests (device lifecycle / access control / wrapper integrity)
+- 9 bounty significance levels (Limited -> Critical)
+- 6 canary values for fault injection detection
+- Component boundary validation (Device, Authentication, Subsystem, Boot, Key, Firmware)
 
 ---
 

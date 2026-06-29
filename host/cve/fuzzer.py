@@ -16,6 +16,11 @@ class FuzzTarget:
     corpus_path: str | None = None
     fuzzer: str = "honggfuzz"
     args: list[str] = dataclasses.field(default_factory=list)
+    category: list[str] = dataclasses.field(default_factory=lambda: ["core"])
+
+    @property
+    def categories(self) -> list[str]:
+        return self.category if isinstance(self.category, list) else [self.category]
 
 
 @dataclasses.dataclass
@@ -37,42 +42,84 @@ FUZZ_TARGETS: dict[str, FuzzTarget] = {
         description="JavaScriptCore JIT compiler fuzzing",
         fuzzer="honggfuzz",
         args=["--threads", "2", "--timeout", "10"],
+        category=["core"],
     ),
     "webkit-html": FuzzTarget(
         name="webkit-html",
         component="webkit",
         description="WebKit HTML parser fuzzing",
         fuzzer="honggfuzz",
+        category=["core"],
     ),
     "kernel-mach": FuzzTarget(
         name="kernel-mach",
         component="kernel",
         description="XNU Mach trap fuzzing",
         fuzzer="honggfuzz",
+        category=["core"],
     ),
     "imageio-jpeg": FuzzTarget(
         name="imageio-jpeg",
         component="imageio",
         description="ImageIO JPEG parsing fuzzing",
         fuzzer="honggfuzz",
+        category=["core"],
     ),
     "imageio-png": FuzzTarget(
         name="imageio-png",
         component="imageio",
         description="ImageIO PNG parsing fuzzing",
         fuzzer="honggfuzz",
+        category=["core"],
     ),
     "coretext-font": FuzzTarget(
         name="coretext-font",
         component="coretext",
         description="CoreText font parsing fuzzing",
         fuzzer="honggfuzz",
+        category=["core"],
     ),
     "coreaudio": FuzzTarget(
         name="coreaudio",
         component="coreaudio",
         description="CoreAudio media parsing fuzzing",
         fuzzer="honggfuzz",
+        category=["core"],
+    ),
+    "usb-family-device": FuzzTarget(
+        name="usb-family-device",
+        component="usb",
+        description="Hardware-family USB fuzzing - iPhone as USB device: enumeration, control transfers, vendor-specific requests, accessory protocols, recovery/diagnostic messages, partial/aborted transfers",
+        fuzzer="honggfuzz",
+        category=["hardware_family"],
+    ),
+    "usb-family-host": FuzzTarget(
+        name="usb-family-host",
+        component="usb",
+        description="Hardware-family USB fuzzing - iPhone as USB host: emulating malicious/peripherals (HID, audio, storage, network adapter, hub, composite device), rapid descriptor changes",
+        fuzzer="honggfuzz",
+        category=["hardware_family"],
+    ),
+    "dfu-mode": FuzzTarget(
+        name="dfu-mode",
+        component="usb",
+        description="Hardware-family DFU-mode campaign: USB PHY, device controller, control-request handling, boot ROM dispatcher, memory/clock/reset support, image download/validation, watchdog/reboot logic, behavioral fuzzing",
+        fuzzer="honggfuzz",
+        category=["hardware_family", "dfu"],
+    ),
+    "recovery-mode": FuzzTarget(
+        name="recovery-mode",
+        component="usb",
+        description="Hardware-family recovery-mode campaign: USB recovery command parser, restore-session state machine, Image4/container metadata, manifest/property-list parsing, ramdisk/image handoff, baseband/coprocessor orchestration, error reporting, restart/retry/rollback paths",
+        fuzzer="honggfuzz",
+        category=["hardware_family", "recovery"],
+    ),
+    "diagnostics-mode": FuzzTarget(
+        name="diagnostics-mode",
+        component="usb",
+        description="Hardware-family diagnostics-mode campaign: Self Service Repair/System Configuration diagnostics (battery, thermal, display, touch, camera, audio, storage, sensor, radio tests), diagnostic-result serialization",
+        fuzzer="honggfuzz",
+        category=["hardware_family", "diagnostics"],
     ),
 }
 

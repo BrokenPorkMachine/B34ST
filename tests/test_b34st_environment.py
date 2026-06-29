@@ -21,7 +21,7 @@ class EnvironmentPlanTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("B34ST 0.4.2b", result.stdout)
+        self.assertIn("B34ST 0.4.3b", result.stdout)
 
     def test_subcommand_help_is_displayed(self) -> None:
         for subcommand in ("validate-session", "physical-validation", "hardware-prepare", "environment-plan", "environment-validate", "research-runtime"):

@@ -9,7 +9,6 @@ and evidence-based authentication.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import pathlib
 import sys
@@ -77,6 +76,10 @@ class B34STCLI:
                 return self._usbliter8(argv[1:])
             elif command == "forensics":
                 return self._forensics(argv[1:])
+            elif command in ("sep-fuzz", "sep-fuzzer", "sep-key-fuzz"):
+                return self._sep_fuzz(argv[1:])
+            elif command in ("sep-research", "sep-pipeline", "sep-research-pipeline"):
+                return self._sep_research(argv[1:])
             elif command == "cve":
                 return self._cve(argv[1:])
             elif command == "fbr34ker":
@@ -128,7 +131,8 @@ class B34STCLI:
         print("FBR34KER Runtime Authentication Tool")
         print("Beta")
         print(
-            "\nB34ST v0.4.2b is a lightweight CLI wrapper for FBR34KER's\nphysical validation framework, providing access to:\n"
+            f"\nB34ST v{__version__} is a lightweight CLI wrapper for "
+            "FBR34KER's\nphysical validation framework, providing access to:\n"
         )
         print("• Bundle validation")
         print("• Candidate report generation")
@@ -159,6 +163,17 @@ class B34STCLI:
         print("    forensics secrets             iCloud/Keychain/Keybag extraction")
         print("    forensics activation          Activation bypass & FMI control")
         print("    forensics passcode            Passcode on/off/change/bypass")
+        print("  b34st sep-fuzz                SEP Key Fuzzer — differential wrapper testing")
+        print("    sep-fuzz run                   Run a full fuzzing campaign")
+        print("      --transport <type>             Device transport: simulator|usb|serial")
+        print("    sep-fuzz list-variations       List all fuzz variations")
+        print("    sep-fuzz list-categories       List fuzz categories")
+        print("    sep-fuzz generate-harness      Generate baseline Swift harness")
+        print("  b34st sep-research             SEP Research Pipeline — automated SEP/sepOS fuzzing")
+        print("    sep-research run               Run the full research pipeline")
+        print("      --transport <type>             Device transport: simulator|usb|serial|tcp")
+        print("    sep-research list-stages       List pipeline stages")
+        print("    sep-research info              Show pipeline information")
         print("  b34st cve                     CVE database & exploit chain planner")
         print("    cve search <query>            Search CVEs by ID or description")
         print("    cve query <version>           Get all CVEs for an iOS version")
@@ -175,7 +190,7 @@ class B34STCLI:
         print("  ./fbr34ker validate-session --bundle <file>")
         print("  ./fbr34ker physical-validation candidate-report <options>")
         print("  ./fbr34ker hardware-prepare --list-categories\n")
-        print("B34ST v0.4.2b is part of FBR34KER 0.4.2b Beta")
+        print(f"B34ST v{__version__} is part of FBR34KER {__version__} Beta")
 
     def _validate_session(self, argv: list[str]) -> int:
         """Validate a session bundle using FBR34KER's validate-session command."""
@@ -483,7 +498,7 @@ class B34STCLI:
         )
         sub = parser.add_subparsers(dest="forensics_command", required=True)
 
-        list_p = sub.add_parser(
+        sub.add_parser(
             "list-profiles", help="List built-in acquisition profiles"
         )
 
@@ -688,7 +703,7 @@ class B34STCLI:
             "patch", help="Patch mobileactivationd activation check"
         )
         mobileact_sub.add_parser("restart", help="Restart mobileactivationd")
-        inject_p = mobileact_sub.add_parser("inject", help="Inject activation record")
+        mobileact_sub.add_parser("inject", help="Inject activation record")
 
         passcode_p = sub.add_parser(
             "passcode", help="Passcode management (on/off/change)"
@@ -779,7 +794,6 @@ class B34STCLI:
         from host.forensics.acquisition import (
             AcquisitionEngine,
             AcquisitionTarget,
-            AcquisitionSession,
         )
         from host.forensics.report import AcquisitionReport, ReportError
 
@@ -877,7 +891,7 @@ class B34STCLI:
 
     def _forensics_secrets(self, args: argparse.Namespace) -> int:
         """Run iCloud/Keychain/Keybag acquisition."""
-        from host.forensics.secrets import SecretsAcquisitor, SepMailbox
+        from host.forensics.secrets import SecretsAcquisitor
         from host.forensics.chain_of_custody import CustodyLog
 
         blockers = _check_security_boundary(
@@ -1204,6 +1218,312 @@ class B34STCLI:
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 
+    def _sep_fuzz(self, argv: list[str]) -> int:
+        """Run SEP key fuzzing campaigns (subcommand-based)."""
+        import argparse as ap
+        import json
+
+        parser = ap.ArgumentParser(
+            prog="b34st sep-fuzz",
+            description="SEP Key Fuzzer — differential key-wrapper testing.",
+        )
+        sub = parser.add_subparsers(dest="sep_fuzz_command", required=True)
+
+        run_p = sub.add_parser(
+            "run", help="Run a full SEP key fuzzing campaign"
+        )
+        run_p.add_argument(
+            "--device-model", default="iPhone14,2", help="Device model identifier"
+        )
+        run_p.add_argument(
+            "--os-build", default="21A123", help="iOS build number"
+        )
+        run_p.add_argument(
+            "--chipset", default="A15", help="SoC chipset identifier"
+        )
+        run_p.add_argument(
+            "--output",
+            type=pathlib.Path,
+            default=ROOT / "runtime-artifacts" / "b34st" / "sep-fuzz",
+            help="Output directory for campaign results",
+        )
+        run_p.add_argument(
+            "--categories",
+            nargs="*",
+            choices=["device_lifecycle", "access_control", "wrapper_integrity"],
+            default=None,
+            help="Test categories to run (default: all)",
+        )
+        run_p.add_argument(
+            "--harness-only",
+            action="store_true",
+            help="Only generate the baseline Swift harness, skip campaign",
+        )
+        run_p.add_argument(
+            "--report-only",
+            type=pathlib.Path,
+            default=None,
+            help="Generate bounty report from an existing campaign manifest",
+        )
+        run_p.add_argument(
+            "--transport",
+            default="simulator",
+            choices=["simulator", "usb", "serial"],
+            help="Device transport backend (default: simulator)",
+        )
+        run_p.add_argument(
+            "--transport-args",
+            default="{}",
+            help="JSON dict of transport arguments (e.g. '{\"port\": \"/dev/ttyUSB0\"}')",
+        )
+
+        list_p = sub.add_parser(
+            "list-variations", help="List all fuzz variations defined"
+        )
+        list_p.add_argument(
+            "--category",
+            choices=["device_lifecycle", "access_control", "wrapper_integrity"],
+            default=None,
+            help="Filter variations by category",
+        )
+
+        sub.add_parser(
+            "list-categories", help="List fuzz categories"
+        )
+
+        generate_p = sub.add_parser(
+            "generate-harness", help="Generate the baseline Swift harness"
+        )
+        generate_p.add_argument(
+            "--output",
+            type=pathlib.Path,
+            default=ROOT / "runtime-artifacts" / "b34st" / "sep-fuzz",
+            help="Output directory",
+        )
+
+        try:
+            args = parser.parse_args(argv)
+        except SystemExit as e:
+            return e.code
+
+        from host.forensics.sep_key_fuzzer import (
+            FUZZ_VARIATIONS,
+            SEPKeyFuzzer,
+            generate_baseline_harness,
+            generate_bounty_report,
+        )
+
+        if args.sep_fuzz_command == "list-categories":
+            print("SEP Fuzzer categories:")
+            for cat in sorted(FUZZ_VARIATIONS):
+                count = len(FUZZ_VARIATIONS[cat])
+                print(f"  {cat:25s}  {count} variations")
+            return 0
+
+        if args.sep_fuzz_command == "list-variations":
+            cats = [args.category] if args.category else sorted(FUZZ_VARIATIONS)
+            for cat in cats:
+                print(f"\n[{cat}]")
+                for v in FUZZ_VARIATIONS.get(cat, []):
+                    print(f"  {v['name']:35s}  {v['desc']}")
+            return 0
+
+        if args.sep_fuzz_command == "generate-harness":
+            output = args.output
+            output.mkdir(parents=True, exist_ok=True)
+            harness = generate_baseline_harness(output / "BaselineHarness.swift")
+            print(f"Baseline harness written: {harness}")
+            return 0
+
+        if args.sep_fuzz_command == "run":
+            output = args.output
+            output.mkdir(parents=True, exist_ok=True)
+
+            if args.harness_only:
+                harness = generate_baseline_harness(output / "BaselineHarness.swift")
+                print(f"Baseline harness written: {harness}")
+                print("Harness generated. Deploy to device via FBR34KER.")
+                return 0
+
+            if args.report_only:
+                manifest_path = args.report_only
+                if not manifest_path.is_file():
+                    self.log(
+                        f"Cannot generate report: manifest not found: {manifest_path}",
+                        "ERROR",
+                    )
+                    return 1
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                report_path = generate_bounty_report(manifest, output)
+                print(f"Bounty report generated: {report_path}")
+                return 0
+
+            categories = (
+                set(args.categories) if args.categories else None
+            )
+
+            fuzzer = SEPKeyFuzzer(
+                device_model=args.device_model,
+                os_build=args.os_build,
+                chipset=args.chipset,
+            )
+            fuzzer.generate_base_wrapper()
+
+            # Build submit function from transport backend
+            if args.transport == "simulator":
+                def _simulated_submit(
+                    wrapper: bytes, metadata: dict[str, Any]
+                ) -> dict[str, Any]:
+                    return {
+                        "accepted": False,
+                        "public_key_hex": "",
+                        "output_buffers": [],
+                        "error": "simulated — deploy harness to device for live testing",
+                        "duration_ms": 0.0,
+                    }
+                submit_fn = _simulated_submit
+            else:
+                from host.forensics.sep_deploy import make_fuzzer_submit
+                transport_kwargs: dict[str, Any] = json.loads(
+                    args.transport_args
+                )
+                submit_fn = make_fuzzer_submit(args.transport, **transport_kwargs)
+
+            manifest = fuzzer.run(
+                submit_fn,
+                output,
+                categories=categories,
+            )
+
+            report_path = generate_bounty_report(manifest, output)
+            print(f"Campaign manifest: {output / 'sep-fuzz-campaign.json'}")
+            print(f"Bounty report: {report_path}")
+            print(f"Baseline harness: {output / 'BaselineHarness.swift'}")
+            print(json.dumps(manifest["summary"], indent=2, sort_keys=True))
+            return 0
+
+        return 0
+
+    def _sep_research(self, argv: list[str]) -> int:
+        """Run SEP vulnerability research pipeline stages."""
+        import argparse as ap
+        import json
+
+        parser = ap.ArgumentParser(
+            prog="b34st sep-research",
+            description="SEP vulnerability research pipeline — automated SEP/sepOS fuzzing.",
+        )
+        sub = parser.add_subparsers(dest="pipeline_command", required=True)
+
+        run_p = sub.add_parser("run", help="Run the full research pipeline")
+        run_p.add_argument(
+            "--device-model", default="iPhone14,2", help="Device model identifier"
+        )
+        run_p.add_argument("--os-build", default="21A123", help="iOS build number")
+        run_p.add_argument("--chipset", default="A15", help="SoC chipset identifier")
+        run_p.add_argument(
+            "--output",
+            type=pathlib.Path,
+            default=ROOT / "runtime-artifacts" / "b34st" / "sep-research",
+            help="Output directory",
+        )
+        run_p.add_argument(
+            "--stages",
+            nargs="*",
+            choices=[
+                "architectural_map",
+                "corpus_generation",
+                "differential_analysis",
+                "structural_fuzzing",
+                "stateful_fuzzing",
+                "concurrency_fuzzing",
+                "crash_triage",
+            ],
+            default=None,
+            help="Stages to run (default: all)",
+        )
+        run_p.add_argument(
+            "--transport",
+            default="simulator",
+            choices=["simulator", "usb", "serial", "tcp"],
+            help="Device transport backend (default: simulator)",
+        )
+        run_p.add_argument(
+            "--transport-args",
+            default="{}",
+            help="JSON dict of transport arguments (e.g. '{\"port\": \"/dev/ttyUSB0\"}')",
+        )
+
+        sub.add_parser("list-stages", help="List pipeline stages")
+        sub.add_parser("info", help="Show pipeline component information")
+
+        try:
+            args = parser.parse_args(argv)
+        except SystemExit as e:
+            return e.code
+
+        from host.forensics.sep_research_pipeline import (
+            STAGES, run_pipeline,
+        )
+
+        if args.pipeline_command == "list-stages":
+            print("SEP Research Pipeline stages:")
+            for i, stage in enumerate(STAGES, 1):
+                print(f"  {i}. {stage}")
+            return 0
+
+        if args.pipeline_command == "info":
+            print("SEP Research Pipeline")
+            print("=====================")
+            print()
+            print("A complete SEP/sepOS vulnerability research workflow:")
+            print()
+            print("  1. architectural_map    — Document AP→SEP request boundaries")
+            print("  2. corpus_generation    — Exercise documented APIs with")
+            print("                             synthetic objects")
+            print("  3. differential_analysis — Compare pairs differing in exactly")
+            print("                             one variable")
+            print("  4. structural_fuzzing   — Length errors, integer overflow,")
+            print("                             type confusion mutations")
+            print("  5. stateful_fuzzing     — Sequence mutations (create→use→delete→use)")
+            print("  6. concurrency_fuzzing  — Race conditions (delete vs sign,")
+            print("                             cancel vs complete)")
+            print("  7. crash_triage         — Classify fault layer")
+            print()
+            print("Use the 'run' subcommand to execute stages.")
+            print("Provide a custom api_fn for live device/SRD testing.")
+            return 0
+
+        if args.pipeline_command == "run":
+            output = args.output
+            output.mkdir(parents=True, exist_ok=True)
+
+            api_fn = None
+            if args.transport != "simulator":
+                from host.forensics.sep_deploy import make_research_api
+                transport_kwargs: dict[str, Any] = json.loads(
+                    args.transport_args
+                )
+                api_fn = make_research_api(args.transport, **transport_kwargs)
+
+            result = run_pipeline(
+                output,
+                device_model=args.device_model,
+                os_build=args.os_build,
+                chipset=args.chipset,
+                stages=args.stages,
+                api_fn=api_fn,
+            )
+
+            manifest = output / "campaign-manifest.json"
+            report = output / "SEP_Research_Campaign_Report.md"
+            print(f"Campaign manifest: {manifest}")
+            print(f"Campaign report: {report}")
+            print(json.dumps(result, indent=2))
+            return 0
+
+        return 0
+
     def _cve(self, argv: list[str]) -> int:
         """Handle CVE database and exploit chain planning commands."""
         import argparse as ap
@@ -1410,8 +1730,8 @@ class B34STCLI:
                         f"    Step {link.step}: {link.cve.id:20s} [{comps:20s}] {'✓' if link.cve.exploit_available else ' '}  {link.cve.description[:60]}"
                     )
                 all_provides = set()
-                for l in chain.links:
-                    all_provides.update(l.provides)
+                for link in chain.links:
+                    all_provides.update(link.provides)
                 print(f"    → Provides: {', '.join(sorted(all_provides))}")
                 print()
             return 0
@@ -1587,7 +1907,6 @@ class B34STCLI:
         """USBliter8 hardware preparation, execution, and workflow management."""
         import argparse as ap
         import json
-        import os
         import subprocess
 
         parser = ap.ArgumentParser(
@@ -1665,9 +1984,9 @@ class B34STCLI:
             for i, (item, desc) in enumerate(items, 1):
                 skip = input(f"  [{i}/{len(items)}] {item} ({desc}) [Y/skip]: ").strip()
                 if skip.lower() in ("s", "skip"):
-                    print(f"    -> Skipped")
+                    print("    -> Skipped")
                 else:
-                    print(f"    -> Done")
+                    print("    -> Done")
             evidence_dir = pathlib.Path("runtime-artifacts/b34st/usbliter8")
             evidence_dir.mkdir(parents=True, exist_ok=True)
             prep_record = evidence_dir / "hardware-prep.json"
@@ -1766,12 +2085,12 @@ def main() -> int:
         prog="b34st",
         description="B34ST - FBR34KER Runtime Authentication Tool",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
+        epilog=f"""
 B34ST (B34KER/STAR) is a lightweight CLI wrapper for FBR34KER that
 provides access to deterministic validation workflows, profile maturity
 enforcement, and evidence-based authentication for A12/A13 iPhone hardware.
 
-B34ST v0.4.2b is part of FBR34KER 0.4.2b Beta.
+B34ST v{__version__} is part of FBR34KER {__version__} Beta.
 It integrates with existing FBR34KER validation capabilities while
 providing a streamlined interface for common operations.
         """,
@@ -1788,7 +2107,7 @@ providing a streamlined interface for common operations.
     if len(sys.argv) == 1:
         print("B34ST - FBR34KER Runtime Authentication Tool")
         print(f"Version {__version__} ({__release_name__})")
-        print("\nB34ST v0.4.2b is a lightweight CLI wrapper for FBR34KER")
+        print(f"\nB34ST v{__version__} is a lightweight CLI wrapper for FBR34KER")
         print("\nAvailable commands:")
         print("  b34st validate-session         Validate a session bundle")
         print(

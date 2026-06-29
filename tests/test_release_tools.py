@@ -128,6 +128,20 @@ class ReleaseToolTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stdout)
         self.assertEqual(completed.stdout.strip(), "custom/image")
 
+    def test_version_consistency_accepts_beta_suffix(self) -> None:
+        completed = self.run_python(
+            "scripts/check_version_consistency.py", "--expected", "0.4.4b"
+        )
+        self.assertNotEqual(completed.returncode, 2, completed.stdout)
+        self.assertNotIn("must be a release version", completed.stdout)
+
+    def test_version_consistency_rejects_invalid_version(self) -> None:
+        completed = self.run_python(
+            "scripts/check_version_consistency.py", "--expected", "0.4.3beta"
+        )
+        self.assertEqual(completed.returncode, 2, completed.stdout)
+        self.assertIn("must be a release version", completed.stdout)
+
     def test_smoke_report_paths_are_sanitized(self) -> None:
         self.assertEqual(
             qemu_smoke.display_path(ROOT / "build" / "fbr34ker.bin"),
@@ -169,6 +183,8 @@ class ReleaseToolTests(unittest.TestCase):
                 self.assertEqual((launcher.external_attr >> 16) & 0o777, 0o755)
                 self.assertFalse(any("/build/" in name for name in bundle.namelist()))
                 self.assertFalse(any("/validation-logs/" in name for name in bundle.namelist()))
+                self.assertFalse(any("/.pytest_cache/" in name for name in bundle.namelist()))
+                self.assertFalse(any("/.ruff_cache/" in name for name in bundle.namelist()))
                 self.assertFalse(any(name.endswith(".tmp") for name in bundle.namelist()))
                 self.assertFalse(any(name.endswith(".tar.gz") for name in bundle.namelist()))
 
@@ -195,6 +211,14 @@ class ReleaseToolTests(unittest.TestCase):
             self.assertTrue(os.access(launcher, os.X_OK))
             self.assertTrue(os.access(project / "scripts" / "fbr34ker.sh", os.X_OK))
 
+    def test_package_rejects_unsafe_release_name(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            archive = pathlib.Path(directory) / "unsafe.zip"
+            with self.assertRaisesRegex(ValueError, "release name"):
+                package_release.write_archive(
+                    archive, "B34ST_../../outside", [pathlib.Path("README.md")]
+                )
+
     def test_operational_package_keeps_required_host_runtime(self) -> None:
         paths = set(package_release.operational_paths())
         self.assertIn(pathlib.Path("host/process_support.py"), paths)
@@ -204,6 +228,85 @@ class ReleaseToolTests(unittest.TestCase):
         self.assertNotIn(pathlib.Path("kernel/main.c"), paths)
         self.assertNotIn(pathlib.Path("arch/arm64/start.S"), paths)
         self.assertNotIn(pathlib.Path("platform/qemu_virt/platform.c"), paths)
+        self.assertFalse(
+            any(
+                ".pytest_cache" in path.parts or ".ruff_cache" in path.parts
+                for path in paths
+            )
+        )
+        self.assertFalse(any(path.suffix in {".d", ".o"} for path in paths))
+
+    @unittest.skipUnless(shutil.which("openssl"), "OpenSSL is not installed")
+    def test_release_verifier_accepts_signer_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            artifact = root / "monitor.bin"
+            artifact.write_bytes(b"signed release artifact")
+            generated = self.run_python(
+                "scripts/release_manifest.py",
+                "--version", "0.4.4b",
+                "--release-name", "B34ST_0.4.4b_Beta",
+                "--channel", "beta",
+                "--source-id", "0.4.4b-beta",
+                "--output", "manifest.json",
+                "--checksums", "checksums.sha256",
+                "monitor.bin",
+                cwd=root,
+            )
+            self.assertEqual(generated.returncode, 0, generated.stdout)
+            private_key = root / "private.pem"
+            public_key = root / "public.pem"
+            for command in (
+                [
+                    "openssl", "genpkey", "-algorithm", "RSA",
+                    "-pkeyopt", "rsa_keygen_bits:2048", "-out", str(private_key),
+                ],
+                [
+                    "openssl", "pkey", "-in", str(private_key),
+                    "-pubout", "-out", str(public_key),
+                ],
+                [
+                    "openssl", "dgst", "-sha256", "-sign", str(private_key),
+                    "-out", str(root / "manifest.json.sig"),
+                    str(root / "manifest.json"),
+                ],
+            ):
+                completed = subprocess.run(
+                    command,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    timeout=30,
+                    check=False,
+                )
+                self.assertEqual(completed.returncode, 0, completed.stdout)
+            verified = self.run_python(
+                "scripts/release_verify.py",
+                "manifest.json",
+                "--root", ".",
+                "--signature", "manifest.json.sig",
+                "--public-key", "public.pem",
+                "--json",
+                cwd=root,
+            )
+            self.assertEqual(verified.returncode, 0, verified.stdout)
+            self.assertTrue(json.loads(verified.stdout)["passed"])
+
+    def test_release_verifier_handles_malformed_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            manifest = root / "manifest.json"
+            manifest.write_text(
+                '{"schema_version": 2, "artifacts": [{"path": null}]}',
+                encoding="utf-8",
+            )
+            completed = self.run_python(
+                "scripts/release_verify.py", str(manifest), "--json"
+            )
+            self.assertEqual(completed.returncode, 1, completed.stdout)
+            result = json.loads(completed.stdout)
+            self.assertFalse(result["passed"])
+            self.assertIn("artifact path must be a string", result["errors"])
 
     def test_gate_summary_requires_every_release_stage(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

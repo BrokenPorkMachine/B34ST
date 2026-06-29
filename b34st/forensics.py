@@ -17,7 +17,6 @@ import argparse
 import json
 import pathlib
 import sys
-from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -276,7 +275,143 @@ def parser() -> argparse.ArgumentParser:
 
     sub.add_parser("list-profiles", help="list acquisition profiles")
 
+    # SEP Key Fuzzer subcommands
+    sep_fuzz = sub.add_parser(
+        "sep-fuzz", help="SEP Key Fuzzer — differential SEP key-wrapper testing"
+    )
+    sep_fuzz_sub = sep_fuzz.add_subparsers(
+        dest="sep_fuzz_command", help="SEP fuzzer subcommand", required=True
+    )
+
+    sf_run = sep_fuzz_sub.add_parser(
+        "run", help="Run a full SEP key fuzzing campaign"
+    )
+    sf_run.add_argument(
+        "--device-model", default="iPhone14,2", help="Device model identifier"
+    )
+    sf_run.add_argument("--os-build", default="21A123", help="iOS build number")
+    sf_run.add_argument(
+        "--chipset", default="A15", help="SoC chipset identifier"
+    )
+    sf_run.add_argument(
+        "--output",
+        type=pathlib.Path,
+        default=ROOT / "runtime-artifacts" / "b34st" / "sep-fuzz",
+        help="Output directory",
+    )
+    sf_run.add_argument(
+        "--categories",
+        nargs="*",
+        choices=["device_lifecycle", "access_control", "wrapper_integrity"],
+        default=None,
+        help="Test categories to run (default: all)",
+    )
+    sf_run.add_argument(
+        "--harness-only",
+        action="store_true",
+        help="Only generate baseline Swift harness",
+    )
+
+    sep_fuzz_sub.add_parser(
+        "list-categories", help="List fuzz categories"
+    )
+    sf_list_vars = sep_fuzz_sub.add_parser(
+        "list-variations", help="List fuzz variations"
+    )
+    sf_list_vars.add_argument(
+        "--category",
+        choices=["device_lifecycle", "access_control", "wrapper_integrity"],
+        default=None,
+        help="Filter by category",
+    )
+    sf_gen = sep_fuzz_sub.add_parser(
+        "generate-harness", help="Generate baseline Swift harness"
+    )
+    sf_gen.add_argument(
+        "--output",
+        type=pathlib.Path,
+        default=ROOT / "runtime-artifacts" / "b34st" / "sep-fuzz",
+        help="Output directory",
+    )
+
     return root
+
+
+def sep_fuzz_cmd(args: argparse.Namespace) -> int:
+    """Handle SEP Key Fuzzer subcommands."""
+    from host.forensics.sep_key_fuzzer import (
+        FUZZ_VARIATIONS, SEPKeyFuzzer, generate_baseline_harness,
+        generate_bounty_report,
+    )
+
+    cmd = getattr(args, "sep_fuzz_command", "")
+
+    if cmd == "list-categories":
+        print("SEP Fuzzer categories:")
+        for cat in sorted(FUZZ_VARIATIONS):
+            count = len(FUZZ_VARIATIONS[cat])
+            print(f"  {cat:25s}  {count} variations")
+        return 0
+
+    if cmd == "list-variations":
+        cat_filter = getattr(args, "category", None)
+        cats = [cat_filter] if cat_filter else sorted(FUZZ_VARIATIONS)
+        for cat in cats:
+            print(f"\n[{cat}]")
+            for v in FUZZ_VARIATIONS.get(cat, []):
+                print(f"  {v['name']:35s}  {v['desc']}")
+        return 0
+
+    if cmd == "generate-harness":
+        output = getattr(args, "output", ROOT / "runtime-artifacts" / "b34st" / "sep-fuzz")
+        output.mkdir(parents=True, exist_ok=True)
+        harness = generate_baseline_harness(output / "BaselineHarness.swift")
+        print(f"Baseline harness written: {harness}")
+        return 0
+
+    if cmd == "run":
+        output = getattr(args, "output", ROOT / "runtime-artifacts" / "b34st" / "sep-fuzz")
+        output.mkdir(parents=True, exist_ok=True)
+
+        if getattr(args, "harness_only", False):
+            harness = generate_baseline_harness(output / "BaselineHarness.swift")
+            print(f"Baseline harness written: {harness}")
+            return 0
+
+        categories = set(args.categories) if getattr(args, "categories", None) else None
+
+        def _simulated_submit(
+            wrapper: bytes, metadata: dict[str, object]
+        ) -> dict[str, object]:
+            return {
+                "accepted": False,
+                "public_key_hex": "",
+                "output_buffers": [],
+                "error": "simulated — deploy harness to device for live testing",
+                "duration_ms": 0.0,
+            }
+
+        fuzzer = SEPKeyFuzzer(
+            device_model=getattr(args, "device_model", "unknown"),
+            os_build=getattr(args, "os_build", "unknown"),
+            chipset=getattr(args, "chipset", "unknown"),
+        )
+        fuzzer.generate_base_wrapper()
+
+        manifest = fuzzer.run(
+            _simulated_submit,
+            output,
+            categories=categories,
+        )
+
+        report_path = generate_bounty_report(manifest, output)
+        print(f"Campaign manifest: {output / 'sep-fuzz-campaign.json'}")
+        print(f"Bounty report: {report_path}")
+        print(f"Baseline harness: {output / 'BaselineHarness.swift'}")
+        print(json.dumps(manifest["summary"], indent=2, sort_keys=True))
+        return 0
+
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -290,6 +425,8 @@ def main(argv: list[str] | None = None) -> int:
             return verify_cmd(args)
         if args.command == "list-profiles":
             return list_profiles_cmd(args)
+        if args.command == "sep-fuzz":
+            return sep_fuzz_cmd(args)
         return 0
     except ForensicsError as exc:
         print(f"forensics error: {exc}", file=sys.stderr)

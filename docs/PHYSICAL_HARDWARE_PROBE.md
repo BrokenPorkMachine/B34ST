@@ -1,7 +1,7 @@
 # Physical hardware probe image
 
 `build-hardware-probe/fbr34ker-hardware-probe.bin` is the immutable, read-only
-bring-up image retained in FBR34KER 0.4.1. It accepts the same handoff-v4
+bring-up image retained in FBR34KER 0.4.4b. It accepts the same handoff-v4
 contract as the generic monitor, but it permanently enforces defensive policy.
 
 ## Permanent restrictions

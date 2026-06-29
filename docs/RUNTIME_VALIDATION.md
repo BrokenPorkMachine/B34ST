@@ -2,7 +2,7 @@
 
 ## Goals
 
-FBR34KER 0.4.1 validates failure handling without making host-only success look
+FBR34KER 0.4.4b validates failure handling without making host-only success look
 like hardware proof. The design uses the same bounded runtime mechanisms in
 native harnesses and the integration monitor while keeping failpoint control out
 of ordinary release images.

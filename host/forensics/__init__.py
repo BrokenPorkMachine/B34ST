@@ -6,6 +6,8 @@ activation/baseband/FMI operations, and passcode management integrated
 with the B34ST validation framework.
 """
 
+# ruff: noqa: F401 — lazy __getattr__ imports cannot be statically traced
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -23,6 +25,9 @@ if TYPE_CHECKING:
     from host.forensics.secrets import ICloudAcquisitor, KeybagAcquisitor, KeychainAcquisitor, SecretsAcquisitor, SecretsError, SepMailbox
     from host.forensics.activation import ActivationBypass, ActivationError, ActivationOrchestrator, BasebandManager, FmiManager, MobileActivationManager
     from host.forensics.passcode import PasscodeError, PasscodeManager
+    from host.forensics.sep_key_fuzzer import BOUNTY_SIGNIFICANCE, BASELINE_HARNESS_SWIFT, CANARY_LIBRARY, FUZZ_VARIATIONS, SEPKeyFuzzer, SEPKeyWrapper, FuzzTestResult, BountyReportSection, classify_result, generate_bounty_report, run_campaign
+    from host.forensics.sep_research_pipeline import SEPResearchPipeline, ArchitecturalMapper, RequestCorpus, DifferentialAnalyzer, StructuralFuzzer, StatefulFuzzer, ConcurrencyFuzzer, CrashTriager, run_pipeline
+    from host.forensics.sep_deploy import make_research_api, make_fuzzer_submit, deploy_swift_harness, list_backends, TRANSPORT_BACKENDS
 
 __all__ = [
     "AcquisitionEngine", "AcquisitionError", "AcquisitionProfile", "AcquisitionReport",
@@ -41,9 +46,18 @@ __all__ = [
     "PasscodeError", "PasscodeManager",
     "ProfileError",
     "ReportError",
+    "SEPKeyFuzzer", "SEPKeyWrapper", "FuzzTestResult",
+    "BountyReportSection", "run_campaign", "generate_bounty_report",
+    "classify_result", "BOUNTY_SIGNIFICANCE", "CANARY_LIBRARY",
+    "FUZZ_VARIATIONS", "BASELINE_HARNESS_SWIFT",
+    "SEPResearchPipeline", "ArchitecturalMapper", "RequestCorpus",
+    "DifferentialAnalyzer", "StructuralFuzzer", "StatefulFuzzer",
+    "ConcurrencyFuzzer", "CrashTriager", "run_pipeline",
     "SecretsAcquisitor", "SecretsError", "SepMailbox",
     "StorageAcquisitionError", "StorageAcquisitor", "StoragePartition",
     "builtin_profiles", "load_profile",
+    "make_research_api", "make_fuzzer_submit", "deploy_swift_harness",
+    "list_backends", "TRANSPORT_BACKENDS",
 ]
 
 
@@ -83,5 +97,25 @@ def __getattr__(name: str) -> Any:
         return locals()[name]
     if name in {"PasscodeError", "PasscodeManager"}:
         from host.forensics.passcode import PasscodeError, PasscodeManager
+        return locals()[name]
+    if name in {"SEPKeyFuzzer", "SEPKeyWrapper", "FuzzTestResult", "BountyReportSection", "run_campaign", "generate_bounty_report", "classify_result", "BOUNTY_SIGNIFICANCE", "CANARY_LIBRARY", "FUZZ_VARIATIONS", "BASELINE_HARNESS_SWIFT"}:
+        from host.forensics.sep_key_fuzzer import (
+            BOUNTY_SIGNIFICANCE, BASELINE_HARNESS_SWIFT, CANARY_LIBRARY,
+            FUZZ_VARIATIONS, SEPKeyFuzzer, SEPKeyWrapper, FuzzTestResult,
+            BountyReportSection, classify_result, generate_bounty_report, run_campaign,
+        )
+        return locals()[name]
+    if name in {"SEPResearchPipeline", "ArchitecturalMapper", "RequestCorpus", "DifferentialAnalyzer", "StructuralFuzzer", "StatefulFuzzer", "ConcurrencyFuzzer", "CrashTriager", "run_pipeline"}:
+        from host.forensics.sep_research_pipeline import (
+            SEPResearchPipeline, ArchitecturalMapper, RequestCorpus,
+            DifferentialAnalyzer, StructuralFuzzer, StatefulFuzzer,
+            ConcurrencyFuzzer, CrashTriager, run_pipeline,
+        )
+        return locals()[name]
+    if name in {"make_research_api", "make_fuzzer_submit", "deploy_swift_harness", "list_backends", "TRANSPORT_BACKENDS"}:
+        from host.forensics.sep_deploy import (
+            make_research_api, make_fuzzer_submit, deploy_swift_harness,
+            list_backends, TRANSPORT_BACKENDS,
+        )
         return locals()[name]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

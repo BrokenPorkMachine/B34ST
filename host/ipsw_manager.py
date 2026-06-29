@@ -70,7 +70,7 @@ def _read_json_source(source: str, *, timeout: float) -> Any:
             raise IPSWError(f"firmware catalog file does not exist: {path}")
         request = urllib.request.Request(
             source,
-            headers={"User-Agent": "B34ST/0.4.2b IPSW catalog client"},
+            headers={"User-Agent": "B34ST/0.4.3b IPSW catalog client"},
         )
         try:
             context = tls_client_context()

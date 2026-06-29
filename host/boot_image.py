@@ -196,7 +196,7 @@ def build_image(
         "schema_version": 1,
         "format": "fbri-v1",
         "project": "FBR34KER",
-        "release_version": "0.4.2b",
+        "release_version": "0.4.3b",
         "profile_id": profile["profile_id"],
         "family": profile["family"],
         "cpids": profile["cpids"],

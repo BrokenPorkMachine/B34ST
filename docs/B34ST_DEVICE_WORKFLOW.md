@@ -84,6 +84,22 @@ after every restart.
 See `docs/TETHERED_DOWNGRADE.md` for the complete operator and adapter
 contract.
 
+## Ramdisk maker and loader
+
+For an exact-profile device in DFU/recovery, select **Guided ramdisk maker /
+loader**. The guide records the exact iOS/iPadOS/macOS version and build,
+packages prepared ramdisk, kernelcache, DeviceTree, and optional boot-chain
+files into a deterministic `.fbrd`, and verifies every component hash.
+
+Loading is plan-only by default. Execution requires a separately installed
+target/build-specific adapter implementing
+`schemas/ramdisk-adapter-v1.json`, exact owner authorization, and a second
+execution confirmation. Current A12–A15/M1–M2 profiles are simulated and are
+not blanket proof that every OS build boots.
+
+See `docs/RAMDISK_MAKER_LOADER.md` for supported products, components,
+examples, the adapter contract, and troubleshooting.
+
 ## Failure and return behavior
 
 B34ST cannot guarantee external Apple services, cables, USB controllers,

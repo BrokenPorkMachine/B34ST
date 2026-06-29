@@ -78,6 +78,13 @@ Render the recorded adapter/transfer timeline.
 .B boot-image
 Build or inspect FBRI images.
 .TP
+.B ramdisk
+List exact-profile targets, create an OS/build compatibility plan, build or
+inspect deterministic FBRD bundles, and plan or execute loading through a
+separately installed target/build-specific adapter. Loading is non-executing
+by default. See
+.IR docs/RAMDISK_MAKER_LOADER.md .
+.TP
 .B ipsw tethered-downgrade-guide
 Run the guided local/download, validation, plan, external-adapter preflight,
 and optional execution workflow. The target-specific adapter is not bundled;
@@ -124,6 +131,9 @@ fbr34ker bringup run \\
 .TP
 .I schemas/bridge-protocol-v1.json
 Persistent first-stage bridge contract.
+.TP
+.I schemas/ramdisk-adapter-v1.json
+External ramdisk loader request/response contract.
 .TP
 .I profiles/apple-a13-iphone-recovery.json
 Exact A13 iPhone product-group profile.

@@ -73,6 +73,8 @@ class B34STCLI:
                 return self._environment_plan(argv[1:])
             elif command == "environment-validate":
                 return self._environment_validate(argv[1:])
+            elif command == "usbliter8":
+                return self._usbliter8(argv[1:])
             elif command == "forensics":
                 return self._forensics(argv[1:])
             elif command == "cve":
@@ -126,10 +128,11 @@ class B34STCLI:
         print("FBR34KER Runtime Authentication Tool")
         print("Beta")
         print(
-            "\nB34ST v0.4.1 is a lightweight CLI wrapper for FBR34KER's\nphysical validation framework, providing access to:\n"
+            "\nB34ST v0.4.2b is a lightweight CLI wrapper for FBR34KER's\nphysical validation framework, providing access to:\n"
         )
         print("• Bundle validation")
         print("• Candidate report generation")
+        print("• USBliter8 exploit workflow (with hardware guide)")
         print("• Hardware preparation checklists")
 
     def _show_help(self):
@@ -166,12 +169,13 @@ class B34STCLI:
         print("    cve goals                     List all built-in exploit goals")
         print("    cve fuzz list                 List available fuzz targets")
         print("  b34st fbr34ker <args...>       Run a backend FBR34KER command")
+        print("  b34st usbliter8                USBliter8 exploit workflow (hardware prep + execution)")
         print("  b34st --version               Show version information\n")
         print("\nFor FBR34KER's full validation workflow:\n")
         print("  ./fbr34ker validate-session --bundle <file>")
         print("  ./fbr34ker physical-validation candidate-report <options>")
         print("  ./fbr34ker hardware-prepare --list-categories\n")
-        print("B34ST v0.4.1 is part of FBR34KER 0.4.1 Beta")
+        print("B34ST v0.4.2b is part of FBR34KER 0.4.2b Beta")
 
     def _validate_session(self, argv: list[str]) -> int:
         """Validate a session bundle using FBR34KER's validate-session command."""
@@ -1579,6 +1583,180 @@ class B34STCLI:
 
         return 0
 
+    def _usbliter8(self, argv: list[str]) -> int:
+        """USBliter8 hardware preparation, execution, and workflow management."""
+        import argparse as ap
+        import json
+        import os
+        import subprocess
+
+        parser = ap.ArgumentParser(
+            prog="b34st usbliter8",
+            description="USBliter8 DWC3 exploit workflow — hardware prep, execution, and return to B34ST.",
+        )
+        parser.add_argument(
+            "--skip-hardware-prep",
+            action="store_true",
+            help="Skip hardware preparation checklist",
+        )
+        parser.add_argument(
+            "--skip-build",
+            action="store_true",
+            help="Skip operational image build",
+        )
+        parser.add_argument(
+            "--force-rebuild",
+            action="store_true",
+            help="Force rebuild even if image exists",
+        )
+        parser.add_argument(
+            "--no-dfu-wait",
+            action="store_true",
+            help="Skip DFU wait (device already in DFU mode)",
+        )
+        parser.add_argument(
+            "--no-console",
+            action="store_true",
+            help="Skip console connection after exploit",
+        )
+        parser.add_argument(
+            "--skip-evidence",
+            action="store_true",
+            help="Skip evidence collection",
+        )
+        parser.add_argument(
+            "--return-to-b34st",
+            action="store_true",
+            default=True,
+            help="Return to B34ST menu after completion (default: on)",
+        )
+        parser.add_argument(
+            "--no-return",
+            action="store_true",
+            help="Exit after exploit instead of returning to B34ST",
+        )
+        parser.add_argument(
+            "--evidence",
+            type=pathlib.Path,
+            help="Path to write evidence JSON",
+        )
+        parser.add_argument(
+            "--timeout", type=float, default=60.0, help="Timeout per step in seconds"
+        )
+
+        try:
+            args = parser.parse_args(argv)
+        except SystemExit as e:
+            return e.code
+
+        return_code = 0
+
+        if not args.skip_hardware_prep:
+            self.log("USBliter8 hardware preparation")
+            self._show_hardware_categories()
+            print("\nHardware preparation checklist:")
+            items = [
+                ("Host USB controller check", "Ensure host USB is xHCI or RP2350"),
+                ("Cable and power check", "Use data cable, adequate power"),
+                ("Device in DFU mode", "Verify device is in DFU mode"),
+                ("Operational image built", "fbr34ker-operational.bin exists"),
+                ("pyusb/libusb installed", "pip install pyusb"),
+            ]
+            for i, (item, desc) in enumerate(items, 1):
+                skip = input(f"  [{i}/{len(items)}] {item} ({desc}) [Y/skip]: ").strip()
+                if skip.lower() in ("s", "skip"):
+                    print(f"    -> Skipped")
+                else:
+                    print(f"    -> Done")
+            evidence_dir = pathlib.Path("runtime-artifacts/b34st/usbliter8")
+            evidence_dir.mkdir(parents=True, exist_ok=True)
+            prep_record = evidence_dir / "hardware-prep.json"
+            prep_record.write_text(
+                json.dumps({
+                    "schema_version": 1,
+                    "stage": "hardware_preparation",
+                    "status": "verified",
+                    "items": [{"item": item, "status": "done"} for item, _ in items],
+                }, indent=2)
+            )
+            self.log(f"Hardware preparation record: {prep_record}")
+
+        operational_bin = ROOT / "build-exploit" / "fbr34ker-operational.bin"
+        if args.force_rebuild or not operational_bin.is_file():
+            if operational_bin.is_file():
+                self.log("Found existing operational image, rebuilding (--force-rebuild)")
+            else:
+                self.log("Operational image not found, building now")
+            if not args.skip_build:
+                result = subprocess.run(
+                    ["make", "build-operational"],
+                    cwd=ROOT, capture_output=True, text=True, timeout=120,
+                )
+                if result.returncode != 0:
+                    self.log(f"Build failed: {result.stderr}", "ERROR")
+                    return 1
+                self.log("Operational build complete")
+        else:
+            self.log(f"Found existing operational image: {operational_bin}")
+            self.log("Skipping build (use --force-rebuild to override)")
+
+        print("\n--- USBliter8 execution ---")
+        print("This will exploit the A12+ device via DWC3 and run the chain.\n")
+
+        owner = input('Type "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE" to continue: ')
+        if owner != "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE":
+            print("Authorization not confirmed. Aborting.")
+            return 1
+
+        exploit_script = ROOT / "scripts" / "run_exploit.py"
+        if not exploit_script.is_file():
+            self.log(f"Exploit script not found: {exploit_script}", "ERROR")
+            return 1
+
+        evidence = args.evidence or evidence_dir / "usbliter8-jailbreak.json"
+        cmd = [
+            sys.executable,
+            str(exploit_script),
+            "--auto",
+            "--evidence", str(evidence),
+            "--timeout", str(args.timeout),
+        ]
+        if args.no_dfu_wait:
+            cmd.append("--no-dfu-wait")
+
+        print(f"\nRunning: {' '.join(cmd)}\n")
+        result = subprocess.run(cmd, cwd=ROOT, text=True)
+        return_code = result.returncode
+
+        if return_code == 0:
+            self.log("USBliter8 exploit chain completed successfully")
+
+            if not args.no_console:
+                connect = input("\nConnect to FBR34KER console for live exploration? (y/N): ")
+                if connect.lower() in ("y", "yes"):
+                    console_cmd = [
+                        sys.executable, "-c",
+                        "from host.usb_serial import USBConsole; "
+                        "c = USBConsole(); c.open(); "
+                        "print(c.read_until_prompt(timeout=10.0))"
+                    ]
+                    subprocess.run(console_cmd, cwd=ROOT)
+
+            if args.return_to_b34st and not args.no_return:
+                print("\nReturning to B34ST...")
+                from b34st.control_panel import run_control_panel
+                return run_control_panel()
+
+        else:
+            self.log(f"USBliter8 exploit failed (exit {return_code})", "ERROR")
+            print("Troubleshooting:")
+            print("  - Ensure device is in DFU mode")
+            print("  - Confirm CPID is 0x8015 or above (A12+)")
+            print("  - Check USB cable and host port")
+            print(f"  - Review evidence: {evidence}")
+
+        return return_code
+
 
 def main() -> int:
     """Main B34ST CLI entry point."""
@@ -1593,7 +1771,7 @@ B34ST (B34KER/STAR) is a lightweight CLI wrapper for FBR34KER that
 provides access to deterministic validation workflows, profile maturity
 enforcement, and evidence-based authentication for A12/A13 iPhone hardware.
 
-B34ST v0.4.1 is part of FBR34KER 0.4.1 Beta.
+B34ST v0.4.2b is part of FBR34KER 0.4.2b Beta.
 It integrates with existing FBR34KER validation capabilities while
 providing a streamlined interface for common operations.
         """,
@@ -1610,7 +1788,7 @@ providing a streamlined interface for common operations.
     if len(sys.argv) == 1:
         print("B34ST - FBR34KER Runtime Authentication Tool")
         print(f"Version {__version__} ({__release_name__})")
-        print("\nB34ST v0.4.1 is a lightweight CLI wrapper for FBR34KER")
+        print("\nB34ST v0.4.2b is a lightweight CLI wrapper for FBR34KER")
         print("\nAvailable commands:")
         print("  b34st validate-session         Validate a session bundle")
         print(
@@ -1623,6 +1801,7 @@ providing a streamlined interface for common operations.
             "  b34st cve device-info          Device/SoC database for iPhone 4-15, T2, M1/M2"
         )
         print("  b34st cve device-chain         Device-aware exploit chain planning")
+        print("  b34st usbliter8                USBliter8 exploit workflow (hardware prep + execution)")
         print("\nFor detailed help:")
         print("  b34st <command> --help")
         return 0

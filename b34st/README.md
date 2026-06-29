@@ -73,6 +73,24 @@ For the exact operator flow, adapter input/output contract, plan-only behavior,
 public-project compatibility table, contract-only example, and troubleshooting
 messages, see `docs/TETHERED_DOWNGRADE.md`.
 
+## Ramdisk maker and loader
+
+The control panel includes a dedicated guided ramdisk section:
+
+```sh
+fbr34ker ramdisk guide
+```
+
+It resolves exact-profile iPhone, iPad, and Apple silicon Mac products,
+records the exact OS/build, creates a deterministic hash-verified `.fbrd`
+from prepared components, and generates a plan-only load request. Physical
+loading requires a separately installed, reviewed target/build-specific
+adapter. B34ST neither creates Apple-signed components nor represents its
+simulation profiles as proof that a particular build boots.
+
+See `docs/RAMDISK_MAKER_LOADER.md` and
+`schemas/ramdisk-adapter-v1.json`.
+
 The control panel opens with a live connected-device dashboard. Each available
 action includes required materials, numbered steps, a how-to-proceed note,
 external command handoff, result capture, and an automatic return to the

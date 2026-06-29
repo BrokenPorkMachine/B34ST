@@ -417,8 +417,8 @@ def main(argv: list[str] | None = None) -> int:
                         default="all")
     arguments = parser.parse_args(argv)
 
-    if not arguments.release_name.startswith("FBR34KER_"):
-        parser.error("release name must start with FBR34KER_")
+    if not arguments.release_name.startswith("FBR34KER_") and not arguments.release_name.startswith("B34ST_"):
+        parser.error("release name must start with FBR34KER_ or B34ST_")
     output_dir = arguments.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
     sources = source_paths()

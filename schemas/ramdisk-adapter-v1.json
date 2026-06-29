@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://b34st.dev/schemas/ramdisk-adapter-v1.json",
+  "title": "B34ST external ramdisk adapter v1",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/response"
+    }
+  ],
+  "$defs": {
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "operation",
+        "project",
+        "release_version",
+        "bundle",
+        "target",
+        "authorization",
+        "constraints"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "operation": {
+          "const": "load-ramdisk"
+        },
+        "project": {
+          "const": "FBR34KER"
+        },
+        "release_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "bundle": {
+          "type": "object",
+          "required": [
+            "path",
+            "size",
+            "sha256",
+            "manifest"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "size": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "manifest": {
+              "type": "object"
+            }
+          }
+        },
+        "target": {
+          "type": "object",
+          "required": [
+            "product",
+            "device_class",
+            "family",
+            "cpids",
+            "os_version"
+          ],
+          "properties": {
+            "product": {
+              "type": "string",
+              "minLength": 1
+            },
+            "device_class": {
+              "enum": [
+                "iphone",
+                "ipad",
+                "mac"
+              ]
+            },
+            "family": {
+              "type": "string",
+              "minLength": 1
+            },
+            "cpids": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            },
+            "os_version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "build": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "ecid": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "authorization": {
+          "type": "object",
+          "required": [
+            "owner_authorized",
+            "confirmation"
+          ],
+          "properties": {
+            "owner_authorized": {
+              "const": true
+            },
+            "confirmation": {
+              "const": true
+            },
+            "owner_authorization_text": {
+              "const": "I OWN OR AM AUTHORIZED TO LOAD THIS RAMDISK"
+            }
+          }
+        },
+        "constraints": {
+          "type": "object",
+          "required": [
+            "direct_stock_iboot_compatible",
+            "external_adapter_required",
+            "persistent_after_restart"
+          ],
+          "properties": {
+            "direct_stock_iboot_compatible": {
+              "const": false
+            },
+            "external_adapter_required": {
+              "const": true
+            },
+            "persistent_after_restart": {
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    "response": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "ok"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "ok": {
+          "const": true
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "object"
+        },
+        "evidence": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

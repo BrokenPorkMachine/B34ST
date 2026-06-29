@@ -17,6 +17,7 @@ _fbr34ker() {
     'inspect:inspect deployment state or artifacts'
     'evidence:export deployment evidence'
     'boot-image:build or inspect FBRI boot images'
+    'ramdisk:plan, build, inspect, or externally load FBRD ramdisk bundles'
     'irecovery:query, verify, or send through an authorized recovery session'
     'device:list, watch, or diagnose authorized recovery devices'
     'bridge:run the reference persistent first-stage bridge'

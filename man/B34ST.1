@@ -17,6 +17,12 @@ Firmware workflows include target-specific IPSW discovery, Apple-hosted
 downloads, signed update or erase-restore execution, and tethered downgrade
 plans delegated to an external authorized boot adapter.
 .PP
+The ramdisk maker/loader resolves an exact iPhone, iPad, or Apple silicon Mac
+profile, records the exact OS/build, creates a deterministic hash-verified
+FBRD from prepared components, and produces a plan-only load request. Physical
+loading requires a separately installed target/build-specific adapter. See
+.IR docs/RAMDISK_MAKER_LOADER.md .
+.PP
 For an unsigned target, select
 .B Guided tethered downgrade.
 The guide chooses a local or catalog-downloaded IPSW, validates the exact
@@ -86,6 +92,15 @@ to standard output. See
 .I docs/TETHERED_DOWNGRADE.md
 and
 .I schemas/tethered-downgrade-adapter-v1.json.
+.SH RAMDISK ADAPTER
+Set
+.B B34ST_RAMDISK_ADAPTER
+to the reviewed target/build-specific adapter executable and arguments.
+The load operation is plan-only unless execution, owner authorization, and
+the separate load confirmation are explicit. See
+.I docs/RAMDISK_MAKER_LOADER.md
+and
+.I schemas/ramdisk-adapter-v1.json.
 .SH SOURCE TREE
 From the unpacked source tree, run:
 .PP

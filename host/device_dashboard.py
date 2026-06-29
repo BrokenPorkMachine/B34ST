@@ -227,6 +227,18 @@ def assess_capabilities(
             ),
         },
         {
+            "id": "ramdisk",
+            "available": recovery and exact_profile,
+            "title": "Guided ramdisk maker / loader",
+            "reason": (
+                "An exact profile exists and the device is in DFU/recovery. "
+                "B34ST can build and verify a bundle; physical loading requires "
+                "a separately installed target/build-specific adapter."
+                if recovery and exact_profile
+                else "Requires DFU/recovery mode and an exact reviewed product profile."
+            ),
+        },
+        {
             "id": "runtime-console",
             "available": False,
             "title": "Attach B34ST/FBR34KER runtime console",
@@ -253,6 +265,13 @@ def required_materials(action: str) -> list[str]:
             "Reviewed external tether adapter for execution (not bundled)",
             "A compatible boot chain for every restart",
             "Evidence/rollback storage",
+        ],
+        "ramdisk": common + [
+            "Prepared target/build-specific ramdisk, kernelcache, and DeviceTree",
+            "Optional matching trust cache and boot-chain components",
+            "Reviewed external ramdisk adapter for physical loading (not bundled)",
+            "Exact product identifier, OS version, and build",
+            "Evidence storage and explicit owner authorization",
         ],
         "runtime-console": ["Running FBR34KER monitor", "USB CDC or configured bridge endpoint"],
     }
@@ -298,6 +317,15 @@ def procedure(action: str) -> list[str]:
             "Authorize execution; B34ST passes one JSON request to the adapter.",
             "Preserve the structured result and return to B34ST.",
             "Repeat the tethered boot after every device restart.",
+        ],
+        "ramdisk": [
+            "Open the guide and confirm the exact product, OS version, and build.",
+            "Review the exact-profile compatibility plan and its unverified items.",
+            "Provide prepared ramdisk, kernelcache, DeviceTree, and optional components.",
+            "Build the deterministic FBRD bundle and verify every component hash.",
+            "Generate a plan-only adapter request; no device data is sent by default.",
+            "Configure a reviewed target/build-specific adapter.",
+            "Authorize execution separately and preserve the adapter JSON evidence.",
         ],
         "runtime-console": [
             "Confirm the monitor or tethered runtime is active.",

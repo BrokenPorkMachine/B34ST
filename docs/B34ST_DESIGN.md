@@ -11,7 +11,7 @@ b34stool.py (unified entry point)
     │   └── evidence/*.json for operation results
     │
     ├── Menu System
-    │   ├── main_menu() - 14 category selection
+    │   ├── main_menu() - 16 category selection
     │   ├── submenu handlers for each category
     │   └── run_and_log() - wrap subprocess calls
     │
@@ -39,6 +39,7 @@ Session path format: `runtime-artifacts/b34st/b34stool/YYYYMMDD-HHMMSS-microseco
 | USBliter8 | 1-5 | scripts/run_exploit.py with chain |
 | IPSW | 1-9 | fbr34ker ipsw catalog/download/etc |
 | Boot Image | 1-5 | fbr34ker boot-image commands |
+| Ramdisk Maker / Loader | 1-6 | fbr34ker ramdisk commands |
 | Deployment | 1-5 | fbr34ker deploy/recover/inspect |
 | Hardware | 1-5 | fbr34ker hardware/bringup commands |
 | Session | 1-6 | fbr34ker session tools |
@@ -48,6 +49,7 @@ Session path format: `runtime-artifacts/b34st/b34stool/YYYYMMDD-HHMMSS-microseco
 | Research Runtime | 1-3 | b34st research-runtime commands |
 | Frontier | 1-4 | fbr34ker research-runtime/chipsets/b34st cve |
 | B34ST | 1-4 | b34st environment-plan/control-panel |
+| Forensics | 1-4 | b34st forensics commands |
 
 ## Evidence Schema
 

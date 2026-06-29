@@ -237,6 +237,13 @@ def _external_hardware(session: Session) -> None:
     while True:
         _clear()
         _header(session, "A12+ USBliter8 — Pwn, Inspect, Jailbreak")
+        print("  Hardware & Firmware Preparation:")
+        print("  ===============================")
+        print("  H. USBliter8 hardware guide — recommended RP2350, cables, setup")
+        print("  P. Prepare hardware/firmware — guided checklist (skip if done)")
+        print()
+        print("  Exploitation:")
+        print("  =============")
         print("  1. Pwn & Inspect  — USBliter8 exploit + full protection audit")
         print(
             "  2. USBliter8 jailbreak  — full A12+ chain (PWNDFU -> monitor -> exploit)"
@@ -249,8 +256,12 @@ def _external_hardware(session: Session) -> None:
         print("  8. Collect from an existing adapter/bridge session")
         print("  9. Recover/reset an authorized adapter session")
         print("  0. Back")
-        choice = _prompt("Selection", "1")
-        if choice == "1":
+        choice = _prompt("Selection", "2")
+        if choice.lower() == "h":
+            _usbliter8_hardware_guide(session)
+        elif choice.lower() == "p":
+            _usbliter8_prepare_hardware(session)
+        elif choice == "1":
             _usbliter8_pwn_and_inspect(session)
         elif choice == "2":
             _usbliter8_jailbreak(session)
@@ -502,6 +513,110 @@ def _guided_tethered_downgrade(
     )
 
 
+def _explain_ramdisk_workflow() -> None:
+    print(
+        "\nRamdisk maker / loader: what it does\n"
+        "------------------------------------\n"
+        "• The maker packages a prepared ramdisk, kernelcache, DeviceTree, and\n"
+        "  optional boot-chain files into one deterministic, hash-verified .fbrd.\n"
+        "• It verifies an exact iPhone, iPad, or Apple silicon Mac profile and\n"
+        "  records the exact iOS/iPadOS/macOS version and build.\n"
+        "• It does not decrypt, patch, or Apple-sign firmware components.\n"
+        "• The loader validates every bundled byte before creating a load request.\n"
+        "\nWhat the ramdisk adapter is:\n"
+        "  A separately installed, target- and OS-build-specific executable or\n"
+        "  reviewed wrapper around authorized lab boot tooling. B34ST sends it\n"
+        "  one bounded JSON request; the adapter owns DFU/recovery transport and\n"
+        "  returns one JSON evidence result. It is not bundled with B34ST.\n"
+        "\nCompatibility:\n"
+        "  B34ST profiles A12, A12X/Z, A13, A14, A15, M1, and M2 products listed\n"
+        "  by 'fbr34ker ramdisk list-targets'. These profiles are simulated, not\n"
+        "  proof that a particular OS build boots. Exact adapter evidence remains\n"
+        "  mandatory. Intel Macs and unlisted products are rejected.\n"
+        "\nRecommended path:\n"
+        "  1. Select the guided workflow and enter the exact product and OS build.\n"
+        "  2. Review the compatibility plan.\n"
+        "  3. Provide already prepared core components and build the .fbrd.\n"
+        "  4. Inspect the bundle; load remains plan-only by default.\n"
+        "  5. Configure B34ST_RAMDISK_ADAPTER and authorize execution separately.\n"
+        "\nFull guide: docs/RAMDISK_MAKER_LOADER.md"
+    )
+
+
+def _guided_ramdisk(
+    session: Session,
+    *,
+    product: str | None = None,
+    ecid: str | None = None,
+) -> int:
+    command = [
+        "ramdisk",
+        "guide",
+        "--evidence",
+        str(session.directory / "ramdisk-workflow.json"),
+    ]
+    if product:
+        command += ["--product", product]
+    if ecid:
+        command += ["--ecid", ecid]
+    return session.run(command, label="Guided ramdisk maker / loader", interactive=True)
+
+
+def _ramdisk_workflows(session: Session) -> None:
+    while True:
+        _clear()
+        _header(session, "Ramdisk maker and loader")
+        print("  1. Guided maker / loader (recommended)")
+        print("  2. Explain components, compatibility, and adapter")
+        print("  3. List exact profiled iPhone, iPad, and Mac targets")
+        print("  4. Create a target/build compatibility plan")
+        print("  5. Build a deterministic FBRD bundle")
+        print("  6. Inspect and verify an FBRD bundle")
+        print("  7. Plan or execute an external adapter load")
+        print("  0. Back")
+        choice = _prompt("Selection", "1")
+        if choice == "1":
+            _guided_ramdisk(session)
+            _pause()
+        elif choice == "2":
+            _explain_ramdisk_workflow()
+            _pause()
+        elif choice == "3":
+            session.run(["ramdisk", "list-targets"], label="Ramdisk target catalog")
+            _pause()
+        elif choice == "4":
+            _run_prompted(
+                session,
+                ["ramdisk", "plan"],
+                label="Ramdisk compatibility plan",
+                example="--product iPhone12,1 --os-version 18.5 --build 22F76",
+            )
+        elif choice == "5":
+            _run_prompted(
+                session,
+                ["ramdisk", "build"],
+                label="Build ramdisk bundle",
+                example="--product iPhone12,1 --os-version 18.5 --build 22F76 --ramdisk ramdisk.dmg --kernelcache kernelcache --devicetree DeviceTree.dtb --trustcache trustcache --output build/ramdisk/iphone12-1.fbrd",
+            )
+        elif choice == "6":
+            _run_prompted(
+                session,
+                ["ramdisk", "inspect"],
+                label="Inspect ramdisk bundle",
+                example="build/ramdisk/iphone12-1.fbrd --json",
+            )
+        elif choice == "7":
+            _run_prompted(
+                session,
+                ["ramdisk", "load"],
+                label="Ramdisk adapter load",
+                example="build/ramdisk/iphone12-1.fbrd --evidence ramdisk-load.json",
+                interactive=True,
+            )
+        elif choice in {"0", "q", ""}:
+            return
+
+
 def _modification_workflows(session: Session) -> None:
     while True:
         _clear()
@@ -600,15 +715,122 @@ def _evidence_and_release(session: Session) -> None:
             return
 
 
+def _usbliter8_hardware_guide(session: Session) -> None:
+    _clear()
+    _header(session, "USBliter8 Hardware Guide")
+    print("Recommended hardware: Waveshare RP2350 USB-A")
+    print("  - RP2350 dual-core Cortex-M33/RISC-V")
+    print("  - Native USB-A host port — no adapter needed")
+    print("  - USB 2.0 High Speed (480 Mbps)")
+    print("  - Price: ~$15-25 USD")
+    print("  - Open source SDK (Pico SDK, MicroPython, CircuitPython)")
+    print()
+    print("Full guide: docs/USBLITER8_HARDWARE_GUIDE.md")
+    print()
+    print("Quick hardware checklist:")
+    items = [
+        "USB host: xHCI, ASMedia xHCI, or RP2350 PIO-based USB (avoid VIA USB 3.0)",
+        "Cable: high-quality USB-A to Lightning data sync cable (Apple OEM or Anker)",
+        "Power: host port provides at least 500 mA",
+        "Device: A12+ (CPID >= 0x8015) in DFU mode",
+    ]
+    for item in items:
+        print(f"  - {item}")
+    print()
+    print("Skip options at each stage:")
+    print("  --skip-hardware-prep  Skip hardware preparation checklist")
+    print("  --skip-build          Skip operational image build")
+    print("  --no-dfu-wait         Skip DFU wait (device already in DFU)")
+    print("  --no-console          Skip console connection after exploit")
+    print()
+    session.record("USBliter8 hardware guide viewed")
+    _pause()
+
+
+def _usbliter8_prepare_hardware(session: Session) -> int:
+    _clear()
+    _header(session, "USBliter8 Hardware & Firmware Preparation")
+    print("Guided preparation checklist. Each item can be skipped if already done.\n")
+
+    items = [
+        ("Host USB controller", "Check xHCI/ASMedia/RP2350"),
+        ("Cable and power", "Data cable, adequate power"),
+        ("Device in DFU mode", "Verify A12+ device in DFU"),
+        ("pyusb/libusb", "Host dependencies installed"),
+        ("Operational image", "build-exploit/fbr34ker-operational.bin"),
+    ]
+
+    statuses = {}
+    for i, (item, desc) in enumerate(items, 1):
+        skip = _prompt(f"  [{i}/{len(items)}] {item} ({desc}) — done? (Y/skip)", "Y")
+        if skip.lower() in ("s", "skip"):
+            statuses[item] = "skipped"
+            print(f"    -> Skipped")
+        else:
+            statuses[item] = "done"
+            print(f"    -> Done")
+
+    prep_record = session.directory / "hardware-prep.json"
+    import json
+    prep_record.write_text(json.dumps({
+        "schema_version": 1,
+        "stage": "hardware_preparation",
+        "status": "completed",
+        "items": [{"item": k, "status": v} for k, v in statuses.items()],
+        "session": str(session.directory),
+    }, indent=2) + "\n")
+    session.record(f"Hardware preparation record: {prep_record}")
+
+    build_skip = _prompt("Build operational image? (Y/skip)", "Y")
+    if not build_skip.lower() in ("s", "skip"):
+        session.run(["build", "build-operational"], label="Build operational image")
+    else:
+        session.record("Operational image build skipped by user")
+        print("Skipped build. Ensure build-exploit/fbr34ker-operational.bin exists.")
+
+    print(f"\nPreparation record saved: {prep_record.relative_to(ROOT)}")
+    session.record("Hardware preparation completed")
+    _pause()
+    return 0
+
+
 def _usbliter8_jailbreak(session: Session) -> int:
     _clear()
     _header(session, "A12+ USBliter8 Jailbreak")
     print("Targets A12+ devices (CPID 0x8015 and above) in DFU mode.")
     print("Exploit: DWC3 USB controller firmware patch (USBliter8)")
     print("Payload: FBR34KER monitor + full post-exploit chain")
-    print("Chain:  PWNDFU  ->  rogue DWC3 chain  ->  kernel patches")
-    print("        ->  secure-boot bypass  ->  trust-cache injection")
-    print("        ->  persistence  ->  evasion  ->  runtime shell")
+    print()
+    print("Step 1 — Hardware preparation")
+    prep_skip = _prompt("Run hardware preparation checklist? (Y/skip)", "Y")
+    if not prep_skip.lower() in ("s", "skip"):
+        _usbliter8_prepare_hardware(session)
+    else:
+        session.record("USBliter8 jailbreak: hardware prep skipped by user")
+        print("Hardware preparation skipped.")
+
+    print("\nStep 2 — Firmware preparation")
+    operational_bin = ROOT / "build-exploit" / "fbr34ker-operational.bin"
+    if operational_bin.is_file():
+        rebuild = _prompt(
+            f"Found existing image ({operational_bin.stat().st_size} bytes). Rebuild? (y/N)", "N"
+        )
+        if rebuild.lower() in ("y", "yes"):
+            session.run(["build", "build-operational"], label="Build operational image")
+        else:
+            session.record("USBliter8 jailbreak: image build skipped (exists)")
+            print("Using existing operational image.")
+    else:
+        build = _prompt("No operational image found. Build now? (Y/n)", "Y")
+        if not build.lower() in ("n", "no"):
+            session.run(["build", "build-operational"], label="Build operational image")
+        else:
+            print("Cannot proceed without operational image.")
+            _pause()
+            return 1
+
+    _clear()
+    _header(session, "A12+ USBliter8 Jailbreak — Execution")
     print()
     print("Evidence will be written to this session directory.")
     print()
@@ -685,6 +907,9 @@ def _usbliter8_jailbreak(session: Session) -> int:
 
     if return_code == 0 and _confirm("Connect to FBR34KER runtime console"):
         _runtime_console(session)
+
+    if return_code == 0 and _confirm("Return to B34ST main menu"):
+        return 0
 
     _pause()
     return return_code
@@ -879,7 +1104,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
     report = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "version": "0.4.1",
+        "version": "0.4.2b",
         "operation": "usbliter8-pwn-and-inspect",
         "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
         "authorization": "confirmed",
@@ -1485,6 +1710,15 @@ def _run_device_action(session: Session, snapshot: dict, action: dict) -> None:
         )
         _pause()
         return
+    if action_id == "ramdisk":
+        device = snapshot.get("device") or {}
+        _guided_ramdisk(
+            session,
+            product=product,
+            ecid=str(device.get("ecid")) if device.get("ecid") else None,
+        )
+        _pause()
+        return
     if action_id == "runtime-console":
         _runtime_console(session)
 
@@ -1558,6 +1792,7 @@ def run_control_panel() -> int:
         print(" 11. Forensics and data acquisition")
         print(" 12. CVE database & exploit chain planner")
         print(" 13. Fuzzer orchestration")
+        print(" 14. Ramdisk maker and loader")
         print("  0. Exit")
         choice = _prompt("Selection", "1")
         if choice == "1":
@@ -1597,6 +1832,8 @@ def run_control_panel() -> int:
             _cve_workflow(session)
         elif choice == "13":
             _fuzzer_workflow(session)
+        elif choice == "14":
+            _ramdisk_workflows(session)
         elif choice in {"0", "q", ""}:
             session.record("B34ST control-panel session ended")
             print(f"Session log: {session.log_path.relative_to(ROOT)}")

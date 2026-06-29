@@ -1062,6 +1062,7 @@ def cmd_delegated(args):
         "evidence": ["host/fbr34kdeploy.py", "evidence"],
         "module": ["host/fbr34kctl.py"],
         "boot-image": ["host/boot_image.py"],
+        "ramdisk": ["host/ramdisk_manager.py"],
         "irecovery": ["host/irecovery_boot.py"],
         "bringup": ["host/hardware_bringup.py"],
         "bridge": ["host/reference_bridge.py"],
@@ -1176,7 +1177,7 @@ def build_parser():
     sub.add_parser("help")  # alias for --help
 
     # delegated with passthrough args
-    for name in ("deploy", "recover", "module", "boot-image", "irecovery",
+    for name in ("deploy", "recover", "module", "boot-image", "ramdisk", "irecovery",
                  "bringup", "bridge", "session", "crash", "trace",
                  "hardware", "physical-validation", "evidence", "inspect",
                  "abi-check", "verify-release", "compare-releases",
@@ -1212,6 +1213,9 @@ def main(argv=None):
     if raw[0] == "ipsw":
         from host.ipsw_manager import main as ipsw_main
         return ipsw_main(raw[1:])
+    if raw[0] == "ramdisk":
+        from host.ramdisk_manager import main as ramdisk_main
+        return ramdisk_main(raw[1:])
     if raw[0] == "device-dashboard":
         from host.device_dashboard import main as device_dashboard_main
         return device_dashboard_main(raw[1:])

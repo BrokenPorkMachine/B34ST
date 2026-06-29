@@ -153,6 +153,34 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('"total_cves"', result.stdout)
 
+    def test_ramdisk_targets_are_available_through_root_launcher(self) -> None:
+        result = subprocess.run(
+            [str(ROOT / "fbr34ker"), "ramdisk", "list-targets", "--json"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('"device_class": "iphone"', result.stdout)
+        self.assertIn('"device_class": "ipad"', result.stdout)
+        self.assertIn('"device_class": "mac"', result.stdout)
+
+    def test_ramdisk_targets_are_available_through_installed_launcher(self) -> None:
+        result = subprocess.run(
+            [
+                "python3",
+                str(ROOT / "host" / "fbr34ker_cli.py"),
+                "ramdisk",
+                "list-targets",
+                "--json",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('"target_count"', result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

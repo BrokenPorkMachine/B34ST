@@ -1,7 +1,28 @@
 # Changelog
 
+## 0.4.2b -- Beta
+
+- Added USBliter8 hardware guide (`docs/USBLITER8_HARDWARE_GUIDE.md`) with
+  **Waveshare RP2350 USB-A** recommendation, hardware selection, cable and
+  power considerations, and troubleshooting.
+- Integrated hardware and firmware preparation into B34ST's USBliter8 workflow
+  with per-item skip options (`--skip-hardware-prep`, `--skip-build`,
+  `--no-dfu-wait`, `--no-console`, `--no-return`).
+- Updated B34ST control panel with USBliter8 hardware guide (H) and hardware
+  preparation (P) menu entries; exploit menu now includes guided preparation
+  steps before execution.
+- Exploit flow returns to B34ST main menu after completion (configurable via
+  `--no-return`).
+- Updated engine.py, control_panel.py, version.py, Makefile, README, TUTORIAL,
+  QUICK_START, and EXPLOIT_CHAIN documentation.
+
 ## 0.4.1 -- Beta
 
+- Added an exact-profile ramdisk maker/loader for A12–A15/M1–M2 iPhone,
+  iPad, and Apple silicon Mac targets, with deterministic FBRD bundles,
+  component hashing, plan-only loading, and an external-adapter contract.
+- Integrated the guided ramdisk workflow into B34ST, the connected-device
+  dashboard, installed CLI, completion files, manuals, and release tests.
 - Consolidated the latest Apple-platform fixes into a patch release, including
   explicit A12X/T8027 and A12Z/T8028 identity handling plus M1/M2 platform
   identifiers.

@@ -6,6 +6,10 @@ operational-archive fixes under one consistent release identity.
 
 ## Patch-release highlights
 
+- Adds a guided exact-profile ramdisk maker/loader for A12–A15/M1–M2 iPhone,
+  iPad, and Apple silicon Mac products. It creates deterministic
+  hash-verified FBRD bundles and remains plan-only until a reviewed
+  target/build-specific external adapter is explicitly authorized.
 - Preserves explicit A12X/T8027 matching alongside A12Z/T8028.
 - Preserves M1/T8103 and M2/T8112 platform identifiers and bounded
   MMIO-footprint SoC discrimination.
@@ -57,6 +61,8 @@ Loaders and modules that conform to the 0.4.0 interfaces require no migration.
   A12, A13, A14, A15, M1, or M2.
 - Physical-device execution remains unverified unless exact-target session
   evidence is supplied.
+- Ramdisk profile compatibility does not imply that every OS build boots.
+  Exact product/build adapter evidence remains required.
 
 ## Validation
 

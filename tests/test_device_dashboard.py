@@ -77,6 +77,13 @@ class DeviceDashboardTests(unittest.TestCase):
                 "separately installed external tether adapter",
                 actions["tethered-downgrade"]["reason"],
             )
+            self.assertTrue(actions["ramdisk"]["available"])
+            self.assertEqual(
+                actions["ramdisk"]["title"], "Guided ramdisk maker / loader"
+            )
+            self.assertIn(
+                "target/build-specific adapter", actions["ramdisk"]["reason"]
+            )
 
     def test_normal_mode_reports_current_version(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This tutorial walks through the complete FBR34KER 0.4.1 Beta workflow: toolchain setup, building all targets, running the monitor in QEMU, exercising the jailbreak security-bypass chain, launching the B34ST unified control panel, navigating the 14-category menu system, using the CVE database and exploit chain planner, performing forensic acquisition, running the evidence-gated research-runtime orchestrator, planning and validating research environments, managing sessions, using the loader SDK, creating release packages, and understanding the full boot chain integration. No physical Apple hardware is required for sections 1-6 and most of 7, 9, 10, 12-16, and 18-19 — everything up to the exploit chain runs under QEMU.
+This tutorial walks through the complete FBR34KER 0.4.1 Beta workflow: toolchain setup, building all targets, running the monitor in QEMU, exercising the jailbreak security-bypass chain, launching the B34ST unified control panel, navigating the 16-category menu system, using the CVE database and exploit chain planner, performing forensic acquisition, running the evidence-gated research-runtime orchestrator, planning and validating research environments, managing sessions, using the loader SDK, creating release packages, and understanding the full boot chain integration. No physical Apple hardware is required for sections 1-6 and most of 7, 9, 10, 12-16, and 18-19 — everything up to the exploit chain runs under QEMU.
 
 ## 2. Prerequisites and environment setup
 
@@ -474,13 +474,21 @@ boot-kernel: disabling MMU and jumping to 0xFFFFFFF0083C4000
 
 This is expected under QEMU.
 
-## 8. USBliter8 exploit chain walkthrough (conceptual)
+## 8. USBliter8 exploit chain walkthrough
 
 > This section describes the full exploit chain for physical devices. The
 > public operational release excludes `kernel/`, `arch/`, and `platform/`
 > firmware source, while retaining the public `host/` runtime required by the
 > packaged CLI. Pre-built firmware images in `build-*` contain the compiled
 > monitor.
+
+### Hardware guide
+
+Before attempting the exploit, review `docs/USBLITER8_HARDWARE_GUIDE.md` for
+recommended hardware (the **Waveshare RP2350 USB-A** is strongly recommended),
+cable selection, power considerations, and troubleshooting. B34ST's USBliter8
+workflow (`b34st usbliter8`) includes a guided hardware preparation step that
+can be skipped if already completed.
 
 ### The complete A12+ exploit flow
 
@@ -812,6 +820,20 @@ installed target-specific executable or reviewed wrapper that performs the
 DFU/recovery boot sequence; it is not the IPSW, cable, or `idevicerestore`. See
 `docs/TETHERED_DOWNGRADE.md`.
 
+#### Ramdisk maker and loader
+
+```sh
+# Within B34ST: select Ramdisk maker and loader → Guided maker / loader
+./fbr34ker ramdisk guide
+```
+
+The guide supports every exact-profile A12–A15/M1–M2 iPhone, iPad, and Apple
+silicon Mac product listed by `ramdisk list-targets`. It records the exact
+iOS/iPadOS/macOS version and build, packages prepared components into a
+deterministic `.fbrd`, verifies all hashes, and stops at a plan-only load by
+default. Physical loading requires a separately installed target/build-specific
+adapter. See `docs/RAMDISK_MAKER_LOADER.md`.
+
 #### Failure and return behavior
 
 B34ST guarantees:
@@ -874,6 +896,24 @@ Requires `idevicerestore`. B34ST runs a preflight check first, then performs the
 The guide creates a validated plan and optionally invokes a reviewed external
 tether adapter. B34ST does not bundle that target-specific adapter. After
 every restart, the external boot chain must be re-run.
+
+### Ramdisk bundles
+
+```sh
+./fbr34ker ramdisk list-targets
+./fbr34ker ramdisk plan \
+  --product iPhone12,1 --os-version 18.5 --build 22F76
+./fbr34ker ramdisk build \
+  --product iPhone12,1 --os-version 18.5 --build 22F76 \
+  --ramdisk ramdisk.dmg --kernelcache kernelcache \
+  --devicetree DeviceTree.dtb --output target.fbrd
+./fbr34ker ramdisk inspect target.fbrd
+./fbr34ker ramdisk load target.fbrd --evidence ramdisk-plan.json
+```
+
+The final operation is plan-only unless `--execute`, both exact authorization
+phrases, and a reviewed external adapter are supplied. See
+`docs/RAMDISK_MAKER_LOADER.md`.
 
 ## 13. CVE database and exploit chain planner
 
@@ -1452,7 +1492,7 @@ The complete end-to-end boot chain from DFU to SSH ramdisk:
 | 6 | SPTM bypass | [usbliter8-sptm-patchfinder](https://github.com/Leeksov/usbliter8ra1n) | iOS 27+ only |
 | 7 | TXM bypass | [usbliter8-txm-patchfinder](https://github.com/Leeksov/usbliter8ra1n) | iOS 27+ only |
 | 8 | Kernel patchfinder | [usbliter8-kernel-patchfinder](https://github.com/Leeksov/usbliter8ra1n) | All A12+ |
-| 9 | Boot + ramdisk | [usbliter8ra1n](https://github.com/Leeksov/usbliter8ra1n) | All A12+ |
+| 9 | Boot + ramdisk | Target-specific external adapter | Exact product/OS/build evidence required |
 
 ## 21. External dependencies setup
 
@@ -1473,6 +1513,11 @@ These repos are git submodules expected at the project root. The `usbliter8ra1n`
 - **usbliter8-txm-patchfinder** — TXM code signing bypass (iOS 27+)
 - **usbliter8-kernel-patchfinder** — Runtime kernelcache scanner with ~20 patch targets
 - **usbliter8ra1n** — Kernel boot + SSH ramdisk (dropbear via iProxy)
+
+These external project references are conceptual building blocks, not verified
+compatibility claims. Use `fbr34ker ramdisk plan`, the deterministic FBRD
+maker, and the adapter contract in `docs/RAMDISK_MAKER_LOADER.md` for an exact
+product/build.
 
 ## 22. Troubleshooting
 

@@ -300,6 +300,48 @@ CATEGORIES: tuple[Category, ...] = (
         ),
     ),
     Category(
+        "ramdisk",
+        "Ramdisk Maker / Loader",
+        (
+            Action(
+                "ramdisk.guide",
+                "Guided maker / loader",
+                fbr34ker("ramdisk", "guide", "--evidence", "{evidence}"),
+                interactive=True,
+            ),
+            Action(
+                "ramdisk.targets",
+                "List compatible targets",
+                fbr34ker("ramdisk", "list-targets"),
+            ),
+            Action(
+                "ramdisk.plan",
+                "Compatibility plan",
+                fbr34ker("ramdisk", "plan"),
+                "Target plan arguments",
+            ),
+            Action(
+                "ramdisk.build",
+                "Build FBRD bundle",
+                fbr34ker("ramdisk", "build"),
+                "Build arguments",
+            ),
+            Action(
+                "ramdisk.inspect",
+                "Inspect FBRD bundle",
+                fbr34ker("ramdisk", "inspect"),
+                "Bundle path and arguments",
+            ),
+            Action(
+                "ramdisk.load",
+                "Plan or load through adapter",
+                fbr34ker("ramdisk", "load"),
+                "Bundle path and adapter arguments",
+                interactive=True,
+            ),
+        ),
+    ),
+    Category(
         "deployment",
         "Deployment",
         (

@@ -1,7 +1,7 @@
 PROJECT := fbr34ker
-VERSION := 0.4.1
+VERSION := 0.4.2b
 RELEASE_CHANNEL := beta
-RELEASE_NAME := FBR34KER_$(VERSION)_Beta
+RELEASE_NAME := B34ST_$(VERSION)_Beta
 SOURCE_ID := $(VERSION)-beta
 BUILD_DIR ?= build
 SECURITY_MODEL ?= 0
@@ -25,6 +25,7 @@ SMOKE_DIR ?= $(RUNTIME_ARTIFACT_DIR)/smoke
 DIAGNOSTICS_DIR ?= $(RUNTIME_ARTIFACT_DIR)/diagnostics
 RELEASE_MANIFEST ?= RELEASE_MANIFEST.json
 PACKAGE_DIR ?= dist
+RELEASE_ZIP := B34ST_$(VERSION)_Beta
 LOADER_SIM_DIR ?= $(BUILD_DIR)/loader-simulation
 GENERIC_LOADER_BUILD_DIR ?= build-loader
 GENERIC_LOADER_TARGET ?= $(GENERIC_LOADER_BUILD_DIR)/fbr34ker-qemu-loader
@@ -253,6 +254,7 @@ check-install:
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker version >/dev/null
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker abi-check >/dev/null
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker ipsw --help >/dev/null
+	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker ramdisk list-targets --json >/dev/null
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker forensics list-profiles >/dev/null
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/fbr34ker cve stats >/dev/null
 	$(CURDIR)/$(BUILD_DIR)/install-test/usr/local/bin/B34ST --version >/dev/null

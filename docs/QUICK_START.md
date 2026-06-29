@@ -33,6 +33,17 @@ mode and performs the external boot sequence. It is not the IPSW, cable, or
 The initial B34ST screen automatically inspects the connected device and shows
 only actions valid for its current mode and available evidence.
 
+For a prepared recovery/research ramdisk, use the guided maker/loader:
+
+```sh
+./fbr34ker ramdisk guide
+```
+
+It supports exact-profile A12–A15/M1–M2 iPhone, iPad, and Apple silicon Mac
+products, produces a deterministic `.fbrd`, and creates a plan-only load
+request. A separately installed target/build-specific adapter is required for
+physical loading. See `docs/RAMDISK_MAKER_LOADER.md`.
+
 ## 1. Check the host
 
 ```sh
@@ -115,14 +126,28 @@ Execution is intentionally separate. Read `docs/A12_A13_IRECOVERY.md` before add
 
 ## 10. Full boot chain: USBliter8 → iOS kernel + SSH ramdisk
 
-The complete end-to-end boot chain combines FBR34KER's USBliter8 exploit with
-external patchfinder tools from the [usbliter8ra1n](https://github.com/Leeksov/usbliter8ra1n)
-ecosystem. Clone those repos alongside FBR34KER first (see README.md).
+This section shows the conceptual boundary between FBR34KER and external
+patchfinder/boot tooling. External project references are not verified
+compatibility claims. An exact product/OS/build plan and reviewed adapter are
+required before physical use.
+
+### Phase 0 — Hardware setup (first time only)
+
+Review `docs/USBLITER8_HARDWARE_GUIDE.md` for recommended hardware (the
+**Waveshare RP2350 USB-A** is strongly recommended). Ensure your USB host
+controller is capable and you have a data-capable USB-A to Lightning cable.
+B34ST can guide you through this:
+
+```sh
+./scripts/B34ST usbliter8
+```
+
+Select hardware preparation; each step can be individually skipped.
 
 ### Phase 1 — Build FBR34KER operational image
 
 ```sh
-make SECURITY_MODEL=1 build-operational
+make build-operational
 ```
 
 ### Phase 2 — Put device in DFU mode
@@ -186,16 +211,24 @@ python3 usbliter8-kernel-patchfinder/scan.py --kernel kernelcache.dump --all
 
 This scans the kernelcache and applies ~20 patch targets in ~6 seconds.
 
-### Phase 9 — Boot kernel and launch SSH ramdisk
+### Phase 9 — Package and plan the ramdisk load
 
 ```sh
-# Boot the patched kernel
-python3 usbliter8ra1n/boot.py --kernel kernelcache.patched --rd ramdisk.dmg
+./fbr34ker ramdisk build \
+  --product iPhone12,1 \
+  --os-version 18.5 \
+  --build 22F76 \
+  --ramdisk ramdisk.dmg \
+  --kernelcache kernelcache.patched \
+  --devicetree DeviceTree.dtb \
+  --output build/ramdisk/target.fbrd
 
-# Connect via SSH through iProxy
-iproxy 2222 44 &
-ssh -p 2222 root@localhost
+./fbr34ker ramdisk inspect build/ramdisk/target.fbrd
+./fbr34ker ramdisk load build/ramdisk/target.fbrd \
+  --evidence runtime-artifacts/ramdisk-load-plan.json
 ```
 
-The device boots into a jailbroken state with SSH access via dropbear on
-port 44, tunneled through iProxy on host port 2222.
+The final command is plan-only. It sends nothing to a device. Physical loading
+requires a reviewed external adapter that explicitly supports the exact
+product and OS build; follow `docs/RAMDISK_MAKER_LOADER.md`. Do not infer a
+successful ramdisk boot or SSH service from component transfer alone.

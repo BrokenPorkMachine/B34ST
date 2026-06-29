@@ -36,7 +36,7 @@ def parser():
     sub.add_parser('clean'); sub.add_parser('package'); sub.add_parser('gate'); sub.add_parser('permissions')
     for name in ('deploy','recover','inspect','evidence'):
         x=sub.add_parser(name); x.add_argument('arguments',nargs=argparse.REMAINDER)
-    for name in ('boot-image','irecovery','bringup','device','bridge','session','crash','trace','hardware','physical-validation','b34stool','forensics','cve'):
+    for name in ('boot-image','ramdisk','irecovery','bringup','device','bridge','session','crash','trace','hardware','physical-validation','b34stool','forensics','cve'):
         x=sub.add_parser(name); x.add_argument('arguments',nargs=argparse.REMAINDER)
     m=sub.add_parser('module'); m.add_argument('arguments',nargs=argparse.REMAINDER)
     for kind in ('board','driver','module','transport'):
@@ -84,6 +84,7 @@ def main(argv=None):
             return execute([sys.executable,'host/fbr34kdeploy.py',action,*args.arguments],json_mode=j)
         if cmd=='module': return execute([sys.executable,'host/fbr34kctl.py',*args.arguments],json_mode=j)
         if cmd=='boot-image': return execute([sys.executable,'host/boot_image.py',*args.arguments],json_mode=j)
+        if cmd=='ramdisk': return execute([sys.executable,'host/ramdisk_manager.py',*args.arguments],json_mode=j)
         if cmd=='irecovery': return execute([sys.executable,'host/irecovery_boot.py',*args.arguments],json_mode=j)
         if cmd=='bringup': return execute([sys.executable,'host/hardware_bringup.py',*args.arguments],json_mode=j)
         if cmd=='device': return execute([sys.executable,'host/device_tools.py',*args.arguments],json_mode=j)

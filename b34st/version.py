@@ -4,8 +4,8 @@
 Defines version information for B34ST and provides version-related utilities.
 """
 
-__version__ = "0.4.1"
-__release_name__ = "B34ST_0.4.1_Beta"
+__version__ = "0.4.2b"
+__release_name__ = "B34ST_0.4.2b_Beta"
 
 
 class VersionError(Exception):
@@ -87,7 +87,7 @@ def main():
         description="Display B34ST version information",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-The B34ST (B34KER/STAR) version is part of the FBR34KER 0.4.1 release.
+The B34ST (B34KER/STAR) version is part of the FBR34KER 0.4.2b release.
 This is a Beta version with evidence-based
 profile maturity enforcement and deterministic validation.
         """,
@@ -130,7 +130,7 @@ profile maturity enforcement and deterministic validation.
         print(f"  Version: {info['version']}")
         print(f"  Release Name: {info['release_name']}")
         print(f"  Status: {info['status']}")
-        print(f"  Source: FBR34KER 0.4.1 Beta")
+        print(f"  Source: FBR34KER 0.4.2b Beta")
 
     return 0
 

@@ -19,8 +19,8 @@ import tempfile
 from datetime import datetime
 from typing import Any
 
-__version__ = "0.4.1"
-__release_name__ = "B34ST_0.4.1_Beta"
+__version__ = "0.4.2b"
+__release_name__ = "B34ST_0.4.2b_Beta"
 
 
 class BuildError(Exception):
@@ -342,7 +342,7 @@ if __name__ == "__main__":
                 },
             ],
             "dependencies": [
-                "FBR34KER-0.4.1",
+                "FBR34KER-0.4.2b",
                 "Python-3.13+",
             ],
             "requirements": [
@@ -468,7 +468,7 @@ for A12/A13 iPhone hardware bring-up with evidence-based maturity enforcement.
 
 This release contains the B34ST Python launcher, its package sources, and
 validation evidence. Validation wrapper commands require a compatible
-FBR34KER 0.4.1 checkout or installation.
+FBR34KER 0.4.2b checkout or installation.
 
 ## Contents
 

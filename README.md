@@ -102,7 +102,7 @@ B34ST/
 │   ├── environment.py        # Environment plan builder
 │   └── forensics.py          # Forensics utilities
 ├── scripts/                  # Shell and Python orchestrators
-│   ├── B34ST                 # Main menu entry point for the 14-category UI
+│   ├── B34ST                 # Main menu entry point for the guided UI
 │   ├── run_exploit.py        # USBliter8 exploit chain orchestrator
 │   ├── guided_research_runtime.py  # Wrapper for guided orchestrator
 │   ├── doctor.py             # Toolchain verification
@@ -116,6 +116,7 @@ B34ST/
 │   │   ├── devices.py        # Device and SoC database
 │   │   └── data/             # cve_database.json
 │   ├── forensics/            # Forensics acquisition, secrets, activation
+│   ├── ramdisk_manager.py    # Deterministic FBRD maker/inspector/adapter loader
 │   └── ...                   # hardware_bringup.py, boot_image.py, etc.
 ├── kernel/                   # In-tree kernel subsystem
 │   ├── kernel_patches.c      # Kernel patching (per-SoC offset tables)
@@ -146,7 +147,7 @@ B34ST/
 ├── profiles/                 # Device recovery profiles
 ├── modules/                  # FMBC bytecode modules
 ├── linker/                   # Linker scripts
-├── schemas/                  # JSON schemas (tethered-downgrade-adapter, etc.)
+├── schemas/                  # JSON schemas (tether and ramdisk adapters, etc.)
 ├── tests/                    # Test suite (30 C + 37 Python)
 ├── fbr34ker                  # CLI entry point
 ├── b34stctl                  # Compatibility entry point
@@ -165,7 +166,7 @@ B34ST is the unified control panel that wraps all FBR34KER operations. Launch it
 
 After installation, run `B34ST` from anywhere. Direct subcommands remain available through `./fbr34ker` for automation.
 
-### 15 menu categories
+### 16 menu categories
 
 | Category | Description |
 |----------|-------------|
@@ -174,6 +175,7 @@ After installation, run `B34ST` from anywhere. Direct subcommands remain availab
 | USBliter8 | Full USBliter8 exploit chain (A12+ DWC3) |
 | IPSW | Catalog, download, upgrade, tethered downgrade |
 | Boot Image | Inspect, validate, sign boot images |
+| Ramdisk Maker / Loader | Target plan, deterministic FBRD bundle, external adapter load |
 | Deployment | Deploy, recover, inspect deployments |
 | Hardware | Bring-up, probe, diagnostics |
 | Session | Session management and log inspection |
@@ -261,6 +263,20 @@ restart. The adapter is a separately installed executable or reviewed wrapper
 that performs the target-specific DFU/recovery boot sequence; it is not the
 IPSW, cable, or `idevicerestore`. See
 [`docs/TETHERED_DOWNGRADE.md`](docs/TETHERED_DOWNGRADE.md).
+
+### Ramdisk maker and loader
+
+Choose **Ramdisk maker and loader → Guided maker / loader**. B34ST resolves an
+exact iPhone, iPad, or Apple silicon Mac profile, records the exact
+iOS/iPadOS/macOS version and build, and packages prepared ramdisk,
+kernelcache, DeviceTree, and optional boot-chain components into a
+deterministic `.fbrd` bundle. Every component is hash-verified before a load
+request is created.
+
+Physical loading is plan-only by default and requires a separately installed,
+reviewed target/build-specific ramdisk adapter. Current product profiles are
+simulation-validated and do not prove that every OS build boots. See
+[`docs/RAMDISK_MAKER_LOADER.md`](docs/RAMDISK_MAKER_LOADER.md).
 
 ### Failure and return behavior
 
@@ -447,21 +463,39 @@ DFU → USBliter8 DWC3 exploit → iBSS → iBEC → SPTM bypass → TXM bypass 
 | 6. SPTM bypass | usbliter8-sptm-patchfinder | External | iOS 27+ only |
 | 7. TXM bypass | usbliter8-txm-patchfinder | External | iOS 27+ only |
 | 8. Kernel patchfinder | usbliter8-kernel-patchfinder | External | All A12+ |
-| 9. Boot + ramdisk | usbliter8ra1n | External | All A12+ |
+| 9. Boot + ramdisk | Target-specific external adapter | External | Exact product/OS/build evidence required |
 
 **Important version notes:**
 - SPTM bypass is only needed on iOS 27+ (A12/A13 don't have SPTM/TXM on iOS 26.5 and earlier)
 - TXM bypass is only needed on iOS 27+
 - The iBoot patcher, SPTM bypass, TXM bypass, kernel patchfinder, and SSH ramdisk are external (usbliter8ra1n ecosystem)
+- External project names in this conceptual chain are not verified compatibility
+  claims. Use `fbr34ker ramdisk plan` and the reviewed adapter contract for an
+  exact target/build.
+
+### Hardware guide and recommended hardware
+
+For reliable DWC3 exploitation, it is important to use a capable USB host.
+The **Waveshare RP2350 USB-A** (dual Cortex-M33, native USB-A host, ~$15-25)
+is the recommended host board. See `docs/USBLITER8_HARDWARE_GUIDE.md` for full
+details on hardware selection, cable choice, firmware preparation, and
+troubleshooting.
 
 ### Hardware bring-up procedure
 
-1. **Build operational image**: `make SECURITY_MODEL=1 build-operational`
-2. **Put device into DFU mode**: Power + Volume Down for 10s, release Power, hold Volume Down for 5s
-3. **Verify DFU**: `irecovery -q | grep CPID` (expect 0x8015 for A12, 0x8020 for A13, etc.)
-4. **Apply USBliter8 exploit**: `python3 scripts/run_exploit.py --monitor build-exploit/fbr34ker-operational.bin --auto`
-5. **Connect to USB console**: via CDC ACM device or `host/usb_serial.py`
-6. **Run exploit commands**: `secure-boot-bypass forgive`, `kernel-patches apply`, `kernel-patches escalate`, `persistence deploy`, `persistence activate`, `exploit-chain run`
+1. **Prepare hardware**: See `docs/USBLITER8_HARDWARE_GUIDE.md` for
+   recommended Waveshare RP2350 USB-A host setup, cable selection, and power.
+2. **Build operational image**: `make build-operational`
+3. **Put device into DFU mode**: Power + Volume Down for 10s, release Power, hold Volume Down for 5s
+4. **Verify DFU**: `irecovery -q | grep CPID` (expect 0x8015 for A12, 0x8020 for A13, etc.)
+5. **Apply USBliter8 exploit**: `python3 scripts/run_exploit.py --monitor build-exploit/fbr34ker-operational.bin --auto`
+6. **Connect to USB console**: via CDC ACM device or `host/usb_serial.py`
+7. **Run exploit commands**: `secure-boot-bypass forgive`, `kernel-patches apply`, `kernel-patches escalate`, `persistence deploy`, `persistence activate`, `exploit-chain run`
+
+Each step in B34ST's USBliter8 workflow can be skipped if already completed.
+Use `b34st usbliter8 --skip-hardware-prep --skip-build` to skip preparation
+and go straight to exploitation. After the exploit and external work is done,
+B34ST returns to its main menu automatically.
 
 ---
 
@@ -781,7 +815,10 @@ See `sdk/README.md` and `docs/LOADER_SDK.md` for full details.
 
 ## Full boot chain
 
-FBR34KER provides the USBliter8 entry (DWC3 exploit → PWNDFU → vendor memory access → monitor bootstrap) and the onboard jailbreak coordinator (kernel patching, secure boot bypass, persistence). The remaining boot chain components — iBoot patcher, SPTM bypass, TXM bypass, kernel patchfinder, SSH ramdisk — are provided by the external usbliter8ra1n ecosystem:
+FBR34KER models the USBliter8 entry and onboard coordinator. Remaining
+boot-chain and ramdisk components must be supplied by a reviewed external
+adapter. References below are conceptual and do not establish compatibility
+with an exact product or OS build:
 
 ```
 DFU → USBliter8 DWC3 exploit → iBSS → iBEC → SPTM bypass → TXM bypass → Kernel → SSH ramdisk
@@ -821,7 +858,10 @@ git clone https://github.com/Leeksov/usbliter8-kernel-patchfinder.git
 git clone https://github.com/Leeksov/usbliter8ra1n.git
 ```
 
-The SSH ramdisk (bundled in `usbliter8ra1n/ramdisk/`) provides a dropbear SSH server exposed via iProxy on port 2222 → device port 44.
+Do not assume an external project's ramdisk, SSH configuration, or advertised
+device range applies to a B34ST target. Package prepared components with
+`fbr34ker ramdisk build`, create a plan-only load request, and require exact
+adapter evidence as documented in `docs/RAMDISK_MAKER_LOADER.md`.
 
 ---
 
@@ -921,7 +961,9 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 | docs/A12_A13_IRECOVERY.md | A12/A13 recovery workflow |
 | docs/A12_A13_HARDWARE_BRINGUP.md | A12/A13 hardware bring-up procedure |
 | docs/B34ST_DEVICE_WORKFLOW.md | Device dashboard and connected-device workflows |
-| docs/B34ST_DESIGN.md | B34ST framework design (14-category menu system) |
+| docs/RAMDISK_MAKER_LOADER.md | Exact-profile ramdisk maker/loader and adapter contract |
+| docs/TETHERED_DOWNGRADE.md | Guided tethered downgrade and adapter contract |
+| docs/B34ST_DESIGN.md | B34ST framework design (16-category menu system) |
 | docs/B34ST_PLAN.md | B34ST implementation plan |
 | docs/B34ST_REQUIREMENTS.md | B34ST requirements specification |
 | docs/B34ST_TASKS.md | B34ST task tracking |
@@ -973,6 +1015,9 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 - **Guided tethered downgrade** — exact firmware selection, local or downloaded
   IPSW verification, evidence-first planning, explicit adapter contract, and
   separately acknowledged execution
+- **Ramdisk maker / loader** — exact-profile iPhone, iPad, and Apple silicon
+  Mac planning, deterministic hash-verified FBRD bundles, and plan-first
+  external adapter execution
 - **Reliable installed tooling** — working `forensics`/`cve` routing,
   interactive QEMU without a launcher timeout, terminal flag restoration, and
   macOS TLS CA discovery
@@ -991,7 +1036,7 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 - **Kernel version string scanning** for precise iOS detection
 - **A13 SEP base probe** (0x82E000000) before A12 fallback
 - **Kernel entry passes boot-args pointer in x1** for iOS 17+ compatibility
-- **B34ST unified multi-tool** — 14-category menu system with session logging, evidence JSON, and orchestration
+- **B34ST unified multi-tool** — 16-category menu system with session logging, evidence JSON, and orchestration
 - **Device dashboard** — Connected-device auto-detection with mode, model, firmware, profiles, and available actions
 - **CVE database and exploit chain planner** — 1155 CVEs indexed by iOS version, component, severity; device-aware chain planning and fuzz targets
 - **Evidence-gated research runtime** — 16-stage state machine with strict evidence validation and chain-of-custody

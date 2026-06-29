@@ -4,6 +4,8 @@ import pathlib
 import subprocess
 import unittest
 
+from b34st.version import __version__
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
@@ -35,7 +37,7 @@ class LauncherTests(unittest.TestCase):
             capture_output=True,
             text=True,
         )
-        self.assertEqual(result.stdout.strip(), "FBR34KER 0.4.3b")
+        self.assertEqual(result.stdout.strip(), f"FBR34KER {__version__}")
 
     def test_unknown_flag_is_rejected(self) -> None:
         result = subprocess.run(
@@ -85,7 +87,7 @@ class LauncherTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("B34ST 0.4.3b", result.stdout)
+        self.assertIn(f"B34ST {__version__}", result.stdout)
 
     def test_canonical_source_tree_b34st_launcher(self) -> None:
         result = subprocess.run(
@@ -95,7 +97,7 @@ class LauncherTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("B34ST 0.4.3b", result.stdout)
+        self.assertIn(f"B34ST {__version__}", result.stdout)
 
     def test_b34st_backend_passthrough(self) -> None:
         result = subprocess.run(
@@ -105,7 +107,7 @@ class LauncherTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("FBR34KER 0.4.3b", result.stdout)
+        self.assertIn(f"FBR34KER {__version__}", result.stdout)
 
     def test_control_panel_forensics_alias(self) -> None:
         result = subprocess.run(

@@ -206,13 +206,13 @@ def _main_menu_options() -> list[tuple[str, str, str]]:
         ("1", "External hardware / USBliter8 / first-stage execution", 
          "Pwn, inspect, and jailbreak A12+ devices via USBliter8 (guided automation available)"),
         ("2", "Load images, next stages, modules, or deployment", 
-         "Boot chain, deployment, modules, runtime (scriptable with default options)"),
+         "Boot chain, deployment, modules, runtime (guided deployment plan with default options)"),
         ("3", "Authorized runtime modifications and evidence", 
-         "Kernel patches, secure boot bypass, persistence (evidence-gated)"),
+         "Kernel patches, secure boot bypass, persistence (validate evidence-gated workflows)"),
         ("4", "Build, test, and QEMU simulation", 
-         "Host check, build, test, simulate safely (full scriptable automation)"),
+         "Host check, build, test, simulate safely (guided validation with full scriptable automation)"),
         ("5", "Runtime console / logger / shell", 
-         "Interactive shell, logging, exploration (export to logs)"),
+         "Interactive shell, logging, exploration (guided runtime inspection and log export)"),
         ("6", "Evidence, validation, and release", 
          "Validate sessions, generate reports, release gate (full automation)"),
         ("7", "Targeted IPSW downloads, upgrades, and tethered downgrades", 
@@ -220,9 +220,9 @@ def _main_menu_options() -> list[tuple[str, str, str]]:
         ("8", "Create a bounded environment plan", 
          "Plan iOS 17+ research environment (structured with defaults)"),
         ("9", "Open the FBR34KER maintenance menu", 
-         "Legacy FBR34KER guided console (original workflow)"),
+         "Legacy FBR34KER guided console (original workflow walkthrough)"),
         ("10", "View this B34ST session log", 
-         "Review command transcript and evidence (auto-generate summaries)"),
+         "Review command transcript and explain evidence flow (auto-generate summaries)"),
         ("11", "Forensics and data acquisition", 
          "iCloud/Keychain, activation, passcode, memory/storage (profile-based)"),
         ("12", "CVE database & exploit chain planner", 
@@ -232,7 +232,7 @@ def _main_menu_options() -> list[tuple[str, str, str]]:
         ("14", "Ramdisk maker and loader", 
          "Build deterministic FBRD bundles (guided for common use cases)"),
         ("0", "Exit", 
-         "Save and exit B34ST (with confirmation)"),
+         "Save, validate session state, and exit B34ST (with confirmation)"),
     ]
 
 
@@ -461,6 +461,16 @@ def _help_for_category(subtitle: str) -> None:
             "7": "Hardware-probe QEMU test",
             "8": "Clean build artifacts"
         },
+        "Build, test, and QEMU simulation": {
+            "1": "System diagnostics (doctor check)",
+            "2": "Complete project build (13 targets)",
+            "3": "Run firmware tests",
+            "4": "QEMU integration tests",
+            "5": "Non-QEMU verification",
+            "6": "Full verification with QEMU",
+            "7": "Hardware-probe QEMU test",
+            "8": "Clean build artifacts"
+        },
         "A12+ USBliter8 — Pwn, Inspect, Jailbreak": {
             "1": "Run hardware guide and checklist",
             "2": "Prepare hardware/firmware (guided)",
@@ -473,6 +483,18 @@ def _help_for_category(subtitle: str) -> None:
             "9": "Collect adapter evidence",
             "10": "Authorized adapter reset"
         },
+        "External hardware / USBliter8 / first-stage execution": {
+            "1": "Run hardware guide and checklist",
+            "2": "Prepare hardware and firmware",
+            "3": "Pwn and inspect an authorized device",
+            "4": "Run the USBliter8 jailbreak chain",
+            "5": "Connect to the runtime console",
+            "6": "Query iRecovery device state",
+            "7": "Verify firmware compatibility",
+            "8": "Perform authorized first-stage bring-up",
+            "9": "Collect adapter evidence",
+            "10": "Reset the adapter session"
+        },
         "Guided research-runtime workflow": {
             "1": "Launch evidence-gated B34ST orchestrator",
             "2": "Generate runtime-stage evidence template",
@@ -482,6 +504,13 @@ def _help_for_category(subtitle: str) -> None:
             "1": "Evidence-gated kernel/bootstrap workflow",
             "2": "Validate external modification evidence",
             "3": "Generate evidence template"
+        },
+        "Authorized runtime modifications and evidence": {
+            "1": "Kernel patch workflow with evidence gates",
+            "2": "Secure boot bypass workflow",
+            "3": "Persistence workflow",
+            "4": "Validate external modification evidence",
+            "5": "Generate evidence templates"
         },
         "Evidence, validation, and release": {
             "1": "Validate a session bundle",
@@ -501,6 +530,23 @@ def _help_for_category(subtitle: str) -> None:
             "7": "Erase restore",
             "8": "Guided tethered downgrade",
             "9": "Explain tethered downgrade requirements"
+        },
+        "Targeted IPSW downloads, upgrades, and tethered downgrades": {
+            "1": "List firmware for a product",
+            "2": "List currently signed firmware",
+            "3": "Download a targeted IPSW",
+            "4": "Inspect and verify a local IPSW",
+            "5": "Plan a signed update preserving data",
+            "6": "Execute a signed update preserving data",
+            "7": "Perform an erase restore",
+            "8": "Guided tethered downgrade",
+            "9": "Explain tethered downgrade requirements"
+        },
+        "Load images, next stages, modules, or deployment": {
+            "1": "Plan or execute deployment workflows",
+            "2": "Manage runtime modules",
+            "3": "Build or inspect boot images",
+            "4": "Review loader and next-stage flows"
         },
         "Ramdisk maker and loader": {
             "1": "Guided maker/loader (recommended)",
@@ -535,6 +581,25 @@ def _help_for_category(subtitle: str) -> None:
         },
         "Fuzzer orchestration": {
             "1": "List available fuzz targets"
+        },
+        "Runtime console / logger / shell": {
+            "1": "Open an interactive runtime console",
+            "2": "Capture and export logs",
+            "3": "Inspect runtime state safely"
+        },
+        "Create a bounded environment plan": {
+            "simulation": "Create a safe simulation plan",
+            "research-runtime": "Create an evidence-gated runtime plan"
+        },
+        "Open the FBR34KER maintenance menu": {
+            "1": "Launch the legacy guided maintenance console"
+        },
+        "View this B34ST session log": {
+            "1": "Review the session transcript",
+            "2": "Inspect collected evidence paths"
+        },
+        "Exit": {
+            "0": "Save the session log and exit the control panel"
         },
         "Environment planning": {
             "simulation": "Review, verify, and launch virtualization",
@@ -653,14 +718,39 @@ def _smart_default_recommendation(category: str, device_info: dict | None = None
         if device_info and device_info.get("chipset", "").startswith("A12"):
             return "6", "QEMU verification tests provide safe simulation for A12+ hardware"
         return "1", "Start with system diagnostics to verify host environment"
+
+    elif category == "Build, test, and QEMU simulation":
+        if device_info and device_info.get("chipset", "").startswith("A12"):
+            return "6", "QEMU verification gives the safest first pass for A12+ targets"
+        return "1", "Start with host diagnostics before building or testing"
     
     elif category == "A12+ USBliter8 — Pwn, Inspect, Jailbreak":
         if device_info and device_info.get("chipset", "").startswith("A12"):
             return "3", "Start with Pwn & Inspect for full protection audit of detected A12+ chipset"
         return "2", "Begin with hardware preparation for USBliter8"
+
+    elif category == "External hardware / USBliter8 / first-stage execution":
+        if device_info and device_info.get("chipset", "").startswith("A12"):
+            return "3", "Inspect the detected hardware before attempting a full exploit chain"
+        return "2", "Begin with hardware and firmware preparation before live device work"
+
+    elif category == "Load images, next stages, modules, or deployment":
+        return "1", "Start with deployment planning to verify image and module choices safely"
+
+    elif category == "Authorized runtime modifications and evidence":
+        return "1", "Begin with the evidence-gated kernel workflow before higher-risk modifications"
+
+    elif category == "Runtime console / logger / shell":
+        return "1", "Open the console first to inspect live state before making changes"
+
+    elif category == "Evidence, validation, and release":
+        return "1", "Validate the session bundle first before generating reports or release artifacts"
     
     elif category == "Targeted IPSW and restore workflows":
         return "5", "Guided tethered downgrade is recommended for A12+ with validation"
+
+    elif category == "Targeted IPSW downloads, upgrades, and tethered downgrades":
+        return "1", "List available firmware first so the plan uses a valid signed or cached target"
     
     elif category == "Ramdisk maker and loader":
         return "1", "Guided maker/loader provides the most robust workflow"
@@ -676,8 +766,30 @@ def _smart_default_recommendation(category: str, device_info: dict | None = None
     
     elif category == "Environment planning":
         return "simulation", "Safe simulation workflow requires no physical hardware"
+
+    elif category == "Create a bounded environment plan":
+        return "simulation", "A bounded simulation plan is the safest default starting point"
+
+    elif category == "Open the FBR34KER maintenance menu":
+        return "1", "Launch the legacy console only when you specifically need the older workflow surface"
+
+    elif category == "View this B34ST session log":
+        return "1", "Review the transcript first to understand command flow and evidence capture"
+
+    elif category == "Exit":
+        return "0", "Exit only after the current session transcript and evidence are reviewed"
     
     return "", "No specific recommendation available"
+
+
+def _guided_start(device_info: dict | None = None) -> tuple[str, str]:
+    """
+    Provide a single guided-start recommendation for first-time control-panel use.
+
+    The control panel no longer has a separate guided-start screen, but callers and
+    test helpers still rely on a stable recommendation hook.
+    """
+    return _smart_default_recommendation("Build, test, and simulation", device_info)
 
 
 def _expand_menu_for_category(title: str, items: list[tuple[str, str]]) -> list[tuple[str, str]]:
@@ -1478,7 +1590,8 @@ def _usbliter8_jailbreak(session: Session) -> int:
     command = [
         sys.executable,
         str(exploit_script),
-        "--auto",
+        "--monitor",
+        str(operational_bin),
         "--evidence",
         str(evidence_path),
         "--timeout",
@@ -1556,7 +1669,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
         return 1
 
     try:
-        from scripts.run_exploit import BootChain, ExploitError
+        from scripts.run_exploit import ExploitError
     except ImportError:
         print("run_exploit.py not found in scripts/", file=sys.stderr)
         session.record("USBliter8 pwn-and-inspect aborted: run_exploit.py missing")
@@ -1566,6 +1679,18 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
     exploit_script = ROOT / "scripts" / "run_exploit.py"
     evidence_path = session.directory / "usbliter8-inspect.json"
     report_path = session.directory / "pwn-inspect-report.json"
+    operational_bin = ROOT / "build-exploit" / "fbr34ker-operational.bin"
+
+    if not operational_bin.is_file():
+        print("No operational image found. Building now...")
+        build_rc = session.run_command(
+            ["make", "build-operational"],
+            label="Build operational image",
+        )
+        if build_rc != 0:
+            print("Inspection cannot proceed without an operational image.")
+            _pause()
+            return 1
 
     pwndfu_ok = False
     chipset_info = None
@@ -1576,7 +1701,8 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
     pwndfu_cmd = [
         sys.executable,
         str(exploit_script),
-        "--auto",
+        "--monitor",
+        str(operational_bin),
         "--evidence",
         str(evidence_path),
         "--timeout",
@@ -1640,12 +1766,8 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
         inspection_commands = [
             ("exploit-chain status", "Protection scheme state"),
             ("usb-status", "USB DWC3 controller status"),
-            (
-                "hardware-prepare --list-categories",
-                "Available hardware inspection categories",
-            ),
-            ("chipsets", "Supported A12+ SoC database"),
-            ("boot-evidence status", "Boot evidence collection status"),
+            ("board-info", "Selected board and device inventory"),
+            ("boot-evidence", "Boot evidence collection status"),
         ]
 
         print(f"\n[*] Running {len(inspection_commands)} inspection commands...\n")

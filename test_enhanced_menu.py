@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from b34st.control_panel import (
     _header, _enhanced_prompt, _help_for_category, 
     _smart_default_recommendation, _expand_menu_for_category,
-    _run_prompted
+    _run_prompted, _guided_start
 )
 from b34st.control_panel import Session
 from pathlib import Path

@@ -1,6 +1,8 @@
 FBR34KER host readiness
 [PASS] python (required)
        Python 3.13.4 (requires >= 3.10)
+[PASS] tls-ca-certificates (required)
+       118 trusted CA certificates loaded
 [PASS] make (required)
        GNU Make 3.81
 [PASS] clang (required)

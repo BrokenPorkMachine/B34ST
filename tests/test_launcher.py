@@ -107,6 +107,52 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("FBR34KER 0.3.0", result.stdout)
 
+    def test_control_panel_forensics_alias(self) -> None:
+        result = subprocess.run(
+            [str(ROOT / "fbr34ker"), "forensics", "list-profiles"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Built-in acquisition profiles", result.stdout)
+        self.assertIn("quick", result.stdout)
+
+    def test_control_panel_cve_alias(self) -> None:
+        result = subprocess.run(
+            [str(ROOT / "fbr34ker"), "cve", "stats"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('"total_cves"', result.stdout)
+
+    def test_installed_launcher_forensics_alias(self) -> None:
+        result = subprocess.run(
+            [
+                "python3",
+                str(ROOT / "host" / "fbr34ker_cli.py"),
+                "forensics",
+                "list-profiles",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Built-in acquisition profiles", result.stdout)
+
+    def test_installed_launcher_cve_alias(self) -> None:
+        result = subprocess.run(
+            ["python3", str(ROOT / "host" / "fbr34ker_cli.py"), "cve", "stats"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('"total_cves"', result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

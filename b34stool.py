@@ -257,9 +257,14 @@ CATEGORIES: tuple[Category, ...] = (
             ),
             Action(
                 "ipsw.tethered-downgrade",
-                "Tethered downgrade",
-                fbr34ker("ipsw", "tethered-downgrade"),
-                "Downgrade arguments",
+                "Guided tethered downgrade",
+                fbr34ker(
+                    "ipsw",
+                    "tethered-downgrade-guide",
+                    "--evidence",
+                    "{evidence}",
+                ),
+                interactive=True,
             ),
         ),
     ),
@@ -444,6 +449,35 @@ CATEGORIES: tuple[Category, ...] = (
                 "Evidence validation",
                 fbr34ker("research-runtime", "validate-evidence"),
                 "Evidence arguments",
+            ),
+        ),
+    ),
+    Category(
+        "frontier",
+        "Frontier",
+        (
+            Action(
+                "frontier.guided",
+                "Guided research",
+                fbr34ker("research-runtime", "guided"),
+                interactive=True,
+            ),
+            Action(
+                "frontier.chipsets",
+                "Chipset catalog",
+                fbr34ker("chipsets"),
+            ),
+            Action(
+                "frontier.cve-suggest",
+                "CVE goal suggestion",
+                fbr34ker("b34st", "cve", "suggest"),
+                "iOS version (e.g. 18.0)",
+            ),
+            Action(
+                "frontier.cve-search",
+                "CVE search",
+                fbr34ker("b34st", "cve", "search"),
+                "CVE ID or query",
             ),
         ),
     ),

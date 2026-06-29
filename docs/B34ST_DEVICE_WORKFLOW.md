@@ -60,12 +60,29 @@ are shown before execution.
 
 ## Tethered downgrade
 
-Unsigned firmware is never sent through the signed stock restore path. B34ST
-first produces a tethered downgrade plan. Execution requires a reviewed
-external adapter implementing `schemas/tethered-downgrade-adapter-v1.json`.
+Select **Guided tethered downgrade**. The guide accepts a local IPSW or lists
+unsigned Apple catalog targets for download, validates the exact product and
+manifest, checks the external adapter executable, displays a human-readable
+readiness plan, and saves JSON evidence before execution is offered.
+
+Unsigned firmware is never sent through the signed stock restore path.
+Execution requires a separately installed, reviewed external adapter
+implementing `schemas/tethered-downgrade-adapter-v1.json`. If no adapter is
+configured, the guide stops successfully after planning and explains how to
+continue. B34ST does not bundle a target-specific adapter.
+
+The adapter is a target-specific executable—a program, script, or reviewed
+wrapper around lab boot tooling—that communicates with the device in
+DFU/recovery mode and performs the external boot sequence. It is not the IPSW,
+USB cable, `idevicerestore`, or a universal B34ST component. B34ST validates
+and orchestrates; the adapter performs the device-side boot work and returns a
+JSON result.
 
 A tethered runtime is not persistent. The external boot chain must run again
 after every restart.
+
+See `docs/TETHERED_DOWNGRADE.md` for the complete operator and adapter
+contract.
 
 ## Failure and return behavior
 

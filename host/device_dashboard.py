@@ -217,9 +217,11 @@ def assess_capabilities(
         {
             "id": "tethered-downgrade",
             "available": recovery and exact_profile and firmware.get("unsigned_count", 0) > 0,
-            "title": "Plan tethered downgrade",
+            "title": "Guided tethered downgrade",
             "reason": (
-                "Unsigned historical firmware exists; execution requires an external tether adapter."
+                "Unsigned historical firmware exists. The guide validates the "
+                "IPSW and creates a plan; execution additionally requires a "
+                "separately installed external tether adapter."
                 if recovery and exact_profile and firmware.get("unsigned_count", 0) > 0
                 else "Requires unsigned catalog firmware, DFU/recovery mode, and an exact profile."
             ),
@@ -248,7 +250,7 @@ def required_materials(action: str) -> list[str]:
         ],
         "tethered-downgrade": common + [
             "Exact unsigned target IPSW",
-            "Reviewed external tether adapter",
+            "Reviewed external tether adapter for execution (not bundled)",
             "A compatible boot chain for every restart",
             "Evidence/rollback storage",
         ],
@@ -289,11 +291,12 @@ def procedure(action: str) -> list[str]:
             "Return to the B34ST dashboard for next-stage actions.",
         ],
         "tethered-downgrade": [
-            "Select an unsigned IPSW matching the exact product.",
-            "Generate and review the tethered downgrade plan.",
-            "Provide a reviewed external tether adapter and boot-chain materials.",
-            "Authorize execution; the adapter performs the external boot workflow.",
-            "Capture its structured result and return to B34ST.",
+            "Open the guide and choose a local IPSW or an Apple catalog download.",
+            "B34ST validates the product, version, build, manifest, and SHA-256.",
+            "Provide a reviewed external tether adapter, or stop safely after planning.",
+            "Review the human-readable plan and resolve every readiness blocker.",
+            "Authorize execution; B34ST passes one JSON request to the adapter.",
+            "Preserve the structured result and return to B34ST.",
             "Repeat the tethered boot after every device restart.",
         ],
         "runtime-console": [

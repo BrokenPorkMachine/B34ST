@@ -10,6 +10,7 @@ build-exploit/
 runtime-artifacts/
 diagnostics/
 dist/
+validation-logs/non-qemu-*/
 idevicerestore_verbose.log
 RELEASE_MANIFEST.json
 RELEASE_MANIFEST.json.sig

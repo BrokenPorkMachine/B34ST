@@ -23,7 +23,12 @@ jailbreak from textual command success.
 
 For targeted IPSW workflows, launch B34ST and select option 7. Downloads are
 restricted to HTTPS Apple domains. Signed upgrades use `idevicerestore`;
-unsigned downgrade targets require an external tether adapter.
+for unsigned targets choose **Guided tethered downgrade**. The guide validates
+the IPSW and saves a plan even when no external adapter is configured.
+Execution requires a separately installed target-specific adapter: an
+executable program/script that communicates with the device in DFU/recovery
+mode and performs the external boot sequence. It is not the IPSW, cable, or
+`idevicerestore`. See `docs/TETHERED_DOWNGRADE.md`.
 
 The initial B34ST screen automatically inspects the connected device and shows
 only actions valid for its current mode and available evidence.

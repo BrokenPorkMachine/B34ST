@@ -78,6 +78,13 @@ Render the recorded adapter/transfer timeline.
 .B boot-image
 Build or inspect FBRI images.
 .TP
+.B ipsw tethered-downgrade-guide
+Run the guided local/download, validation, plan, external-adapter preflight,
+and optional execution workflow. The target-specific adapter is not bundled;
+without it the guide exits after saving a plan. The adapter is a separately
+installed executable or reviewed wrapper that performs the device-side
+DFU/recovery boot sequence and returns structured JSON to B34ST.
+.TP
 .B irecovery
 Query, verify, or send through an authorized recovery session. Send is
 non-executing by default.

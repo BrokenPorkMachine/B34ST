@@ -19,7 +19,7 @@ HEADER_SIZE = 128
 MANIFEST_CAPACITY = 16 * 1024
 ALIGNMENT = 4096
 HEADER = struct.Struct("<4sHHIIIIQQQQQ32s32s")
-FAMILY_IDS = {"generic": 0, "a12": 1, "a12x": 2, "a13": 3}
+FAMILY_IDS = {"generic": 0, "a12": 1, "a12x": 2, "a13": 3, "a14": 4, "m1": 5, "a15": 6, "m2": 7}
 ID_FAMILIES = {value: key for key, value in FAMILY_IDS.items()}
 MAX_PROFILE_SIZE = 256 * 1024
 MAX_COMPONENTS = 8
@@ -80,7 +80,7 @@ def load_profile(path: pathlib.Path) -> dict[str, object]:
         raise BootImageError("unsupported recovery profile schema")
     family = profile.get("family")
     if family not in FAMILY_IDS or family == "generic":
-        raise BootImageError("profile family must be a12, a12x, or a13")
+        raise BootImageError(f"profile family must be one of {', '.join(f for f in FAMILY_IDS if f != 'generic')}")
     cpids = profile.get("cpids")
     if not isinstance(cpids, list) or not cpids:
         raise BootImageError("profile must contain at least one CPID")

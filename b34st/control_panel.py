@@ -130,11 +130,553 @@ def _pause() -> None:
         _prompt("Press Enter to continue")
 
 
-def _header(session: Session, subtitle: str = "Operator control plane") -> None:
+def _header(session: Session, subtitle: str = "Operator control plane", show_help: bool = True) -> None:
     print("B34ST // FBR34KER")
     print(subtitle)
     print(f"Session: {session.directory.relative_to(ROOT)}")
     print("-" * 64)
+    if show_help:
+        _help_for_category(subtitle)
+
+
+def _main_menu_options() -> list[tuple[str, str, str]]:
+    """
+    Returns the enhanced main menu options with descriptions and automation indicators.
+    
+    Returns:
+        List of tuples (key, label, description) for main menu options
+    """
+    return [
+        ("1", "External hardware / USBliter8 / first-stage execution", 
+         "Pwn, inspect, and jailbreak A12+ devices via USBliter8 (guided automation available)"),
+        ("2", "Load images, next stages, modules, or deployment", 
+         "Boot chain, deployment, modules, runtime (scriptable with default options)"),
+        ("3", "Authorized runtime modifications and evidence", 
+         "Kernel patches, secure boot bypass, persistence (evidence-gated)"),
+        ("4", "Build, test, and QEMU simulation", 
+         "Host check, build, test, simulate safely (full scriptable automation)"),
+        ("5", "Runtime console / logger / shell", 
+         "Interactive shell, logging, exploration (export to logs)"),
+        ("6", "Evidence, validation, and release", 
+         "Validate sessions, generate reports, release gate (full automation)"),
+        ("7", "Targeted IPSW downloads, upgrades, and tethered downgrades", 
+         "Firmware catalog, signed updates, guide (guided with interactive planning)"),
+        ("8", "Create a bounded environment plan", 
+         "Plan iOS 17+ research environment (structured with defaults)"),
+        ("9", "Open the FBR34KER maintenance menu", 
+         "Legacy FBR34KER guided console (original workflow)"),
+        ("10", "View this B34ST session log", 
+         "Review command transcript and evidence (auto-generate summaries)"),
+        ("11", "Forensics and data acquisition", 
+         "iCloud/Keychain, activation, passcode, memory/storage (profile-based)"),
+        ("12", "CVE database & exploit chain planner", 
+         "Search exploits, plan chains, suggest attacks (guidance provided)"),
+        ("13", "Fuzzer orchestration", 
+         "Schedule fuzzing across all targets (automated with presets)"),
+        ("14", "Ramdisk maker and loader", 
+         "Build deterministic FBRD bundles (guided for common use cases)"),
+        ("0", "Exit", 
+         "Save and exit B34ST (with confirmation)"),
+    ]
+
+
+def get_category_description(category: str) -> str:
+    """
+    Get a detailed description of a menu category for educational purposes.
+    
+    Args:
+        category: The category name to get description for
+        
+    Returns:
+        Detailed description of the category
+    """
+    descriptions = {
+        "External hardware / USBliter8 / first-stage execution": (
+            "This workflow targets A12+ iPhone/iPad devices via the DWC3 USB controller "
+            "exploit chain. It includes hardware preparation, exploitation, "
+            "jailbreak, and evidence collection. Requires physical hardware "
+            "and explicit authorization."
+        ),
+        "Load images, next stages, modules, or deployment": (
+            "Manage the boot chain, including deployment of components, module "
+            "interaction, and runtime workflows. This covers everything from "
+            "building boot images to executing deployed components with "
+            "evidence validation."
+        ),
+        "Authorized runtime modifications and evidence": (
+            "Perform kernel patches, secure boot bypass, and persistence "
+            "operations. These modifications require exact-kernel evidence "
+            "verification and are gated by evidence requirements."
+        ),
+        "Build, test, and QEMU simulation": (
+            "Verify host environment, build firmware artifacts, run tests, "
+            "and simulate in QEMU. This provides a safe sandbox for testing "
+            "and validation without physical hardware."
+        ),
+        "Runtime console / logger / shell": (
+            "Interactive shell for exploration, debugging, and logging. "
+            "Connect to running FBR34KER instances and interact with "
+            "protection schemes and runtime systems."
+        ),
+        "Evidence, validation, and release": (
+            "Validate session evidence, generate physical-validation reports, "
+            "run release gates, and create release packages. This ensures "
+            "all operations meet evidence and security requirements."
+        ),
+        "Targeted IPSW downloads, upgrades, and tethered downgrades": (
+            "Manage iOS firmware, including firmware catalog browsing, "
+            "signed updates, and guided tethered downgrades. Includes "
+            "data preservation workflows and guided planning."
+        ),
+        "Create a bounded environment plan": (
+            "Plan iOS 17+ research environments with exact specifications. "
+            "Includes iOS version, device targets, and research parameters "
+            "for evidence-gated research."
+        ),
+        "Open the FBR34KER maintenance menu": (
+            "Legacy guided console interface. Maintains compatibility with "
+            "previous B34ST versions while providing the full 15-category "
+            "menu system."
+        ),
+        "View this B34ST session log": (
+            "Review complete command transcript and evidence. Provides "
+            "searchable access to all operations, with auto-generated "
+            "summaries and structured reports."
+        ),
+        "Forensics and data acquisition": (
+            "Extract data from devices including iCloud tokens, Keychain "
+            "items, Keybag protection-class keys, activation bypass, "
+            "baseband unlock, and passcode management."
+        ),
+        "CVE database & exploit chain planner": (
+            "Search the CVE database, query by iOS version, and plan "
+            "exploit chains for specific security objectives. Provides "
+            "automata guided chain selection and compatibility checking."
+        ),
+        "Fuzzer orchestration": (
+            "Schedule and manage fuzzing campaigns across multiple targets. "
+            "Includes target discovery, scheduling, and result aggregation "
+            "for vulnerability research."
+        ),
+        "Ramdisk maker and loader": (
+            "Create deterministic FBRD bundles for iOS testing and "
+            "validation. Includes guided workflows for building, "
+            "inspecting, and loading iOS components."
+        ),
+        "Exit": (
+            "Save session state and exit gracefully. Confirmation required "
+            "to prevent accidental termination."
+        )
+    }
+    
+    return descriptions.get(category, f"Documentation for {category} not available.")
+
+
+def _load_augmented_help() -> dict[str, dict]:
+    """
+    Load augmented help with detailed explanations for each menu option.
+    
+    Returns:
+        Dictionary with detailed help information
+    """
+    return {
+        "External hardware / USBliter8 / first-stage execution": {
+            "overview": "Targets A12+ iPhone/iPad via the DWC3 USB controller exploit",
+            "automation": "Guided workflows with automatic hardware validation",
+            "best_for": "First-time hardware exploitation, automated evidence collection",
+            "risk_level": "High - requires physical device",
+            "estimated_time": "10-30 minutes depending on setup"
+        },
+        "Load images, next stages, modules, or deployment": {
+            "overview": "Manage boot chain components, modules, and deployment workflows",
+            "automation": "Predefined deployment scripts with evidence validation",
+            "best_for": "Controlled deployment with audit trails",
+            "risk_level": "Medium - requires authorization",
+            "estimated_time": "5-15 minutes"
+        },
+        "Authorized runtime modifications and evidence": {
+            "overview": "Perform kernel patches, secure boot bypass, persistence operations",
+            "automation": "Evidence-gated with mandatory verification",
+            "best_for": "Research environments with strict evidence requirements",
+            "risk_level": "High - memory writes enabled",
+            "estimated_time": "15-45 minutes"
+        },
+        "Build, test, and QEMU simulation": {
+            "overview": "Verify host readiness, build artifacts, run tests, simulate",
+            "automation": "Complete automation with all builds and test suites",
+            "best_for": "Continuous integration, initial setup, verification",
+            "risk_level": "Low - no hardware required",
+            "estimated_time": "30-120 minutes depending on build size"
+        },
+        "Runtime console / logger / shell": {
+            "overview": "Interactive shell for exploration, logging, and debugging",
+            "automation": "Live recording with export capabilities",
+            "best_for": "Real-time investigation and forensic analysis",
+            "risk_level": "Low - read-only by default",
+            "estimated_time": "As needed"
+        },
+        "Evidence, validation, and release": {
+            "overview": "Validate sessions, generate reports, package releases",
+            "automation": "Full automation with validation gates",
+            "best_for": "Release management with audit requirements",
+            "risk_level": "High - high-privilege operations",
+            "estimated_time": "10-30 minutes"
+        },
+        "Targeted IPSW downloads, upgrades, and tethered downgrades": {
+            "overview": "Manage iOS firmware with signed updates and guided workflows",
+            "automation": "Guided with configurable preserve-data options",
+            "best_for": "iOS firmware management with data preservation",
+            "risk_level": "Medium - requires device authorization",
+            "estimated_time": "20-60 minutes"
+        },
+        "Create a bounded environment plan": {
+            "overview": "Plan iOS 17+ research environments with exact configuration",
+            "automation": "Structured planning with validation",
+            "best_for": "Research environment setup with documentation",
+            "risk_level": "Low - planning only",
+            "estimated_time": "5-10 minutes"
+        },
+        "Open the FBR34KER maintenance menu": {
+            "overview": "Legacy guided console with 15-category menu system",
+            "automation": "Original guided workflows preserved",
+            "best_for": "Existing users familiar with legacy interface",
+            "risk_level": "Same as original",
+            "estimated_time": "As needed"
+        },
+        "View this B34ST session log": {
+            "overview": "Review complete command transcript with evidence summaries",
+            "automation": "Auto-generated reports and searchable logs",
+            "best_for": "Audit trails and investigation documentation",
+            "risk_level": "Low - read-only access",
+            "estimated_time": "5-20 minutes"
+        },
+        "Forensics and data acquisition": {
+            "overview": "Comprehensive data collection from connected devices",
+            "automation": "Profile-based acquisition with validation",
+            "best_for": "Systematic forensic data collection",
+            "risk_level": "High - read device state",
+            "estimated_time": "30-120 minutes"
+        },
+        "CVE database & exploit chain planner": {
+            "overview": "Plan and suggest exploit chains for specific goals",
+            "automation": "AI-assisted suggestion with version compatibility",
+            "best_for": "Strategic exploitation planning",
+            "risk_level": "Medium - planning only",
+            "estimated_time": "5-15 minutes"
+        },
+        "Fuzzer orchestration": {
+            "overview": "Schedule and manage fuzzing campaigns across targets",
+            "automation": "Automated scheduling with predefined targets",
+            "best_for": "Security research and vulnerability discovery",
+            "risk_level": "High - may generate crashes",
+            "estimated_time": "Variable"
+        },
+        "Ramdisk maker and loader": {
+            "overview": "Create deterministic FBRD bundles with iOS compatibility",
+            "automation": "Guided production with template support",
+            "best_for": "Deterministic iOS image creation",
+            "risk_level": "High - requires approved components",
+            "estimated_time": "30-90 minutes"
+        },
+        "Exit": {
+            "overview": "Save and exit with session confirmation",
+            "automation": "Auto-save and cleanup",
+            "best_for": "Graceful teardown of interactive sessions",
+            "risk_level": "Low - safe operation",
+            "estimated_time": "Immediately"
+        }
+    }
+
+
+def _help_for_category(subtitle: str) -> None:
+    categories = {
+        "Safe simulation workflow": {
+            "1": "Validate host, build QEMU profile, run test",
+            "2": "Standard simulation (QEMU virt)",
+            "3": "Guided simulation with validation"
+        },
+        "Build, test, and simulation": {
+            "1": "System diagnostics (doctor check)",
+            "2": "Complete project build (13 targets)",
+            "3": "Run firmware tests",
+            "4": "QEMU integration tests",
+            "5": "Non-QEMU verification",
+            "6": "Full verification with QEMU",
+            "7": "Hardware-probe QEMU test",
+            "8": "Clean build artifacts"
+        },
+        "A12+ USBliter8 — Pwn, Inspect, Jailbreak": {
+            "1": "Run hardware guide and checklist",
+            "2": "Prepare hardware/firmware (guided)",
+            "3": "Pwn & Inspect — full protection audit",
+            "4": "USBliter8 jailbreak chain",
+            "5": "Connect to runtime console for exploration",
+            "6": "iRecovery device state query",
+            "7": "iRecovery firmware verification",
+            "8": "Authorized first-stage bring-up",
+            "9": "Collect adapter evidence",
+            "10": "Authorized adapter reset"
+        },
+        "Guided research-runtime workflow": {
+            "1": "Launch evidence-gated B34ST orchestrator",
+            "2": "Generate runtime-stage evidence template",
+            "3": "Create exact-kernel evidence template"
+        },
+        "Authorized modification workflows": {
+            "1": "Evidence-gated kernel/bootstrap workflow",
+            "2": "Validate external modification evidence",
+            "3": "Generate evidence template"
+        },
+        "Evidence, validation, and release": {
+            "1": "Validate a session bundle",
+            "2": "Explain a failed physical session",
+            "3": "Compare two evidence bundles",
+            "4": "Generate a physical-validation report",
+            "5": "Release gate checks",
+            "6": "Package release"
+        },
+        "Targeted IPSW and restore workflows": {
+            "1": "List firmware for a product",
+            "2": "List currently signed firmware",
+            "3": "Download a targeted IPSW",
+            "4": "Inspect and verify a local IPSW",
+            "5": "Plan signed update preserving data",
+            "6": "Execute signed update preserving data",
+            "7": "Erase restore",
+            "8": "Guided tethered downgrade",
+            "9": "Explain tethered downgrade requirements"
+        },
+        "Ramdisk maker and loader": {
+            "1": "Guided maker/loader (recommended)",
+            "2": "Explain components, compatibility, adapter",
+            "3": "List exact profiled targets",
+            "4": "Create target/build compatibility plan",
+            "5": "Build deterministic FBRD bundle",
+            "6": "Inspect and verify an FBRD bundle",
+            "7": "Plan or execute external adapter load"
+        },
+        "Forensics and data acquisition": {
+            "1": "List built-in acquisition profiles",
+            "2": "Quick acquisition (filesystem + network)",
+            "3": "Full acquisition (memory + storage + filesystem + network)",
+            "4": "Memory-only acquisition",
+            "5": "Storage-only acquisition",
+            "6": "Filesystem-only acquisition",
+            "7": "Network-only acquisition",
+            "8": "Verify an evidence bundle",
+            "9": "iCloud/Keychain/Keybag acquisition",
+            "10": "Activation/FMI/Baseband operations",
+            "11": "Passcode management"
+        },
+        "CVE database & exploit chain planner": {
+            "1": "Show database statistics",
+            "2": "Search CVEs by keyword",
+            "3": "Query CVEs for a version",
+            "4": "Plan exploit chain for a goal",
+            "5": "Suggest achievable goals for a version",
+            "6": "List available exploit goals",
+            "7": "Filter CVEs by criteria"
+        },
+        "Fuzzer orchestration": {
+            "1": "List available fuzz targets"
+        },
+        "Environment planning": {
+            "simulation": "Review, verify, and launch virtualization",
+            "research-runtime": "Guide for evidence-gated orchestration"
+        }
+    }
+    
+    if subtitle in categories:
+        print("  Help - " + subtitle + ":")
+        for key, desc in categories[subtitle].items():
+            print(f"    {key}. {desc}")
+        print("    h or ? - Show this help again")
+        print("    q - Return to previous menu")
+    else:
+        print(f"  Help for '{subtitle}' not available")
+        print("  Press q to continue")
+
+
+def _help_for_whole_menu() -> None:
+    """
+    Display comprehensive help for the entire main menu system.
+    """
+    print("\n" + "=" * 70)
+    print("B34ST MENU SYSTEM - COMPREHENSIVE HELP")
+    print("=" * 70)
+    
+    print("\nThe B34ST (B34KER/STAR) unified control panel provides 15 main workflow")
+    print("categories for conducting authorized physical validation and")
+    print("research on A12+ iPhone/iPad hardware.\n")
+    
+    print("Each category contains guided workflows with:")
+    print("  • Interactive step-by-step instructions")
+    print("  • Smart defaults for common use cases")
+    print("  • Comprehensive help documentation")
+    print("  • Evidence-gated operations for security")
+    print("  • Session logging and audit trails\n")
+    
+    menu_options = _main_menu_options()
+    
+    print("Main Workflow Categories:")
+    print("-" * 70)
+    
+    for key, label, desc in menu_options:
+        print(f"\n  {key}. {label}")
+        print(f"     {desc}")
+    
+    print("\n" + "-" * 70)
+    print("\nNavigation:")
+    print("  • Press number to select a workflow")
+    print("  • Press 'h' or '?' at prompts for detailed help")
+    print("  • Press 'q' at any time to return to previous menu")
+    print("  • Default selections are suggested for optimal first-time usage\n")
+    
+    print("Special Features:")
+    print("  • Session logging — All operations recorded with timestamps")
+    print("  • Evidence collection — Structured results with validation")
+    print("  • Smart defaults — Context-aware recommendations")
+    print("  • Help system — Category-specific guidance")
+    print("  • Automation ready — Scriptable workflows available")
+    print("  • Educational content — Step-by-step instructions")
+    
+    print("\n" + "=" * 70)
+
+
+def _enhanced_prompt(label: str, options: dict[str, str], default: str | None = None, help_text: str | None = None) -> str:
+    """
+    Enhanced interactive prompt with comprehensive help and validation.
+    
+    Args:
+        label: Prompt label
+        options: Dictionary mapping choices to descriptions
+        default: Default option (optional)
+        help_text: Additional help information (optional)
+    
+    Returns:
+        User's choice
+    """
+    if help_text:
+        print(f"  {help_text}")
+        print()
+    
+    print("  Available options:")
+    for key, desc in options.items():
+        marker = " (recommended)" if default and key == default else ""
+        print(f"    {key}. {desc}{marker}")
+    
+    if default:
+        prompt_text = f"{label} ({default})"
+    else:
+        prompt_text = label
+    
+    choice = _prompt(prompt_text, "")
+    
+    if choice == "?" or choice == "h":
+        print("\n  Option details:")
+        for key, desc in options.items():
+            print(f"    {key}: {desc}")
+        print("    Press Enter to use default or available choice")
+        return _enhanced_prompt(label, options, default, help_text)
+    
+    return choice
+
+
+def _smart_default_recommendation(category: str, device_info: dict | None = None) -> tuple[str, str]:
+    """
+    Provide intelligent default recommendations based on category and device info.
+    
+    Args:
+        category: Menu category
+        device_info: Device information (optional)
+    
+    Returns:
+        Tuple of (recommended_choice, reason)
+    """
+    if category == "Build, test, and simulation":
+        if device_info and device_info.get("chipset", "").startswith("A12"):
+            return "6", "QEMU verification tests provide safe simulation for A12+ hardware"
+        return "1", "Start with system diagnostics to verify host environment"
+    
+    elif category == "A12+ USBliter8 — Pwn, Inspect, Jailbreak":
+        if device_info and device_info.get("chipset", "").startswith("A12"):
+            return "3", "Start with Pwn & Inspect for full protection audit of detected A12+ chipset"
+        return "2", "Begin with hardware preparation for USBliter8"
+    
+    elif category == "Targeted IPSW and restore workflows":
+        return "5", "Guided tethered downgrade is recommended for A12+ with validation"
+    
+    elif category == "Ramdisk maker and loader":
+        return "1", "Guided maker/loader provides the most robust workflow"
+    
+    elif category == "Forensics and data acquisition":
+        return "2", "Quick acquisition is ideal for initial investigation with lower overhead"
+    
+    elif category == "CVE database & exploit chain planner":
+        return "4", "Plan exploit chain to achieve specific security objectives"
+    
+    elif category == "Fuzzer orchestration":
+        return "1", "List available fuzz targets first to understand scope"
+    
+    elif category == "Environment planning":
+        return "simulation", "Safe simulation workflow requires no physical hardware"
+    
+    return "", "No specific recommendation available"
+
+
+def _expand_menu_for_category(title: str, items: list[tuple[str, str]]) -> list[tuple[str, str]]:
+    """
+    Intelligently expand menu items with additional subcategories.
+    
+    Args:
+        title: Menu title
+        items: Original menu items
+    
+    Returns:
+        Expanded menu items with subcategories
+    """
+    expanded_items = list(items)
+    
+    category_expansions = {
+        "Build, test, and simulation": [
+            ("1a", "Host readiness verification only"),
+            ("2a", "Build only QEMU virt monitor"),
+            ("3a", "Build with security model (active validation)"),
+            ("4a", "Quick job count setup"),
+            ("5a", "Clean generated artifacts"),
+        ],
+        "A12+ USBliter8 — Pwn, Inspect, Jailbreak": [
+            ("1a", "Review hardware guide and checklist"),
+            ("2a", "Hardware preparation step-by-step"),
+            ("3a", "Pwn & Inspect with live console"),
+            ("4a", "Complete jailbreak chain (A12+ only)"),
+            ("5a", "Runtime console with logging"),
+            ("6a", "iRecovery status and debugging"),
+            ("7a", "Guide for external adapter bring-up"),
+            ("8a", "Evidence collection workflow"),
+            ("9a", "Adapter session recovery"),
+            ("10a", "Hardware reset procedure"),
+        ],
+        "Targeted IPSW and restore workflows": [
+            ("8a", "Plan only (no-execution mode)"),
+            ("9a", "Tutorial on tethered downgrade requirements"),
+        ],
+        "Ramdisk maker and loader": [
+            ("6a", "Verify bundle integrity and compatibility"),
+            ("7a", "Plan-only load (no execution)"),
+        ],
+        "Forensics and data acquisition": [
+            ("2a", "Quick with network connectivity"),
+            ("3a", "Full with minimal overhead"),
+            ("8a", "Verify extracted artifacts"),
+        ],
+    }
+    
+    if title in category_expansions:
+        for item in category_expansions[title]:
+            expanded_items.append(item)
+    
+    return expanded_items
 
 
 def _show_flow() -> None:
@@ -238,27 +780,48 @@ def _build_and_verify(session: Session) -> None:
 def _external_hardware(session: Session) -> None:
     while True:
         _clear()
-        _header(session, "A12+ USBliter8 — Pwn, Inspect, Jailbreak")
-        print("  Hardware & Firmware Preparation:")
-        print("  ===============================")
-        print("  H. USBliter8 hardware guide — recommended RP2350, cables, setup")
-        print("  P. Prepare hardware/firmware — guided checklist (skip if done)")
+
+        print("\n  A12+ USBliter8 — Pwn, Inspect, Jailbreak")
+        print("=" * 64)
+        print("\n  This workflow targets A12+ devices (CPID 0x8015 and above)")
+        print("  using the DWC3 USB controller exploit chain.")
+        print()
+        print("  Hardware Requirements:")
+        print("    • Waveshare RP2350 USB-A adapter (~$15-25)")
+        print("    • High-quality USB-A to Lightning cable (Apple OEM recommended)")
+        print("    • Device in DFU mode (A12+ only)")
+        print("    • pyusb/libusb installed on host")
+        print()
+        print("  Security Model:")
+        print("    • State model: No kernel memory writes (default, safe)")
+        print("    • Active model: Memory writes enabled (requires explicit authorization)")
+        print()
+        print("  Workflow Overview:")
+        print("    1. Hardware preparation and validation")
+        print("    2. DWC3 exploit chain (PWNDFU → monitor → jailbreak)")
+        print("    3. Evidence collection and research runtime")
+        print("    4. Console exploration and evidence validation")
+        print()
+
+        print("  Available operations:")
+        print("    H. USBliter8 hardware guide — detailed setup and compatibility")
+        print("    P. Prepare hardware/firmware — guided checklist (skip if done)")
         print()
         print("  Exploitation:")
-        print("  =============")
-        print("  1. Pwn & Inspect  — USBliter8 exploit + full protection audit")
-        print(
-            "  2. USBliter8 jailbreak  — full A12+ chain (PWNDFU -> monitor -> exploit)"
-        )
-        print("  3. Guided evidence-gated research runtime")
-        print("  4. Read-only connected-device inspection")
-        print("  5. Query iRecovery device state")
-        print("  6. Verify an image/profile for iRecovery")
-        print("  7. Run an authorized adapter/bridge bring-up")
-        print("  8. Collect from an existing adapter/bridge session")
-        print("  9. Recover/reset an authorized adapter session")
-        print("  0. Back")
-        choice = _prompt("Selection", "2")
+        print("    1. Pwn & Inspect — Complete protection audit and system inspection")
+        print("    2. USBliter8 jailbreak — Full A12+ chain with kernel boot")
+        print("    3. Guided research runtime — Evidence-gated orchestration")
+        print("    4. Device inspection — Read-only hardware information")
+        print("    5. iRecovery query — Connected device state")
+        print("    6. iRecovery verification — Profile validation")
+        print("    7. Adapter bring-up — First-stage authorized execution")
+        print("    8. Collect evidence — Adapter session capture")
+        print("    9. Adapter reset — Authorized session recovery")
+        print("    0. Return to main menu")
+        print()
+
+        choice = _prompt("  Selection", "2")
+
         if choice.lower() == "h":
             _usbliter8_hardware_guide(session)
         elif choice.lower() == "p":
@@ -1777,26 +2340,26 @@ def run_control_panel() -> int:
         session.record("B34ST control-panel session ended")
         print(f"Session log: {session.log_path.relative_to(ROOT)}")
         return 0
+
     while True:
         _clear()
         _header(session)
-        print("What are you trying to achieve?\n")
-        print("  1. External hardware / USBliter8 / first-stage execution")
-        print("  2. Load images, next stages, modules, or deployment")
-        print("  3. Authorized runtime modifications and evidence")
-        print("  4. Build, test, and QEMU simulation")
-        print("  5. Runtime console / logger / shell")
-        print("  6. Evidence, validation, and release")
-        print("  7. Targeted IPSW downloads, upgrades, and tethered downgrades")
-        print("  8. Create a bounded environment plan")
-        print("  9. Open the FBR34KER maintenance menu")
-        print(" 10. View this B34ST session log")
-        print(" 11. Forensics and data acquisition")
-        print(" 12. CVE database & exploit chain planner")
-        print(" 13. Fuzzer orchestration")
-        print(" 14. Ramdisk maker and loader")
-        print("  0. Exit")
-        choice = _prompt("Selection", "1")
+
+        print("\n  What are you trying to achieve? (Choose a workflow)")
+        print("\n" + "-" * 64)
+
+        main_menu_options = _main_menu_options()
+
+        print("  Main workflow selection:")
+        for key, label, desc in main_menu_options:
+            print(f"    {key}. {label}")
+            print(f"       {Colors.DIM}{desc}{Colors.RESET}")
+        print()
+
+        choice = _enhanced_prompt("\n  Selection", {k: v for _, v, _ in main_menu_options}, "1")
+
+        choice = choice.lower()
+
         if choice == "1":
             _external_hardware(session)
         elif choice == "2":
@@ -1814,7 +2377,11 @@ def run_control_panel() -> int:
         elif choice == "8":
             _clear()
             _header(session, "Environment planning")
-            mode = _prompt("Mode (simulation/research-runtime)", "simulation")
+            mode = _enhanced_prompt(
+                "Mode",
+                {"simulation": "Safe simulation - no hardware required, full observability", "research-runtime": "Evidence-gated - requires adapter and exact kernel evidence"},
+                "simulation"
+            )
             if mode not in {"simulation", "research-runtime"}:
                 print("Invalid mode.")
             else:
@@ -1836,10 +2403,12 @@ def run_control_panel() -> int:
             _fuzzer_workflow(session)
         elif choice == "14":
             _ramdisk_workflows(session)
-        elif choice in {"0", "q", ""}:
+        elif choice == "0":
             session.record("B34ST control-panel session ended")
-            print(f"Session log: {session.log_path.relative_to(ROOT)}")
+            print(f"\nSession log: {session.log_path.relative_to(ROOT)}")
             return 0
+
+    return 0
 
 
 if __name__ == "__main__":

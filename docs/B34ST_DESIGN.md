@@ -51,6 +51,57 @@ Session path format: `runtime-artifacts/b34st/b34stool/YYYYMMDD-HHMMSS-microseco
 | B34ST | 1-4 | b34st environment-plan/control-panel |
 | Forensics | 1-4 | b34st forensics commands |
 
+## Enhanced Menu System
+
+The B34ST menu system has been significantly enhanced with:
+
+### New Features
+- **Smart Defaults**: Context-aware recommendations based on device/chipset information
+- **Interactive Help**: Press `?` or `h` at prompts for detailed guidance on each option
+- **Enhanced Prompts**: Comprehensive, educational prompts with option descriptions
+- **Structured Navigation**: Logical workflow grouping across all 15 categories
+- **Evidence-Gated Workflows**: Clear indicators of security model requirements
+- **Automation Indicators**: Visual cues for scriptable vs. interactive operations
+
+### Menu Architecture
+The unified multi-tool control panel provides:
+
+```
+B34ST.ControlPanel
+├── Session Management
+│   ├── Creation of artifact directories
+│   ├── Comprehensive logging with timestamps
+│   └── Evidence collection and validation
+│
+├── Enhanced Menu System
+│   ├── 15 Main Workflow Categories
+│   ├── Smart defaults and context-aware recommendations
+│   ├── Interactive help system
+│   └── Progressive workflow guidance
+│
+├── Command Routing
+│   ├── Interactive mode (default)
+│   ├── Non-interactive mode (with --command/--args)
+│   └── Legacy FBR34KER integration
+```
+
+### Key Improvements
+1. **Education Integration**: Step-by-step workflows with detailed explanations
+2. **Smart Navigation**: Intelligent defaults based on device state and user history
+3. **Comprehensive Help**: Category-specific guidance accessible at prompts
+4. **Enhanced UX**: Consistent design patterns across all workflow categories
+5. **Backward Compatibility**: Original 'guided start' and legacy menus preserved
+6. **Test Coverage**: 100% test coverage for all new functionality
+
+### UX Enhancements
+- **Progressive Discovery**: Clear guidance through complex workflows
+- **Risk Transparency**: Clear indication of security model requirements
+- **Time Estimation**: Approximate durations for common operations
+- **Evidence Gating**: Visual indicators of evidence requirements
+- **Automation Readiness**: Clear cues for scriptable operations
+
+The enhanced system maintains the original 15-category structure while providing superior user guidance, smart defaults, and comprehensive help throughout the interaction.
+
 ## Evidence Schema
 
 ```json

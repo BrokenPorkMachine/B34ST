@@ -54,7 +54,7 @@ class USBDescriptor:
     bData: bytes
 
     def serialize(self) -> bytes:
-        return struct.pack('<BB', self.bLength, self.bDescriptorType) + self.bData
+        return struct.pack("<BB", self.bLength, self.bDescriptorType) + self.bData
 
 
 @dataclass
@@ -67,7 +67,7 @@ class USBDeviceConfig:
 
     @property
     def total_size(self) -> int:
-        total = (self.device_descriptor.bLength + self.configuration_descriptor.bLength)
+        total = self.device_descriptor.bLength + self.configuration_descriptor.bLength
         for desc in self.interface_descriptors:
             total += desc.bLength
         for desc in self.endpoint_descriptors:
@@ -102,34 +102,50 @@ class USBMaliciousPeripheral:
         configs = []
 
         # Device Descriptor
-        device_desc_data = bytes([
-            0x12, 0x00,  # bLength, bDescriptorType
-            0x00, 0x02,  # bcdUSB (USB 2.0)
-            0x00,  # Device Class (use class from interface)
-            0x00,  # Device SubClass
-            0x00,  # Device Protocol
-            0x40,  # MaxPacketSize0 (64)
-            0xAB, 0x01,  # IdVendor (Apple Mock Vendor)
-            0xCD, 0xEF,  # IdProduct (Malicious Product)
-            0x01, 0x00,  # bcdDevice
-            0x01,  # iManufacturer
-            0x02,  # iProduct
-            0x00, 0x00,  # Serial Number
-            0x01,  # Number of Configurations
-        ])
-        device_descriptor = USBDescriptor(18, USBStandardDescriptors.DEVICE, device_desc_data)
+        device_desc_data = bytes(
+            [
+                0x12,
+                0x00,  # bLength, bDescriptorType
+                0x00,
+                0x02,  # bcdUSB (USB 2.0)
+                0x00,  # Device Class (use class from interface)
+                0x00,  # Device SubClass
+                0x00,  # Device Protocol
+                0x40,  # MaxPacketSize0 (64)
+                0xAB,
+                0x01,  # IdVendor (Apple Mock Vendor)
+                0xCD,
+                0xEF,  # IdProduct (Malicious Product)
+                0x01,
+                0x00,  # bcdDevice
+                0x01,  # iManufacturer
+                0x02,  # iProduct
+                0x00,
+                0x00,  # Serial Number
+                0x01,  # Number of Configurations
+            ]
+        )
+        device_descriptor = USBDescriptor(
+            18, USBStandardDescriptors.DEVICE, device_desc_data
+        )
 
         # Configuration Descriptor
-        config_desc_data = bytes([
-            0x09, 0x02,  # bLength, bDescriptorType
-            0xCD, 0x00,  # wTotalLength (variable, to be overridden)
-            0x01,  # bNumInterfaces (malicious, often non-zero)
-            0x01,  # bConfigurationValue
-            0x00,  # iConfiguration
-            0x80,  # bmAttributes (self-powered, remote wakeup)
-            0x32,  # bMaxPower
-        ])
-        configuration_descriptor = USBDescriptor(9, USBStandardDescriptors.CONFIGURATION, config_desc_data)
+        config_desc_data = bytes(
+            [
+                0x09,
+                0x02,  # bLength, bDescriptorType
+                0xCD,
+                0x00,  # wTotalLength (variable, to be overridden)
+                0x01,  # bNumInterfaces (malicious, often non-zero)
+                0x01,  # bConfigurationValue
+                0x00,  # iConfiguration
+                0x80,  # bmAttributes (self-powered, remote wakeup)
+                0x32,  # bMaxPower
+            ]
+        )
+        configuration_descriptor = USBDescriptor(
+            9, USBStandardDescriptors.CONFIGURATION, config_desc_data
+        )
 
         # Interface Descriptors (malicious)
         interface_descriptors = []
@@ -138,46 +154,58 @@ class USBMaliciousPeripheral:
 
             if corrupt and self.device_type == USBDeviceTypes.MASS_STORAGE:
                 # CDS/CDC protocol descriptors
-                desc_data = bytes([
-                    0x09,  # bLength
-                    0x04,  # bDescriptorType (Interface)
-                    0x00 + i,  # bInterfaceNumber
-                    0x00,  # bAlternateSetting
-                    0x02,  # bNumEndpoints
-                    0x08,  # bInterfaceClass (Mass Storage)
-                    0x06,  # bInterfaceSubClass (SCSI)
-                    0x50,  # bInterfaceProtocol (Bot)
-                    0x00,  # iInterface
-                ])
-                interface_desc = USBDescriptor(9, USBStandardDescriptors.INTERFACE, desc_data)
+                desc_data = bytes(
+                    [
+                        0x09,  # bLength
+                        0x04,  # bDescriptorType (Interface)
+                        0x00 + i,  # bInterfaceNumber
+                        0x00,  # bAlternateSetting
+                        0x02,  # bNumEndpoints
+                        0x08,  # bInterfaceClass (Mass Storage)
+                        0x06,  # bInterfaceSubClass (SCSI)
+                        0x50,  # bInterfaceProtocol (Bot)
+                        0x00,  # iInterface
+                    ]
+                )
+                interface_desc = USBDescriptor(
+                    9, USBStandardDescriptors.INTERFACE, desc_data
+                )
             elif corrupt and self.device_type == USBDeviceTypes.HID:
                 # HID descriptor
-                desc_data = bytes([
-                    0x09,  # bLength
-                    0x04,  # bDescriptorType (Interface)
-                    0x00 + i,  # bInterfaceNumber
-                    0x00,  # bAlternateSetting
-                    0x01,  # bNumEndpoints
-                    0x03,  # bInterfaceClass (HID)
-                    0x01,  # bInterfaceSubClass (Boot)
-                    0x01,  # bInterfaceProtocol (Keyboard)
-                    0x00,  # iInterface
-                ])
-                interface_desc = USBDescriptor(9, USBStandardDescriptors.INTERFACE, desc_data)
+                desc_data = bytes(
+                    [
+                        0x09,  # bLength
+                        0x04,  # bDescriptorType (Interface)
+                        0x00 + i,  # bInterfaceNumber
+                        0x00,  # bAlternateSetting
+                        0x01,  # bNumEndpoints
+                        0x03,  # bInterfaceClass (HID)
+                        0x01,  # bInterfaceSubClass (Boot)
+                        0x01,  # bInterfaceProtocol (Keyboard)
+                        0x00,  # iInterface
+                    ]
+                )
+                interface_desc = USBDescriptor(
+                    9, USBStandardDescriptors.INTERFACE, desc_data
+                )
             else:
                 # Normal interface descriptor
-                desc_data = bytes([
-                    0x09,  # bLength
-                    0x04,  # bDescriptorType (Interface)
-                    0x00 + i,  # bInterfaceNumber
-                    0x00,  # bAlternateSetting
-                    0x01,  # bNumEndpoints
-                    self.device_type,  # bInterfaceClass
-                    0x00,  # bInterfaceSubClass
-                    0x00,  # bInterfaceProtocol
-                    0x00,  # iInterface
-                ])
-                interface_desc = USBDescriptor(9, USBStandardDescriptors.INTERFACE, desc_data)
+                desc_data = bytes(
+                    [
+                        0x09,  # bLength
+                        0x04,  # bDescriptorType (Interface)
+                        0x00 + i,  # bInterfaceNumber
+                        0x00,  # bAlternateSetting
+                        0x01,  # bNumEndpoints
+                        self.device_type,  # bInterfaceClass
+                        0x00,  # bInterfaceSubClass
+                        0x00,  # bInterfaceProtocol
+                        0x00,  # iInterface
+                    ]
+                )
+                interface_desc = USBDescriptor(
+                    9, USBStandardDescriptors.INTERFACE, desc_data
+                )
 
             interface_descriptors.append(interface_desc)
 
@@ -188,26 +216,36 @@ class USBMaliciousPeripheral:
 
             if corrupt:
                 # Malicious endpoint descriptor
-                desc_data = bytes([
-                    0x07,  # bLength (invalid, should be 6+ or 7+)
-                    0x05,  # bDescriptorType (Endpoint)
-                    0x83 + (i * 0x04),  # bEndpointAddress (double assign)
-                    0x03,  # bmAttributes (Interrupt, invalid for mass storage)
-                    0x00, 0x08,  # wMaxPacketSize (malicious)
-                    0xFF,  # bInterval (maximum, cause excessive interrupts)
-                ])
-                endpoint_desc = USBDescriptor(7, USBStandardDescriptors.ENDPOINT, desc_data)
+                desc_data = bytes(
+                    [
+                        0x07,  # bLength (invalid, should be 6+ or 7+)
+                        0x05,  # bDescriptorType (Endpoint)
+                        0x83 + (i * 0x04),  # bEndpointAddress (double assign)
+                        0x03,  # bmAttributes (Interrupt, invalid for mass storage)
+                        0x00,
+                        0x08,  # wMaxPacketSize (malicious)
+                        0xFF,  # bInterval (maximum, cause excessive interrupts)
+                    ]
+                )
+                endpoint_desc = USBDescriptor(
+                    7, USBStandardDescriptors.ENDPOINT, desc_data
+                )
             else:
                 # Normal endpoint descriptor
-                desc_data = bytes([
-                    0x07,  # bLength
-                    0x05,  # bDescriptorType (Endpoint)
-                    0x81 + (i * 0x04),  # bEndpointAddress
-                    0x02,  # bmAttributes (Bulk)
-                    0x40, 0x00,  # wMaxPacketSize (64)
-                    0x00,  # bInterval
-                ])
-                endpoint_desc = USBDescriptor(7, USBStandardDescriptors.ENDPOINT, desc_data)
+                desc_data = bytes(
+                    [
+                        0x07,  # bLength
+                        0x05,  # bDescriptorType (Endpoint)
+                        0x81 + (i * 0x04),  # bEndpointAddress
+                        0x02,  # bmAttributes (Bulk)
+                        0x40,
+                        0x00,  # wMaxPacketSize (64)
+                        0x00,  # bInterval
+                    ]
+                )
+                endpoint_desc = USBDescriptor(
+                    7, USBStandardDescriptors.ENDPOINT, desc_data
+                )
 
             endpoint_descriptors.append(endpoint_desc)
 
@@ -215,39 +253,74 @@ class USBMaliciousPeripheral:
         class_specific_descriptors = []
         if self.device_type == USBDeviceTypes.HID:
             # HID descriptor (malicious)
-            report_desc_data = bytes([
-                0x06, 0x00, 0xFF,  # Usage Page (Generic Desktop)
-                0x05, 0x80,  # Usage (Reserved)
-                0xC0,  # End Collection
-                0x09, 0x80,  # Usage (Reserved for system control)
-                0xA1, 0x01,  # Collection (Application)
-                0x05, 0x08,  # Usage Page (LEDs)
-                0x19, 0x00,  # Usage Minimum (0)
-                0x29, 0x0B,  # Usage Maximum (11)
-                0x15, 0x00,  # Logical Minimum (0)
-                0x25, 0x01,  # Logical Maximum (1)
-                0x75, 0x01,  # Report Size (1)
-                0x95, 0x0C,  # Report Count (12)
-                0x81, 0x02,  # Input (Data, Variable, Absolute)
-                0x95, 0x01,  # Report Count (1)
-                0x81, 0x01,  # Input (Constant)
-                0x05, 0x08,  # Usage Page (LEDs)
-                0x19, 0x00,  # Usage Minimum (0)
-                0x29, 0x0B,  # Usage Maximum (11)
-                0x91, 0x02,  # Output (Data, Variable, Absolute)
-                0x95, 0x01,  # Report Count (1)
-                0x91, 0x01,  # Output (Constant)
-                0xC0,  # End Collection
-            ])
-            hid_desc = USBDescriptor(len(report_desc_data), USBStandardDescriptors.CLASS_SPECIFIC, report_desc_data)
+            report_desc_data = bytes(
+                [
+                    0x06,
+                    0x00,
+                    0xFF,  # Usage Page (Generic Desktop)
+                    0x05,
+                    0x80,  # Usage (Reserved)
+                    0xC0,  # End Collection
+                    0x09,
+                    0x80,  # Usage (Reserved for system control)
+                    0xA1,
+                    0x01,  # Collection (Application)
+                    0x05,
+                    0x08,  # Usage Page (LEDs)
+                    0x19,
+                    0x00,  # Usage Minimum (0)
+                    0x29,
+                    0x0B,  # Usage Maximum (11)
+                    0x15,
+                    0x00,  # Logical Minimum (0)
+                    0x25,
+                    0x01,  # Logical Maximum (1)
+                    0x75,
+                    0x01,  # Report Size (1)
+                    0x95,
+                    0x0C,  # Report Count (12)
+                    0x81,
+                    0x02,  # Input (Data, Variable, Absolute)
+                    0x95,
+                    0x01,  # Report Count (1)
+                    0x81,
+                    0x01,  # Input (Constant)
+                    0x05,
+                    0x08,  # Usage Page (LEDs)
+                    0x19,
+                    0x00,  # Usage Minimum (0)
+                    0x29,
+                    0x0B,  # Usage Maximum (11)
+                    0x91,
+                    0x02,  # Output (Data, Variable, Absolute)
+                    0x95,
+                    0x01,  # Report Count (1)
+                    0x91,
+                    0x01,  # Output (Constant)
+                    0xC0,  # End Collection
+                ]
+            )
+            hid_desc = USBDescriptor(
+                len(report_desc_data),
+                USBStandardDescriptors.CLASS_SPECIFIC,
+                report_desc_data,
+            )
             class_specific_descriptors.append(hid_desc)
 
         # Update configuration descriptor with actual total length
-        total_len = sum(d.bLength for d in [device_descriptor, configuration_descriptor] +
-                        interface_descriptors + endpoint_descriptors +
-                        class_specific_descriptors)
-        config_desc_data = config_desc_data[:2] + struct.pack('<H', total_len) + config_desc_data[4:]
-        configuration_descriptor = USBDescriptor(9, USBStandardDescriptors.CONFIGURATION, config_desc_data)
+        total_len = sum(
+            d.bLength
+            for d in [device_descriptor, configuration_descriptor]
+            + interface_descriptors
+            + endpoint_descriptors
+            + class_specific_descriptors
+        )
+        config_desc_data = (
+            config_desc_data[:2] + struct.pack("<H", total_len) + config_desc_data[4:]
+        )
+        configuration_descriptor = USBDescriptor(
+            9, USBStandardDescriptors.CONFIGURATION, config_desc_data
+        )
 
         return USBDeviceConfig(
             device_descriptor=device_descriptor,
@@ -257,21 +330,25 @@ class USBMaliciousPeripheral:
             class_specific_descriptors=class_specific_descriptors,
         )
 
-    def generate_rapid_descriptor_changes(self, num_changes: int = 5) -> List[Dict[str, Union[int, bytes]]]:
+    def generate_rapid_descriptor_changes(
+        self, num_changes: int = 5
+    ) -> List[Dict[str, Union[int, bytes]]]:
         """Generate rapid descriptor changes to confuse the host driver."""
         changes = []
         for i in range(num_changes):
             corrupt = self.random.random() < self.descriptor_corruption_rate
 
             change = {
-                'sequence_id': i,
-                'timestamp_us': i * 100000,
-                'action': 'set_configuration' if not corrupt else 'change_config',
-                'config_number': self.random.randint(0, 1),
-                'original_length': self.random.randint(9, 256),
-                'corrupted_length': 9 if corrupt else self.random.randint(9, 256),
-                'descriptor': bytes([self.random.randint(0, 255) for _ in range(32)]),
-                'invalid_crc': struct.pack('<I', self.random.randint(0x00000001, 0xFFFFFFFF)),
+                "sequence_id": i,
+                "timestamp_us": i * 100000,
+                "action": "set_configuration" if not corrupt else "change_config",
+                "config_number": self.random.randint(0, 1),
+                "original_length": self.random.randint(9, 256),
+                "corrupted_length": 9 if corrupt else self.random.randint(9, 256),
+                "descriptor": bytes([self.random.randint(0, 255) for _ in range(32)]),
+                "invalid_crc": struct.pack(
+                    "<I", self.random.randint(0x00000001, 0xFFFFFFFF)
+                ),
             }
             changes.append(change)
         return changes
@@ -330,7 +407,9 @@ class USBHostEmulationFuzzer:
             sequence_replay_rate=0.6,
             rapid_config_change_rate=0.2,
         )
-        device_configs[USBDeviceTypes.MASS_STORAGE] = mass_storage_device.generate_malicious_config()
+        device_configs[USBDeviceTypes.MASS_STORAGE] = (
+            mass_storage_device.generate_malicious_config()
+        )
 
         # Network adapter device
         net_device = USBMaliciousPeripheral(
@@ -374,7 +453,9 @@ class USBHostEmulationFuzzer:
             sequence_replay_rate=0.8,
             rapid_config_change_rate=0.5,
         )
-        device_configs[USBDeviceTypes.COMPOSITE] = composite_device.generate_malicious_config()
+        device_configs[USBDeviceTypes.COMPOSITE] = (
+            composite_device.generate_malicious_config()
+        )
 
         return device_configs
 
@@ -384,10 +465,10 @@ class USBHostEmulationFuzzer:
 
         # USB enumeration packets
         enum_packets = [
-            b'\x00\x01\x00\x00\x00\x00\x00\x00',  # Reset
-            b'\x80\x06\x00\x00\x00\x00\x00\x00\x0C\x00',  # Get Descriptor (Device)
-            b'\x80\x06\x00\x01\x00\x00\x00\x00\x09\x00',  # Get Descriptor (Config)
-            b'\x80\x06\x00\x04\x00\x01\x00\x00\x09\x00',  # Get Descriptor (Interface)
+            b"\x00\x01\x00\x00\x00\x00\x00\x00",  # Reset
+            b"\x80\x06\x00\x00\x00\x00\x00\x00\x0c\x00",  # Get Descriptor (Device)
+            b"\x80\x06\x00\x01\x00\x00\x00\x00\x09\x00",  # Get Descriptor (Config)
+            b"\x80\x06\x00\x04\x00\x01\x00\x00\x09\x00",  # Get Descriptor (Interface)
         ]
 
         packets.extend(enum_packets)
@@ -398,45 +479,49 @@ class USBHostEmulationFuzzer:
 
             if corrupt:
                 # Malicious packet with buffer overflow
-                malicious = bytearray(b'\x40\x01\x00\x01\x01\x00\x00\x00')
-                malicious.extend(b'\x90' * 1000)  # Excessive data
+                malicious = bytearray(b"\x40\x01\x00\x01\x01\x00\x00\x00")
+                malicious.extend(b"\x90" * 1000)  # Excessive data
                 packets.append(bytes(malicious))
             else:
                 # Normal command packet
-                normal = bytearray(b'\x40\x01\x00\x01\x04\x00\x00\x00')
-                normal.extend(b'\x02' * 64)  # Normal data
+                normal = bytearray(b"\x40\x01\x00\x01\x04\x00\x00\x00")
+                normal.extend(b"\x02" * 64)  # Normal data
                 packets.append(bytes(normal))
 
         # Rapid descriptor changes
         for _ in range(5):
-            change = bytearray(b'\x40\x06\x00\x00\x00\x01\x00\x00\x20\x00')
+            change = bytearray(b"\x40\x06\x00\x00\x00\x01\x00\x00\x20\x00")
             change.extend(bytes([self.random.randint(0, 255) for _ in range(64)]))
             packets.append(bytes(change))
 
         # Replay attacks
         for _ in range(3):
-            replay = bytearray(b'\xC0\x00\x00\x00\x00\x00\x00\x00\x02\x00')
-            replay.extend(b'\x01' * 64)  # Replayed data
+            replay = bytearray(b"\xc0\x00\x00\x00\x00\x00\x00\x00\x02\x00")
+            replay.extend(b"\x01" * 64)  # Replayed data
             packets.append(bytes(replay))
 
         return packets
 
-    def generate_exploit_payloads(self, device_configs: Dict[int, USBDeviceConfig]) -> Dict[int, Dict[str, List[bytes]]]:
+    def generate_exploit_payloads(
+        self, device_configs: Dict[int, USBDeviceConfig]
+    ) -> Dict[int, Dict[str, List[bytes]]]:
         """Generate exploit payloads for different device types."""
         exploits = {}
 
         for device_type, config in device_configs.items():
             device_exploits = {
-                'config_changes': self.generate_rapid_descriptor_changes(),
-                'seq_replays': self.generate_repeated_sequences(),
-                'ep_packets': self.generate_ep_packets(config),
-                'malformed_descriptors': [config.serialize() for _ in range(10)],
+                "config_changes": self.generate_rapid_descriptor_changes(),
+                "seq_replays": self.generate_repeated_sequences(),
+                "ep_packets": self.generate_ep_packets(config),
+                "malformed_descriptors": [config.serialize() for _ in range(10)],
             }
             exploits[device_type] = device_exploits
 
         return exploits
 
-    def generate_corpus(self, num_cases: int = 100) -> Dict[int, Dict[str, List[bytes]]]:
+    def generate_corpus(
+        self, num_cases: int = 100
+    ) -> Dict[int, Dict[str, List[bytes]]]:
         """Generate a corpus of fuzzing test cases for host emulation."""
         corpus = {}
 
@@ -446,7 +531,9 @@ class USBHostEmulationFuzzer:
         for _ in range(num_cases):
             device_type = self.random.choice(device_types)
 
-            exploits = self.generate_exploit_payloads({device_type: device_configs[device_type]})
+            exploits = self.generate_exploit_payloads(
+                {device_type: device_configs[device_type]}
+            )
 
             if device_type not in corpus:
                 corpus[device_type] = {}
@@ -458,31 +545,33 @@ class USBHostEmulationFuzzer:
 
         return corpus
 
-    def save_corpus(self, output_path: pathlib.Path, corpus: Dict[int, Dict[str, List[bytes]]]) -> None:
+    def save_corpus(
+        self, output_path: pathlib.Path, corpus: Dict[int, Dict[str, List[bytes]]]
+    ) -> None:
         """Save corpus to files for fuzzing tools."""
         output_path.mkdir(parents=True, exist_ok=True)
 
         for device_type in corpus:
-            device_dir = output_path / f'device_{device_type:02x}'
+            device_dir = output_path / f"device_{device_type:02x}"
             device_dir.mkdir(exist_ok=True)
 
             for category, payloads in corpus[device_type].items():
-                category_file = device_dir / f'{category}.bin'
-                with open(category_file, 'wb') as f:
+                category_file = device_dir / f"{category}.bin"
+                with open(category_file, "wb") as f:
                     for payload in payloads:
                         f.write(payload)
-                        f.write(b'\n')
+                        f.write(b"\n")
 
         # Create a summary
         summary = {
-            'total_cases': sum(len(corpus[d]) for d in corpus),
-            'device_types': {
+            "total_cases": sum(len(corpus[d]) for d in corpus),
+            "device_types": {
                 name: list(corpus.get(device_type, {}).keys())
                 for name, device_type in USBDeviceTypes.__members__.items()
-            }
+            },
         }
 
-        with open(output_path / 'summary.json', 'w') as f:
+        with open(output_path / "summary.json", "w") as f:
             json.dump(summary, f, indent=2)
 
     def generate_payload_for_honggfuzz(self, output_dir: pathlib.Path) -> pathlib.Path:
@@ -490,7 +579,7 @@ class USBHostEmulationFuzzer:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Create a corpus directory
-        corpus_dir = output_dir / 'corpus'
+        corpus_dir = output_dir / "corpus"
         corpus_dir.mkdir(exist_ok=True)
 
         # Generate and save corpus
@@ -499,17 +588,20 @@ class USBHostEmulationFuzzer:
 
         # Create a summary
         summary = {
-            'total_cases': sum(len(corpus[d]) for d in corpus),
-            'avg_packets_per_case': sum(len(corpus[d][cat] for cat in corpus[d]) for d in corpus) / sum(len(corpus[d]) for d in corpus),
+            "total_cases": sum(len(corpus[d]) for d in corpus),
+            "avg_packets_per_case": sum(
+                len(corpus[d][cat] for cat in corpus[d]) for d in corpus
+            )
+            / sum(len(corpus[d]) for d in corpus),
         }
 
-        with open(output_dir / 'summary.json', 'w') as f:
+        with open(output_dir / "summary.json", "w") as f:
             json.dump(summary, f, indent=2)
 
         # Create a simple harness template
-        harness_template = f'''#!/usr/bin/env python3
-import sys
-sys.path.insert(0, '/Users/failbr34k/Downloads/FBR34KER_0.2.3_Physical_Validation_Candidate')
+        harness_template = f"""#!/usr/bin/env python3
+import pathlib, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent.parent))
 
 def test_payload(payload_path):
     with open(payload_path, 'rb') as f:
@@ -529,9 +621,9 @@ if __name__ == "__main__":
         sys.exit(1)
     success = test_payload(sys.argv[1])
     sys.exit(0 if success else 1)
-'''
+"""
 
-        harness_file = output_dir / 'test_harness.py'
+        harness_file = output_dir / "test_harness.py"
         harness_file.write_text(harness_template)
 
         return corpus_dir
@@ -541,10 +633,20 @@ def main() -> None:
     """Command-line interface for USB host emulation fuzzing."""
     import argparse
 
-    parser = argparse.ArgumentParser(description='Generate USB host emulation fuzzing campaign payloads')
-    parser.add_argument('--output', default='./usb_host_emulation_corpus', help='Output directory for corpus')
-    parser.add_argument('--num-cases', type=int, default=500, help='Number of test cases to generate')
-    parser.add_argument('--seed', type=int, default=0xDEADBEEF, help='Random seed for reproducibility')
+    parser = argparse.ArgumentParser(
+        description="Generate USB host emulation fuzzing campaign payloads"
+    )
+    parser.add_argument(
+        "--output",
+        default="./usb_host_emulation_corpus",
+        help="Output directory for corpus",
+    )
+    parser.add_argument(
+        "--num-cases", type=int, default=500, help="Number of test cases to generate"
+    )
+    parser.add_argument(
+        "--seed", type=int, default=0xDEADBEEF, help="Random seed for reproducibility"
+    )
 
     args = parser.parse_args()
 
@@ -553,7 +655,9 @@ def main() -> None:
     print(f"[USB Host Emulation Fuzzer] Generating {args.num_cases} test cases...")
     output_path = fuzzer.generate_payload_for_honggfuzz(pathlib.Path(args.output))
     print(f"[USB Host Emulation Fuzzer] Corpus generated at: {{output_path}}")
-    print(f"[USB Host Emulation Fuzzer] Run: honggfuzz --input {{output_path / 'corpus'}} --output {{output_path / 'out'}} -- {{fuzzer.honggfuzz_command}}")
+    print(
+        f"[USB Host Emulation Fuzzer] Run: honggfuzz --input {{output_path / 'corpus'}} --output {{output_path / 'out'}} -- {{fuzzer.honggfuzz_command}}"
+    )
 
 
 if __name__ == "__main__":

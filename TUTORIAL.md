@@ -1,8 +1,8 @@
-# FBR34KER Tutorial — 0.4.4b Beta
+# FBR34KER Tutorial — 0.4.5b Beta
 
 ## 1. Introduction
 
-This tutorial walks through the complete FBR34KER 0.4.4b Beta workflow: toolchain setup, building all targets, running the monitor in QEMU, exercising the jailbreak security-bypass chain, launching the B34ST unified control panel, navigating the 16-category menu system, using the CVE database and exploit chain planner, performing forensic acquisition, running the evidence-gated research-runtime orchestrator, planning and validating research environments, managing sessions, using the loader SDK, creating release packages, and understanding the full boot chain integration. No physical Apple hardware is required for sections 1-6 and most of 7, 9, 10, 12-16, and 18-19 — everything up to the exploit chain runs under QEMU.
+This tutorial walks through the complete FBR34KER 0.4.5b Beta workflow: toolchain setup, building all targets, running the monitor in QEMU, exercising the jailbreak security-bypass chain, launching the B34ST unified control panel, navigating the 14-category menu system, using the CVE database and exploit chain planner, performing forensic acquisition, running the evidence-gated research-runtime orchestrator, planning and validating research environments, managing sessions, using the loader SDK, creating release packages, and understanding the full boot chain integration. No physical Apple hardware is required for sections 1-6 and most of 7, 9, 10, 12-16, and 18-20 — everything up to the exploit chain runs under QEMU.
 
 Key features covered include:
 - Guided tethered downgrade with exact firmware selection and external adapter contracts
@@ -39,7 +39,7 @@ Windows users should use WSL2 with USB passthrough for device operations.
 This checks for Clang, `ld.lld`, `llvm-objcopy`, `qemu-system-aarch64`, `make`, `pyusb`, `libusb`, and the chipset database. Output example:
 
 ```
-FBR34KER 0.4.4b-beta — environment diagnostics
+FBR34KER 0.4.5b-beta — environment diagnostics
   [OK]   clang — found
   [OK]   ld.lld — found
   [OK]   llvm-objcopy — found
@@ -56,7 +56,7 @@ Address any `[MISSING]` items before proceeding.
 ## 3. Project structure
 
 ```
-B34ST_0.4.4b_Beta/
+B34ST_0.4.5b_Beta/
 ├── TUTORIAL.md            ← this file
 ├── README.md              ← project overview
 ├── CHANGELOG.md           ← version history
@@ -202,8 +202,8 @@ This produces `build-exploit/fbr34ker-operational.bin`, which is required for th
 This boots `build/fbr34ker.bin` under QEMU virt. You will see the monitor's boot banner, initialization logs, and finally the shell prompt:
 
 ```
-FBR34KER 0.4.4b (beta)
-Target: qemu_virt; source: 0.4.4b-beta
+FBR34KER 0.4.5b (beta)
+Target: qemu_virt; source: 0.4.5b-beta
 Protocol 4; handoff 4; module ABI 1; FMOD 1; FMBC 1
 
 interactive shell ready
@@ -259,10 +259,10 @@ Press `Ctrl-A` then `X`, or close the terminal window.
 ./scripts/B34ST
 ```
 
-This launches the B34ST interactive menu system. The initial screen shows the 15-category menu:
+This launches the B34ST interactive menu system. The initial screen shows the 14-category menu:
 
 ```
-FBR34KER B34ST v0.4.4b — Unified Multi-Tool Control Panel
+FBR34KER B34ST v0.4.5b — Unified Multi-Tool Control Panel
 
  1.  System           6.  Deployment      11.  Module
  2.  Device           7.  Hardware        12.  Research Runtime
@@ -312,7 +312,7 @@ Check version:
 
 ```sh
 ./fbr34ker version
-# → FBR34KER 0.4.4b-beta
+# → FBR34KER 0.4.5b-beta
 ```
 
 ## 7. The jailbreak command walkthrough
@@ -1496,7 +1496,7 @@ B34ST environment-validate --plan generated-plan.json
 
 Returns any validation errors or confirms validity.
 
-## 17. Session management
+## 18. Session management
 
 ### Validate a session bundle
 
@@ -1549,7 +1549,7 @@ Validate an existing hardware preparation bundle:
 B34ST hardware-prepare --validate-bundle bundle.zip
 ```
 
-## 18. SDK overview
+## 19. SDK overview
 
 The FBR34KER SDK provides a standalone, freestanding C11 library for constructing and validating handoff ABI v4 structures. It has no dependencies on monitor internals or any operating system.
 
@@ -1612,7 +1612,7 @@ int main(void) {
 
 See `sdk/examples/` for complete working examples including callback_console and framebuffer_loader.
 
-## 19. Release packaging
+## 20. Release packaging
 
 ### Public operational release (recommended)
 
@@ -1624,7 +1624,7 @@ Produces a clean public release archive in `dist/` containing everything needed 
 
 | Archive | Contents |
 |---|---|
-| `B34ST_0.4.4b_Beta_operational.zip` | Public release — no private code |
+| `B34ST_0.4.5b_Beta_operational.zip` | Public release — no private code |
 
 ### Internal full-source release
 
@@ -1639,9 +1639,9 @@ Produces three archives in `dist/`:
 
 | Archive | Contents |
 |---|---|
-| `B34ST_0.4.4b_Beta_source.zip` | All source code, docs, scripts (excludes build artifacts) |
-| `B34ST_0.4.4b_Beta_operational.zip` | Source + operational artifacts — public release |
-| `B34ST_0.4.4b_Beta_complete.zip` | Source + all build artifacts, SDK, boot images, simulations |
+| `B34ST_0.4.5b_Beta_source.zip` | All source code, docs, scripts (excludes build artifacts) |
+| `B34ST_0.4.5b_Beta_operational.zip` | Source + operational artifacts — public release |
+| `B34ST_0.4.5b_Beta_complete.zip` | Source + all build artifacts, SDK, boot images, simulations |
 
 Each archive has a corresponding `.sha256` checksum file.
 
@@ -1650,7 +1650,7 @@ Each archive has a corresponding `.sha256` checksum file.
 The operational release contains:
 
 ```
-B34ST_0.4.4b_Beta/
+B34ST_0.4.5b_Beta/
 ├── TUTORIAL.md
 ├── README.md, CHANGELOG.md, LICENSE, SECURITY.md, RELEASE_NOTES.md
 ├── fbr34ker, b34stctl, b34stool.py
@@ -1679,7 +1679,7 @@ B34ST_0.4.4b_Beta/
 └── build-sdk/                 ← compiled SDK outputs
 ```
 
-## 20. Full boot chain integration
+## 21. Full boot chain integration
 
 The complete end-to-end boot chain from DFU to SSH ramdisk:
 
@@ -1729,7 +1729,7 @@ The complete end-to-end boot chain from DFU to SSH ramdisk:
 | 8 | Kernel patchfinder | [usbliter8-kernel-patchfinder](https://github.com/Leeksov/usbliter8ra1n) | All A12+ |
 | 9 | Boot + ramdisk | Target-specific external adapter | Exact product/OS/build evidence required |
 
-## 21. External dependencies setup
+## 22. External dependencies setup
 
 For the full boot chain (stages 5-9), clone the usbliter8ra1n repositories alongside FBR34KER:
 
@@ -1754,7 +1754,7 @@ compatibility claims. Use `fbr34ker ramdisk plan`, the deterministic FBRD
 maker, and the adapter contract in `docs/RAMDISK_MAKER_LOADER.md` for an exact
 product/build.
 
-## 22. Troubleshooting
+## 23. Troubleshooting
 
 ### Build failures
 
@@ -1877,7 +1877,7 @@ Ctrl-A then X does not exit QEMU
 ```
 The Ctrl-A sequence must be pressed quickly. Try `Ctrl-A` then `X` (uppercase). Alternatively, kill the process: `pkill qemu-system-aarch64`.
 
-## 23. Further reading
+## 24. Further reading
 
 | Document | Description |
 |---|---|
@@ -1888,7 +1888,7 @@ The Ctrl-A sequence must be pressed quickly. Try `Ctrl-A` then `X` (uppercase). 
 | `docs/PERSISTENCE.md` | Persistence subsystem, 8 hook types, 16-hook model |
 | `docs/B34ST_DESIGN.md` | B34ST unified multi-tool architecture, session instrumentation |
 | `docs/B34ST_DEVICE_WORKFLOW.md` | Device dashboard, upgrade/erase/downgrade workflows |
-| `docs/B34ST_TASKS.md` | Historical B34ST task list (all complete as of 0.4.4b) |
+| `docs/B34ST_TASKS.md` | Historical B34ST task list (all complete as of 0.4.5b) |
 | `docs/LOADER_SDK.md` | SDK usage, handoff ABI v4 builder/validator |
 | `docs/BINARY_HANDOFF.md` | Handoff ABI specification |
 | `docs/HANDOFF.md` | Handoff protocol details |

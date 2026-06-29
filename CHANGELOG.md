@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.5b -- Beta
+
+- Added USB family fuzzing framework (`host/usb_family/`) with device and host
+  emulation campaign generators, plus 5 new honggfuzz targets
+  (`usb-family-device`, `usb-family-host`, `dfu-mode`, `recovery-mode`,
+  `diagnostics-mode`) integrated into the CVE fuzzer framework.
+- Updated README, TUTORIAL, and B34ST_DESIGN to reflect the current 14-category
+  B34ST control panel structure.
+- Fixed hardcoded absolute paths in USB family harness templates to use
+  portable `pathlib.Path(__file__)` resolution.
+
 ## 0.4.2b -- Beta
 
 - Added USBliter8 hardware guide (`docs/USBLITER8_HARDWARE_GUIDE.md`) with

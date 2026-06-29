@@ -1,6 +1,6 @@
-# FBR34KER 0.4.4b Beta release notes
+# FBR34KER 0.4.5b Beta release notes
 
-FBR34KER 0.4.4b Beta is a patch release based on the merged 0.4.0 Beta tree. It
+FBR34KER 0.4.5b Beta is a patch release based on the merged 0.4.0 Beta tree. It
 packages the latest Apple-platform, boot-image, build-dependency, and
 operational-archive fixes under one consistent release identity.
 
@@ -38,7 +38,7 @@ operational-archive fixes under one consistent release identity.
 
 ## Compatibility
 
-0.4.4b does not change the public binary interfaces:
+0.4.5b does not change the public binary interfaces:
 
 - protocol: 1
 - handoff ABI: 4
@@ -66,7 +66,7 @@ Loaders and modules that conform to the 0.4.0 interfaces require no migration.
 
 ## Validation
 
-The 0.4.4b source is gated by release-version consistency checks, isolated host
+The 0.4.5b source is gated by release-version consistency checks, isolated host
 tests, native harnesses, Clang analysis, deterministic build and conformance
 stages, QEMU integration/smoke tests, archive verification, checksum
 verification, and an extracted operational-package smoke test. Measured

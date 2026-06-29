@@ -1,6 +1,6 @@
 # Runtime architecture
 
-FBR34KER 0.4.4b retains the explicit, allocation-free runtime architecture added
+FBR34KER 0.4.5b retains the explicit, allocation-free runtime architecture added
 in 0.1.6 and makes its activation transactional and restartable.
 
 ## Lifecycle graph

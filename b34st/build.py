@@ -19,8 +19,8 @@ import tempfile
 from datetime import datetime
 from typing import Any
 
-__version__ = "0.4.4b"
-__release_name__ = "B34ST_0.4.4b_Beta"
+__version__ = "0.4.5b"
+__release_name__ = "B34ST_0.4.5b_Beta"
 
 
 class BuildError(Exception):

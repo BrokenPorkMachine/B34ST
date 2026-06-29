@@ -130,7 +130,7 @@ class ReleaseToolTests(unittest.TestCase):
 
     def test_version_consistency_accepts_beta_suffix(self) -> None:
         completed = self.run_python(
-            "scripts/check_version_consistency.py", "--expected", "0.4.4b"
+            "scripts/check_version_consistency.py", "--expected", "0.4.5b"
         )
         self.assertNotEqual(completed.returncode, 2, completed.stdout)
         self.assertNotIn("must be a release version", completed.stdout)
@@ -244,10 +244,10 @@ class ReleaseToolTests(unittest.TestCase):
             artifact.write_bytes(b"signed release artifact")
             generated = self.run_python(
                 "scripts/release_manifest.py",
-                "--version", "0.4.4b",
-                "--release-name", "B34ST_0.4.4b_Beta",
+                "--version", "0.4.5b",
+                "--release-name", "B34ST_0.4.5b_Beta",
                 "--channel", "beta",
-                "--source-id", "0.4.4b-beta",
+                "--source-id", "0.4.5b-beta",
                 "--output", "manifest.json",
                 "--checksums", "checksums.sha256",
                 "monitor.bin",

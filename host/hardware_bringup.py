@@ -17,7 +17,7 @@ from first_stage_adapter import (AdapterError, BridgeFirstStageAdapter,
 from irecovery_boot import DeviceInfo, RecoveryError, load_device_info, validate_target
 from session_bundle import SessionBundleError, write_session_bundle
 
-RELEASE_VERSION = "0.4.4b"
+RELEASE_VERSION = "0.4.5b"
 DEFAULT_STAGES = ("console", "board-inventory", "memory-map", "timer", "interrupts",
                   "watchdog", "boot-evidence")
 

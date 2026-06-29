@@ -107,6 +107,62 @@ class Session:
         )
         return return_code
 
+    def run_command(
+        self,
+        command: list[str],
+        *,
+        label: str,
+        interactive: bool = False,
+    ) -> int:
+        printable = shlex.join(command)
+        self.record(f"START {label}: {printable}")
+        print(f"\n[{label}]")
+        print(f"$ {printable}\n")
+        try:
+            if interactive:
+                script_tool = shutil.which("script")
+                if script_tool:
+                    safe_label = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
+                    transcript = (
+                        self.directory / f"{safe_label or 'interactive'}.typescript"
+                    )
+                    return_code = subprocess.run(
+                        [script_tool, "-q", str(transcript), *command],
+                        cwd=ROOT,
+                        check=False,
+                    ).returncode
+                    self.record(
+                        f"Interactive transcript: {transcript.relative_to(ROOT)}"
+                    )
+                else:
+                    return_code = subprocess.run(
+                        command, cwd=ROOT, check=False
+                    ).returncode
+            else:
+                process = subprocess.Popen(
+                    command,
+                    cwd=ROOT,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                )
+                assert process.stdout is not None
+                for line in process.stdout:
+                    print(line, end="")
+                    with self.log_path.open("a", encoding="utf-8") as stream:
+                        stream.write(line)
+                return_code = process.wait()
+        except OSError as exc:
+            self.record(f"ERROR {label}: {exc}")
+            print(f"Unable to start command: {exc}", file=sys.stderr)
+            return 1
+        self.record(f"END {label}: exit={return_code}")
+        print(
+            f"\nResult: {'passed' if return_code == 0 else f'failed ({return_code})'}"
+        )
+        return return_code
+
 
 def _clear() -> None:
     if os.isatty(sys.stdout.fileno()):
@@ -1348,7 +1404,7 @@ def _usbliter8_prepare_hardware(session: Session) -> int:
 
     build_skip = _prompt("Build operational image? (Y/skip)", "Y")
     if not build_skip.lower() in ("s", "skip"):
-        session.run(["build", "build-operational"], label="Build operational image")
+        session.run_command(["make", "build-operational"], label="Build operational image")
     else:
         session.record("Operational image build skipped by user")
         print("Skipped build. Ensure build-exploit/fbr34ker-operational.bin exists.")
@@ -1381,14 +1437,14 @@ def _usbliter8_jailbreak(session: Session) -> int:
             f"Found existing image ({operational_bin.stat().st_size} bytes). Rebuild? (y/N)", "N"
         )
         if rebuild.lower() in ("y", "yes"):
-            session.run(["build", "build-operational"], label="Build operational image")
+            session.run_command(["make", "build-operational"], label="Build operational image")
         else:
             session.record("USBliter8 jailbreak: image build skipped (exists)")
             print("Using existing operational image.")
     else:
         build = _prompt("No operational image found. Build now? (Y/n)", "Y")
         if not build.lower() in ("n", "no"):
-            session.run(["build", "build-operational"], label="Build operational image")
+            session.run_command(["make", "build-operational"], label="Build operational image")
         else:
             print("Cannot proceed without operational image.")
             _pause()

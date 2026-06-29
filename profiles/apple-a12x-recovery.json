@@ -13,6 +13,7 @@
     "adapter-console"
   ],
   "cpids": [
+    "0x8027",
     "0x8028"
   ],
   "default_boot_command": "bootx",
@@ -32,6 +33,7 @@
   "physical_execution_verified": false,
   "product_types": [],
   "profile_id": "apple-a12x-a12z-recovery-experimental",
+  "profile_name": "A12X / A12Z Bionic Recovery Profile",
   "qemu_runtime_verified": false,
   "representative_products": [
     "iPad8,1",

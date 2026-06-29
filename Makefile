@@ -1,5 +1,5 @@
 PROJECT := fbr34ker
-VERSION := 0.3.0
+VERSION := 0.4.0
 RELEASE_CHANNEL := beta
 RELEASE_NAME := FBR34KER_$(VERSION)_Beta
 SOURCE_ID := $(VERSION)-beta
@@ -159,12 +159,14 @@ ANALYZE_SOURCES := $(COMMON_C_SOURCES) \
 ASM_SOURCES := arch/arm64/start.S arch/arm64/vectors.S
 OBJECTS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(C_SOURCES)) \
            $(patsubst %.S,$(BUILD_DIR)/%.o,$(ASM_SOURCES))
+DEPENDENCIES := $(filter %.d,$(OBJECTS:.o=.d))
 SDK_SOURCES := sdk/src/handoff_builder.c sdk/src/handoff_validate.c sdk/src/profile_match.c
 SDK_OBJECTS := $(patsubst sdk/src/%.c,$(SDK_BUILD_DIR)/%.o,$(SDK_SOURCES))
+SDK_DEPENDENCIES := $(SDK_OBJECTS:.o=.d)
 SDK_CFLAGS := --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin \
               -O2 -g $(REPRO_FLAGS) -Wall -Wextra -Werror -Isdk/include
 
-.PHONY: all clean run inspect check check-native check-loader-example check-launcher analyze \
+.PHONY: all clean run inspect check check-native check-loader-example check-launcher check-version analyze \
         doctor integration integration-build smoke diagnostics release-gate verify modules check-host \
         generic manifest sign-manifest dist package permissions check-scripts check-install abi-check \
         loader-simulate loader-check generic-loader generic-qemu-run generic-qemu-smoke probe-qemu-smoke hardware-probe \
@@ -182,9 +184,10 @@ $(TARGET).elf: $(OBJECTS) $(LINKER_SCRIPT) | $(BUILD_DIR)
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
 
-$(BUILD_DIR)/%.o: %.c
+$(BUILD_DIR)/%.o: %.c include/fbr34ker/version.h
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -ffunction-sections -fdata-sections -c $< -o $@
+	$(CC) $(CFLAGS) -ffunction-sections -fdata-sections \
+		-MMD -MP -MF $(@:.o=.d) -c $< -o $@
 
 $(BUILD_DIR)/%.o: %.S
 	@mkdir -p $(dir $@)
@@ -239,6 +242,7 @@ check-launcher:
 
 check-scripts:
 	$(PYTHON) scripts/check_sources.py
+	$(PYTHON) scripts/check_version_consistency.py --expected $(VERSION)
 
 abi-check:
 	./fbr34ker abi-check
@@ -377,7 +381,7 @@ analyze:
 
 $(SDK_BUILD_DIR)/%.o: sdk/src/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(SDK_CFLAGS) -c $< -o $@
+	$(CC) $(SDK_CFLAGS) -MMD -MP -MF $(@:.o=.d) -c $< -o $@
 
 $(SDK_LIBRARY): $(SDK_OBJECTS)
 	$(AR) rcs $@ $(SDK_OBJECTS)
@@ -418,7 +422,8 @@ LOADER_ASFLAGS := --target=aarch64-none-elf -ffreestanding -fno-pic -fno-pie \
 
 $(GENERIC_LOADER_BUILD_DIR)/loader.o: loader/qemu_handoff/loader.c
 	@mkdir -p $(dir $@)
-	$(CC) $(LOADER_CFLAGS) -ffunction-sections -fdata-sections -c $< -o $@
+	$(CC) $(LOADER_CFLAGS) -ffunction-sections -fdata-sections \
+		-MMD -MP -MF $(@:.o=.d) -c $< -o $@
 
 $(GENERIC_LOADER_BUILD_DIR)/start.o: loader/qemu_handoff/start.S
 	@mkdir -p $(dir $@)
@@ -783,3 +788,6 @@ clean:
 dist:
 	$(PYTHON) scripts/package_release.py --release-name $(RELEASE_NAME) \
 		--output-dir $(PACKAGE_DIR) --kind source
+
+-include $(DEPENDENCIES) $(SDK_DEPENDENCIES) \
+	$(GENERIC_LOADER_BUILD_DIR)/loader.d

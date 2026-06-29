@@ -1,5 +1,5 @@
 {
-  "duration_ms": 46053,
+  "duration_ms": 48903,
   "gate": "non-qemu",
   "passed": true,
   "project": "FBR34KER",
@@ -11,7 +11,7 @@
         "scripts/doctor.py"
       ],
       "detail": "exit=0",
-      "duration_ms": 2305,
+      "duration_ms": 553,
       "log": "host-readiness.log",
       "name": "host-readiness",
       "returncode": 0,
@@ -27,7 +27,7 @@
         "check-host"
       ],
       "detail": "exit=0",
-      "duration_ms": 17910,
+      "duration_ms": 19187,
       "log": "host-tests.log",
       "name": "host-tests",
       "returncode": 0,
@@ -39,7 +39,7 @@
         "analyze"
       ],
       "detail": "exit=0",
-      "duration_ms": 5579,
+      "duration_ms": 7114,
       "log": "monitor-analysis.log",
       "name": "monitor-analysis",
       "returncode": 0,
@@ -51,7 +51,7 @@
         "sdk-analyze"
       ],
       "detail": "exit=0",
-      "duration_ms": 729,
+      "duration_ms": 879,
       "log": "sdk-analysis.log",
       "name": "sdk-analysis",
       "returncode": 0,
@@ -64,7 +64,7 @@
         "check-loader-example"
       ],
       "detail": "exit=0",
-      "duration_ms": 10384,
+      "duration_ms": 10402,
       "log": "native-tests.log",
       "name": "native-tests",
       "returncode": 0,
@@ -83,7 +83,7 @@
         "apple-boot-images"
       ],
       "detail": "exit=0",
-      "duration_ms": 881,
+      "duration_ms": 1368,
       "log": "release-build.log",
       "name": "release-build",
       "returncode": 0,
@@ -101,7 +101,7 @@
         "physical-validation-candidate"
       ],
       "detail": "exit=0",
-      "duration_ms": 4570,
+      "duration_ms": 4650,
       "log": "conformance.log",
       "name": "conformance",
       "returncode": 0,
@@ -113,7 +113,7 @@
         "manifest"
       ],
       "detail": "exit=0",
-      "duration_ms": 3130,
+      "duration_ms": 3851,
       "log": "manifest.log",
       "name": "manifest",
       "returncode": 0,
@@ -125,12 +125,12 @@
         "verify-layouts"
       ],
       "detail": "exit=0",
-      "duration_ms": 561,
+      "duration_ms": 894,
       "log": "layout-and-artifact-checks.log",
       "name": "layout-and-artifact-checks",
       "returncode": 0,
       "status": "passed"
     }
   ],
-  "version": "0.3.0"
+  "version": "0.4.0"
 }

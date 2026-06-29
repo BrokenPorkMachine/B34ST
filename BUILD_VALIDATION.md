@@ -1,73 +1,88 @@
-# FBR34KER 0.3.0 Beta validation
+# FBR34KER 0.4.0 Beta validation
 
-Validation date: 2026-06-24
+Validation date: 2026-06-28
 
-## Validation model
+## Result
 
-The release is validated in nine isolated, bounded stages. Each stage preserves
-its command, duration, log, and exit status before packaging. The evidence
-model distinguishes simulator, persistent-bridge, QEMU, and physical-device
-proof and refuses to promote a profile beyond the supplied evidence.
+The 0.4.0 Beta release preparation passed the canonical non-QEMU gate, the
+complete QEMU-backed release gate, deterministic package construction,
+checksum verification, and an extracted operational-package smoke test.
 
-## Canonical gate
+## Canonical gates
 
-The complete nine-stage non-QEMU release gate passed in **40.572 seconds**.
-It covered host readiness, staged installation and ABI checks, host tests,
-monitor and SDK analysis, native harnesses, all release builds, conformance
-simulations, manifest generation, and final layout/artifact verification.
+- **Non-QEMU gate:** all 9 stages passed in **48.903 seconds**.
+- **QEMU-backed release gate:** all 7 stages passed in **65.956 seconds**.
+- **Host suite:** **444 tests passed**; 4 QEMU-dependent tests were skipped in
+  the isolated non-QEMU run and executed by the integration stage.
+- **QEMU integration:** all **6 tests passed**.
+- **Version consistency:** all **20 active release surfaces** matched
+  `0.4.0-beta`.
+- **Source validation:** 142 Python files and 23 shell files passed syntax
+  validation.
 
-The complete QEMU-backed release gate passed in **41.550 seconds**. It covered
-host readiness, the full non-QEMU verifier, integration tests, runtime smoke,
-generic-loader smoke, immutable-probe smoke, and diagnostics collection.
-
-## Host validation
-
-- **119 Python host tests:** 115 passed and 4 QEMU-dependent tests skipped.
-- Coverage includes bridge sequencing, bounded chunk upload, exact product
-  matching, device list/watch, evidence integrity, session replay, console
-  capture, reset invalidation, profile maturity enforcement, physical
-  attestation checks, and persistent-bridge recovery.
-- **4 QEMU integration tests:** all passed in the dedicated integration stage.
+The QEMU-backed gate covered host readiness, the full non-QEMU verifier,
+integration tests, runtime smoke, generic-loader smoke, immutable-probe smoke,
+and diagnostics collection.
 
 ## Native and analysis validation
 
-- **29 native monitor/format/ABI/policy harnesses** plus the SDK loader-example
-  harness, all passed.
-- **50 Clang static-analysis units:** 47 monitor/loader units and 3 SDK units,
-  with no findings.
-- Additional compilation verification:
-  - `kernel/kernel_patches.c` compiled without warnings
-  - `kernel/secure_boot_bypass.c` compiled without warnings
-  - `kernel/persistence.c` compiled without warnings
-  - `kernel/command.c` with new exploit commands compiled without warnings
-  - `kernel/main.c` with new init calls compiled without warnings
-  - Full monitor link with 50 object files succeeded
+- 30 native C harnesses passed, including formatter, crypto, boot-image,
+  handoff, lifecycle, MMIO, physical-memory, runtime-recovery, bridge, and
+  security-model coverage.
+- The generic-loader example compiled successfully.
+- Clang static analysis passed without findings across 56 monitor/loader files
+  and 3 SDK files.
+- Header dependency files are now generated for monitor, SDK, and reference
+  loader objects; changing release metadata correctly invalidates previously
+  built objects.
 
 ## Release builds and evidence
 
-- Direct QEMU monitor, generic ARM64 monitor, immutable probe, reference
-  loader, SDK archive, and FMBC module builds passed.
-- Deterministic A12, A12X/A12Z, and A13 FBRI images passed inspection.
-- Deployment, one-shot bring-up, persistent-bridge integration, and Beta conformance passed.
-- Candidate evidence proves bridge-backed console and boot-evidence capture,
-  four controlled failure classes, authorization invalidation after reset,
-  and recovery after reauthorization.
-- Security-model packaging (`make exploit-chain`, retained as a compatibility
-  target) produces explicitly non-operational artifacts in `build-exploit/`.
+- Direct QEMU monitor, generic ARM64 monitor, immutable hardware probe,
+  reference loader, SDK library/examples, FMBC module, and the explicit
+  security-model build passed.
+- Deterministic FBRI bundles for A12, A12X/A12Z, A13, A14, A15, M1, and M2
+  passed inspection and manifest validation.
+- The release manifest contains 72 artifacts and identifies version `0.4.0`,
+  channel `beta`, source ID `0.4.0-beta`, and release root
+  `FBR34KER_0.4.0_Beta`.
+- Deployment, bring-up, persistent-bridge, failure-matrix, reset-invalidation,
+  and recovery-after-reauthorization simulations passed.
 
-## Evidence result
+## Package validation
+
+The following deterministic archives were built and verified:
+
+- `FBR34KER_0.4.0_Beta_source.zip`
+- `FBR34KER_0.4.0_Beta_complete.zip`
+- `FBR34KER_0.4.0_Beta_sdk.zip`
+- `FBR34KER_0.4.0_Beta_operational.zip`
+
+All four SHA-256 sidecars passed `shasum -a 256 -c`. The operational archive
+was extracted and successfully ran:
+
+- `fbr34ker version`
+- `fbr34ker abi-check`
+- `fbr34ker forensics list-profiles`
+- `fbr34ker cve stats`
+- the tether-adapter contract example
+- the 20-surface version-consistency check
+
+## Evidence boundary
 
 - `candidate_ready`: **true**
-- Persistent-bridge console proof: **present**
-- Controlled failure and recovery proof: **present**
 - QEMU runtime proof: **present**
-- Disabled security-model build proof: **present**
+- Controlled failure and recovery proof: **present**
 - Physical-device execution proof: **not present**
 - `physical_validation_complete`: **false**
 
-## Environment limits
+No physical Apple device or target-specific A12+ tether adapter was used.
+Simulator and QEMU results do not establish physical-device compatibility.
 
-`qemu-system-aarch64` 11.0.0 and `irecovery` 1.3.1 were available on the
-packaging host. No physical A12/A13 device or external first-stage loader was
-tested, so the release remains a beta rather than a completed
-physical validation.
+## Validation environment
+
+- Python 3.13.4
+- Homebrew Clang/LLD 22.1.4
+- QEMU 11.0.0
+- GNU Make 3.81
+- irecovery 1.3.1

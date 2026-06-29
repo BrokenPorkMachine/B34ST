@@ -16,7 +16,7 @@ def main():
     success=run([*common,'--state-dir',str(out/'success-state'),'--evidence',str(out/'success-evidence.zip')],0)
     failed=run([*common,'--state-dir',str(out/'recovery-state'),'--inject-failure','timer','--evidence',str(out/'failure-evidence.zip')],1)
     recovered=run([*common,'--state-dir',str(out/'recovery-state'),'--evidence',str(out/'recovered-evidence.zip')],0)
-    summary={'schema_version':1,'project':'FBR34KER','release_version':'0.3.0','success':success['passed'],'failure_observed':not failed['passed'],'reset_invalidated_authorization':failed['authorization_invalidated_after_recovery'],'recovered_after_reauthorization':recovered['passed']}
+    summary={'schema_version':1,'project':'FBR34KER','release_version':'0.4.0','success':success['passed'],'failure_observed':not failed['passed'],'reset_invalidated_authorization':failed['authorization_invalidated_after_recovery'],'recovered_after_reauthorization':recovered['passed']}
     (out/'simulation-summary.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n')
     print(out/'simulation-summary.json'); return 0
 if __name__=='__main__': raise SystemExit(main())

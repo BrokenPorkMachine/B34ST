@@ -1,6 +1,6 @@
 # Loader SDK integration guide
 
-FBR34KER 0.3.0 publishes a standalone loader SDK under `sdk/`. Its purpose is
+FBR34KER 0.4.0 publishes a standalone loader SDK under `sdk/`. Its purpose is
 to let an authorized ARM64 loader construct a versioned handoff without copying
 private monitor declarations.
 

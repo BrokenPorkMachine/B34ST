@@ -1,7 +1,7 @@
 # FMBC bytecode
 
 FMBC is FBR34KER's bounded external-module format. It is interpreted data,
-not native code. FBR34KER 0.3.0 accepts FMBC v1 and v2; `fbr34kctl` emits v2.
+not native code. FBR34KER 0.4.0 accepts FMBC v1 and v2; `fbr34kctl` emits v2.
 
 ## Version 2 header
 

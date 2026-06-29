@@ -6,7 +6,7 @@ layout verification passed
   heap=4194304 bytes
   build_info=0x00000000400a5800 size=148
   crashlog=464 bytes
-  boot_evidence=0x00000000400b1890 size=56
+  boot_evidence=0x00000000400b17d0 size=56
   relocations=none
 python3 scripts/verify_layout.py build-generic/fbr34ker-generic.elf --expected-entry 0x80000000
 layout verification passed
@@ -16,7 +16,7 @@ layout verification passed
   heap=4194304 bytes
   build_info=0x0000000080028800 size=148
   crashlog=464 bytes
-  boot_evidence=0x0000000080034900 size=56
+  boot_evidence=0x0000000080034840 size=56
   relocations=none
 python3 scripts/verify_layout.py build-loader/fbr34ker-qemu-loader.elf --expected-entry 0x40080000 --profile loader
 layout verification passed
@@ -34,13 +34,13 @@ layout verification passed
   heap=4194304 bytes
   build_info=0x0000000080028800 size=148
   crashlog=464 bytes
-  boot_evidence=0x0000000080034900 size=56
+  boot_evidence=0x0000000080034840 size=56
   relocations=none
 python3 host/fbr34kctl.py manifest build/fbr34ker.bin
 {
   "file": "fbr34ker.bin",
-  "sha256": "216fc702b47e46b5576e3eb7ea4db3a6c1eedaa5fb86f94abaa8e180f7620e25",
-  "size": 202432
+  "sha256": "67e0528b91474b3b65844783d2c2dcfb3fd45e7047fb59babcfe9dec53873886",
+  "size": 202240
 }
 python3 host/boot_image.py inspect build-apple/a12/boot.img --json >/dev/null
 python3 host/boot_image.py inspect build-apple/a12x/boot.img --json >/dev/null

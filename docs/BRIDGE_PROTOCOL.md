@@ -1,6 +1,6 @@
 # Persistent first-stage bridge protocol v1
 
-FBR34KER 0.3.0 adds a persistent bridge for an operator-controlled first-stage environment. It is a bounded transport contract, not a device-entry mechanism.
+FBR34KER 0.4.0 adds a persistent bridge for an operator-controlled first-stage environment. It is a bounded transport contract, not a device-entry mechanism.
 
 Each message is one UTF-8 JSON object followed by `\n`. Requests contain `schema_version`, a strictly increasing `sequence`, `operation`, and `arguments`. Responses echo the sequence and contain `ok` with either `result` or `error`.
 

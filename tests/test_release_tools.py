@@ -195,6 +195,16 @@ class ReleaseToolTests(unittest.TestCase):
             self.assertTrue(os.access(launcher, os.X_OK))
             self.assertTrue(os.access(project / "scripts" / "fbr34ker.sh", os.X_OK))
 
+    def test_operational_package_keeps_required_host_runtime(self) -> None:
+        paths = set(package_release.operational_paths())
+        self.assertIn(pathlib.Path("host/process_support.py"), paths)
+        self.assertIn(pathlib.Path("host/tls_support.py"), paths)
+        self.assertIn(pathlib.Path("host/ipsw_manager.py"), paths)
+        self.assertIn(pathlib.Path("examples/tether_adapter_contract_example.py"), paths)
+        self.assertNotIn(pathlib.Path("kernel/main.c"), paths)
+        self.assertNotIn(pathlib.Path("arch/arm64/start.S"), paths)
+        self.assertNotIn(pathlib.Path("platform/qemu_virt/platform.c"), paths)
+
     def test_gate_summary_requires_every_release_stage(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             output = pathlib.Path(directory)

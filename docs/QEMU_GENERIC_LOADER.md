@@ -1,6 +1,6 @@
 # Executable QEMU generic loader
 
-The 0.3.0 reference path tests handoff ABI v4 with actual AArch64 execution.
+The 0.4.0 reference path tests handoff ABI v4 with actual AArch64 execution.
 
 ## Images
 

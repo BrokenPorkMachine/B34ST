@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.4b -- Beta
+## 0.4.5b -- Beta
 
 - Added USB family fuzzing framework (`host/usb_family/`) with device and host
   emulation campaign generators, plus 5 new honggfuzz targets

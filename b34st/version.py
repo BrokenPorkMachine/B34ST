@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import re
 
-__version__ = "0.4.4b"
-__release_name__ = "B34ST_0.4.4b_Beta"
+__version__ = "0.4.5b"
+__release_name__ = "B34ST_0.4.5b_Beta"
 _VERSION_RE = re.compile(
     r"^(?P<major>0|[1-9][0-9]*)\."
     r"(?P<minor>0|[1-9][0-9]*)\."

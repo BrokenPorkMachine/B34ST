@@ -15,7 +15,7 @@
 ## First boot
 
 - [ ] Banner and prompt appear
-- [ ] `version` reports 0.4.4b
+- [ ] `version` reports 0.4.5b
 - [ ] `handoff` reports ABI v4
 - [ ] `regions` matches the loader map
 - [ ] `health` reports no stack, heap, module, or crash errors

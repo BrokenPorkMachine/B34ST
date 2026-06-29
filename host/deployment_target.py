@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """File-backed development target for the FBR34KER deployment protocol."""
+
 from __future__ import annotations
 
 import hashlib
@@ -26,13 +27,18 @@ class TargetError(ValueError):
 
 
 def _json_bytes(value: object) -> bytes:
-    return (json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+    return (json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n").encode(
+        "utf-8"
+    )
 
 
 def _safe_artifact_name(value: object) -> str:
     if not isinstance(value, str) or not value or len(value) > 64:
         raise TargetError("artifact name is invalid")
-    if any(ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-" for ch in value):
+    if any(
+        ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-"
+        for ch in value
+    ):
         raise TargetError("artifact name contains unsupported characters")
     return value
 
@@ -76,10 +82,15 @@ class ArtifactState:
 class SimulatedDeploymentTarget:
     """A persistent, bounded target used for integration and recovery testing."""
 
-    def __init__(self, profile: DeploymentProfile, state_dir: pathlib.Path, *,
-                 clock_ns: Callable[[], int] | None = None,
-                 session_factory: Callable[[], str] | None = None,
-                 token_factory: Callable[[], int] | None = None):
+    def __init__(
+        self,
+        profile: DeploymentProfile,
+        state_dir: pathlib.Path,
+        *,
+        clock_ns: Callable[[], int] | None = None,
+        session_factory: Callable[[], str] | None = None,
+        token_factory: Callable[[], int] | None = None,
+    ):
         self.profile = profile
         self.clock_ns = clock_ns or time.time_ns
         self.session_factory = session_factory or (lambda: secrets.token_hex(12))
@@ -99,20 +110,44 @@ class SimulatedDeploymentTarget:
         self._load_session()
 
     def _load_session(self) -> None:
-        if not self.session_path.is_file():
+        if not self.session_path.exists():
+            self.last_event = "no-session"
             return
+        backup_path = self.session_path.with_suffix(".bak")
+        source = self.session_path
+        if backup_path.exists():
+            try:
+                backup_mtime = backup_path.stat().st_mtime
+                source_mtime = source.stat().st_mtime
+                if backup_mtime > source_mtime:
+                    source = backup_path
+            except OSError:
+                pass
         try:
-            if self.session_path.stat().st_size > 256 * 1024:
-                raise ValueError("session state exceeds bounded size")
-            raw = json.loads(self.session_path.read_text(encoding="utf-8"))
-            if raw.get("profile") != self.profile.name:
+            with source.open("r", encoding="utf-8") as stream:
+                raw = json.load(stream)
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            if backup_path.exists():
+                try:
+                    with backup_path.open("r", encoding="utf-8") as stream:
+                        raw = json.load(stream)
+                    self.last_event = "recovered-from-backup"
+                except (OSError, ValueError, TypeError, json.JSONDecodeError):
+                    self.last_event = "invalid-session-discarded"
+                    return
+            else:
+                self.last_event = "invalid-session-discarded"
                 return
+        try:
             self.session_id = str(raw.get("session_id", ""))
             self.token = int(raw.get("token", 0))
             self.started = bool(raw.get("started", False))
             self.last_event = str(raw.get("last_event", "recovered"))
             artifacts_raw = raw.get("artifacts", [])
-            if not isinstance(artifacts_raw, list) or len(artifacts_raw) > MAX_ARTIFACTS:
+            if (
+                not isinstance(artifacts_raw, list)
+                or len(artifacts_raw) > MAX_ARTIFACTS
+            ):
                 raise ValueError("invalid persisted artifact list")
             recovered: list[ArtifactState] = []
             for item in artifacts_raw:
@@ -120,7 +155,9 @@ class SimulatedDeploymentTarget:
                     raise ValueError("invalid persisted artifact")
                 artifact = ArtifactState(**item)
                 _safe_artifact_name(artifact.name)
-                self.profile.region_for(artifact.load_address, artifact.size, artifact.kind)
+                self.profile.region_for(
+                    artifact.load_address, artifact.size, artifact.kind
+                )
                 if not 0 <= artifact.received <= artifact.size:
                     raise ValueError("invalid persisted progress")
                 recovered.append(artifact)
@@ -133,7 +170,6 @@ class SimulatedDeploymentTarget:
             self.last_event = "invalid-session-discarded"
 
     def _save_session(self) -> None:
-        temporary = self.session_path.with_suffix(".tmp")
         data = {
             "schema_version": 1,
             "profile": self.profile.name,
@@ -143,11 +179,22 @@ class SimulatedDeploymentTarget:
             "last_event": self.last_event,
             "artifacts": [artifact.to_json() for artifact in self.artifacts],
         }
-        temporary.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n",
-                             encoding="utf-8")
+        self.session_path.parent.mkdir(parents=True, exist_ok=True)
+        backup_path = self.session_path.with_suffix(".bak")
+        try:
+            backup_content = self.session_path.read_text(encoding="utf-8")
+            backup_path.write_text(backup_content, encoding="utf-8")
+        except OSError:
+            pass
+        temporary = self.session_path.with_suffix(".tmp")
+        temporary.write_text(
+            json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
         temporary.replace(self.session_path)
 
-    def _response(self, request: Frame, payload: object = b"", *, error: bool = False) -> Frame:
+    def _response(
+        self, request: Frame, payload: object = b"", *, error: bool = False
+    ) -> Frame:
         if isinstance(payload, bytes):
             encoded = payload
         elif isinstance(payload, str):
@@ -174,7 +221,10 @@ class SimulatedDeploymentTarget:
         if raw.get("authorization_intent") != "authorized-development":
             raise TargetError("explicit authorized-development intent is required")
         artifacts_raw = raw.get("artifacts")
-        if not isinstance(artifacts_raw, list) or not 1 <= len(artifacts_raw) <= MAX_ARTIFACTS:
+        if (
+            not isinstance(artifacts_raw, list)
+            or not 1 <= len(artifacts_raw) <= MAX_ARTIFACTS
+        ):
             raise TargetError(f"artifacts must contain 1 to {MAX_ARTIFACTS} entries")
         artifacts: list[ArtifactState] = []
         total = 0
@@ -192,10 +242,14 @@ class SimulatedDeploymentTarget:
                 address = int(item["load_address"])
                 size = int(item["size"])
             except (TypeError, ValueError) as exc:
-                raise TargetError(f"artifact {index} address or size is invalid") from exc
+                raise TargetError(
+                    f"artifact {index} address or size is invalid"
+                ) from exc
             digest = item["sha256"]
-            if not isinstance(digest, str) or len(digest) != 64 or any(
-                ch not in "0123456789abcdef" for ch in digest
+            if (
+                not isinstance(digest, str)
+                or len(digest) != 64
+                or any(ch not in "0123456789abcdef" for ch in digest)
             ):
                 raise TargetError(f"artifact {index} sha256 is invalid")
             if size <= 0 or size > self.profile.max_artifact_size:
@@ -222,12 +276,15 @@ class SimulatedDeploymentTarget:
         self.started = False
         self.last_event = "deployment-begun"
         self._save_session()
-        return self._response(request, {
-            "session_id": self.session_id,
-            "authorization_token": self.token,
-            "max_chunk": MAX_CHUNK,
-            "artifact_count": len(self.artifacts),
-        })
+        return self._response(
+            request,
+            {
+                "session_id": self.session_id,
+                "authorization_token": self.token,
+                "max_chunk": MAX_CHUNK,
+                "artifact_count": len(self.artifacts),
+            },
+        )
 
     def _query(self, request: Frame) -> Frame:
         if len(request.payload) != INDEX_TOKEN.size:
@@ -247,7 +304,7 @@ class SimulatedDeploymentTarget:
         if len(request.payload) < CHUNK_HEADER.size:
             raise TargetError("chunk payload is truncated")
         index, token, offset, length = CHUNK_HEADER.unpack_from(request.payload)
-        data = request.payload[CHUNK_HEADER.size:]
+        data = request.payload[CHUNK_HEADER.size :]
         if length != len(data) or length == 0 or length > MAX_CHUNK:
             raise TargetError("chunk length is invalid")
         self._require_token(token)
@@ -255,7 +312,9 @@ class SimulatedDeploymentTarget:
         if artifact.committed:
             raise TargetError("committed artifact cannot be modified")
         if offset != artifact.received:
-            raise TargetError(f"chunk offset {offset} does not match resumable offset {artifact.received}")
+            raise TargetError(
+                f"chunk offset {offset} does not match resumable offset {artifact.received}"
+            )
         if offset + length > artifact.size:
             raise TargetError("chunk exceeds declared artifact size")
         path = self._artifact_path(artifact)
@@ -268,11 +327,14 @@ class SimulatedDeploymentTarget:
         artifact.received += length
         self.last_event = f"chunk:{artifact.name}:{artifact.received}"
         self._save_session()
-        return self._response(request, {
-            "index": index,
-            "received": artifact.received,
-            "remaining": artifact.size - artifact.received,
-        })
+        return self._response(
+            request,
+            {
+                "index": index,
+                "received": artifact.received,
+                "remaining": artifact.size - artifact.received,
+            },
+        )
 
     def _commit(self, request: Frame) -> Frame:
         if len(request.payload) != INDEX_TOKEN.size:
@@ -293,16 +355,22 @@ class SimulatedDeploymentTarget:
         artifact.committed = True
         self.last_event = f"committed:{artifact.name}"
         self._save_session()
-        return self._response(request, {"index": index, "sha256": digest, "committed": True})
+        return self._response(
+            request, {"index": index, "sha256": digest, "committed": True}
+        )
 
     def _start(self, request: Frame) -> Frame:
         if len(request.payload) != TOKEN_ONLY.size:
             raise TargetError("start request has invalid size")
         (token,) = TOKEN_ONLY.unpack(request.payload)
         self._require_token(token)
-        if not self.artifacts or not all(artifact.committed for artifact in self.artifacts):
+        if not self.artifacts or not all(
+            artifact.committed for artifact in self.artifacts
+        ):
             raise TargetError("all artifacts must be committed before start")
-        monitors = [artifact for artifact in self.artifacts if artifact.kind == "monitor"]
+        monitors = [
+            artifact for artifact in self.artifacts if artifact.kind == "monitor"
+        ]
         if len(monitors) != 1:
             raise TargetError("deployment must contain exactly one monitor artifact")
         self.started = True
@@ -317,8 +385,9 @@ class SimulatedDeploymentTarget:
             "timestamp_ns": self.clock_ns(),
             "artifacts": [artifact.to_json() for artifact in self.artifacts],
         }
-        self.evidence_path.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n",
-                                      encoding="utf-8")
+        self.evidence_path.write_text(
+            json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
         self._save_session()
         return self._response(request, evidence)
 
@@ -355,7 +424,9 @@ class SimulatedDeploymentTarget:
         self.last_event = "session-reset"
         if self.session_path.exists():
             self.session_path.unlink()
-        return self._response(request, {"reset": True, "evidence_preserved": self.evidence_path.exists()})
+        return self._response(
+            request, {"reset": True, "evidence_preserved": self.evidence_path.exists()}
+        )
 
     def _dispatch(self, request: Frame) -> Frame:
         try:
@@ -365,33 +436,39 @@ class SimulatedDeploymentTarget:
             if kind == MessageType.PING:
                 return self._response(request, request.payload)
             if kind == MessageType.HELLO:
-                return self._response(request, {
-                    "protocol": 1,
-                    "target": "file-backed-development-target",
-                    "profile": self.profile.name,
-                    "board_compatible": self.profile.board_compatible,
-                    "session_active": bool(self.session_id),
-                    "started": self.started,
-                })
+                return self._response(
+                    request,
+                    {
+                        "protocol": 1,
+                        "target": "file-backed-development-target",
+                        "profile": self.profile.name,
+                        "board_compatible": self.profile.board_compatible,
+                        "session_active": bool(self.session_id),
+                        "started": self.started,
+                    },
+                )
             if kind == MessageType.CAPABILITIES:
-                return self._response(request, {
-                    "protocol_versions": [1],
-                    "max_chunk": MAX_CHUNK,
-                    "max_artifacts": MAX_ARTIFACTS,
-                    "resume": True,
-                    "evidence": True,
-                    "arbitrary_memory": False,
-                    "exploit_transport": False,
-                    "deployment_regions": [
-                        {
-                            "name": region.name,
-                            "base": region.base,
-                            "size": region.size,
-                            "artifact_kinds": sorted(region.kinds),
-                        }
-                        for region in self.profile.regions
-                    ],
-                })
+                return self._response(
+                    request,
+                    {
+                        "protocol_versions": [1],
+                        "max_chunk": MAX_CHUNK,
+                        "max_artifacts": MAX_ARTIFACTS,
+                        "resume": True,
+                        "evidence": True,
+                        "arbitrary_memory": False,
+                        "exploit_transport": False,
+                        "deployment_regions": [
+                            {
+                                "name": region.name,
+                                "base": region.base,
+                                "size": region.size,
+                                "artifact_kinds": sorted(region.kinds),
+                            }
+                            for region in self.profile.regions
+                        ],
+                    },
+                )
             if kind == MessageType.BEGIN_DEPLOY:
                 return self._begin(request)
             if kind == MessageType.QUERY_PROGRESS:
@@ -408,29 +485,37 @@ class SimulatedDeploymentTarget:
                 return self._reset(request)
             if kind == MessageType.RECOVER_SESSION:
                 self._load_session()
-                return self._response(request, {
-                    "session_id": self.session_id or None,
-                    "authorization_token": self.token if self.session_id else None,
-                    "started": self.started,
-                    "artifacts": [artifact.to_json() for artifact in self.artifacts],
-                })
+                return self._response(
+                    request,
+                    {
+                        "session_id": self.session_id or None,
+                        "authorization_token": self.token if self.session_id else None,
+                        "started": self.started,
+                        "artifacts": [
+                            artifact.to_json() for artifact in self.artifacts
+                        ],
+                    },
+                )
             raise TargetError("unsupported deployment message")
         except (TargetError, ProfileError, ValueError) as exc:
             return self._response(request, {"error": str(exc)}, error=True)
 
     def handle(self, request: Frame) -> Frame:
         request_fingerprint = hashlib.sha256(
-            bytes((request.message_type & 0xff,)) +
-            request.flags.to_bytes(2, "little") + request.payload
+            bytes((request.message_type & 0xFF,))
+            + request.flags.to_bytes(2, "little")
+            + request.payload
         ).digest()
         cached = self._response_cache.get(request.sequence)
         if cached is not None:
             fingerprint, response = cached
             if fingerprint == request_fingerprint:
                 return response
-            return self._response(request, {
-                "error": "sequence number reused with different request"
-            }, error=True)
+            return self._response(
+                request,
+                {"error": "sequence number reused with different request"},
+                error=True,
+            )
         response = self._dispatch(request)
         # Keep the cache bounded.  Deployment clients retry only the current
         # exchange, so retaining the most recent 32 responses is sufficient.

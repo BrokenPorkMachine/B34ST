@@ -35,23 +35,25 @@ CHIPSET_DB: dict | None = None
 ChipsetInfo: type | None = None
 chipset_for_cpid = None
 chipset_for_device_string = None
+_chipset_lock = threading.Lock()
 
 
 def _load_chipset_db():
     global CHIPSET_DB, ChipsetInfo, chipset_for_cpid, chipset_for_device_string
-    if CHIPSET_DB is not None:
-        return
-    from host.chipset_db import (
-        CHIPSET_DB as _DB,
-        chipset_for_cpid as _cfc,
-        chipset_for_device_string as _cfds,
-        ChipsetInfo as _CI,
-    )
+    with _chipset_lock:
+        if CHIPSET_DB is not None:
+            return
+        from host.chipset_db import (
+            CHIPSET_DB as _DB,
+            chipset_for_cpid as _cfc,
+            chipset_for_device_string as _cfds,
+            ChipsetInfo as _CI,
+        )
 
-    CHIPSET_DB = _DB
-    ChipsetInfo = _CI
-    chipset_for_cpid = _cfc
-    chipset_for_device_string = _cfds
+        CHIPSET_DB = _DB
+        ChipsetInfo = _CI
+        chipset_for_cpid = _cfc
+        chipset_for_device_string = _cfds
 
 
 _load_chipset_db()
@@ -92,7 +94,7 @@ def find_monitor(
             try:
                 if serial in str(device.serial_number, "utf-8", errors="replace"):
                     return device
-            except Exception:
+            except (usb.core.USBError, ValueError, TypeError):
                 continue
     return None
 
@@ -114,7 +116,7 @@ def enumerate_devices() -> list[DeviceIdentity]:
                     serial=_safe_str(device.serial_number),
                 )
                 result.append(desc)
-            except Exception:
+            except (usb.core.USBError, ValueError, TypeError):
                 continue
     return result
 
@@ -234,14 +236,14 @@ class USBConsole:
                 for iface_num in range(3):
                     try:
                         usb.util.release_interface(self.device, iface_num)
-                    except Exception:
+                    except (usb.core.USBError, OSError):
                         pass
                 self._claimed = False
             for iface_num, was_attached in self._detach_drivers:
                 if was_attached:
                     try:
                         self.device.attach_kernel_driver(iface_num)
-                    except Exception:
+                    except (usb.core.USBError, OSError):
                         pass
             self._detach_drivers.clear()
 
@@ -420,7 +422,7 @@ class USBDevice:
             for iface_num in self._detach_drivers:
                 try:
                     self.device.attach_kernel_driver(iface_num)
-                except Exception:
+                except (usb.core.USBError, OSError):
                     pass
             self._detach_drivers.clear()
         self._claimed = False
@@ -457,7 +459,11 @@ class USBDevice:
             self.vendor_read(4)
             self.pwned = True
             return True
-        except Exception:
+        except usb.core.USBError as exc:
+            print(f"[!] vendor request verification failed: {exc}", file=sys.stderr)
+            return False
+        except TransportError as exc:
+            print(f"[!] vendor request verification failed: {exc}", file=sys.stderr)
             return False
 
     def enter_pwndfu(self) -> bool:
@@ -482,7 +488,11 @@ class USBDevice:
                 return False
             self.pwned = True
             return True
-        except Exception:
+        except usb.core.USBError as exc:
+            print(f"[!] USBliter8 exploit transfer failed: {exc}", file=sys.stderr)
+            return False
+        except TransportError as exc:
+            print(f"[!] USBliter8 exploit transfer failed: {exc}", file=sys.stderr)
             return False
 
     def send_payload(self, payload_path: str, load_addr: int | None = None) -> bool:
@@ -507,7 +517,11 @@ class USBDevice:
                 self.vendor_write(chunk)
                 offset += len(chunk)
             return True
-        except Exception:
+        except usb.core.USBError as exc:
+            print(f"[!] payload transfer failed: {exc}", file=sys.stderr)
+            return False
+        except TransportError as exc:
+            print(f"[!] payload transfer failed: {exc}", file=sys.stderr)
             return False
 
     def execute(self, entry: int | None = None) -> bool:
@@ -530,7 +544,7 @@ class USBDevice:
         while time.monotonic() < deadline:
             try:
                 self._ctrl_xfer(self.VENDOR_IN, self.VENDOR_REQ_MEM_READ, 0, 0, 4)
-            except Exception:
+            except (usb.core.USBError, TransportError):
                 break
             time.sleep(0.2)
         time.sleep(2.0)
@@ -556,12 +570,16 @@ def _readable_cpid(device: usb.core.Device) -> int | None:
         import subprocess
 
         r = subprocess.run(
-            ["irecovery", "-q"], capture_output=True, text=True, timeout=5
+            ["irecovery", "-q"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
         )
         for line in r.stdout.splitlines():
             if "CPID" in line:
                 return int(line.split(":")[1].strip(), 16)
-    except Exception:
+    except (OSError, ValueError):
         pass
     return None
 

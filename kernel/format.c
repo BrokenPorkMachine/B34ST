@@ -86,6 +86,8 @@ static void emit_unsigned(emit_fn emit, void *context, u64 value,
     unsigned count = 0U;
     const char *alphabet = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
 
+    if (base == 0U) return;
+
     do {
         digits[count++] = alphabet[value % base];
         value /= base;
@@ -156,9 +158,10 @@ static int format_core(emit_fn emit, void *context, const char *format,
             padding = ' ';
         }
 
-        unsigned width = 0U;
+        u32 width = 0U;
         while (*format >= '0' && *format <= '9') {
-            width = (width * 10U) + (unsigned)(*format - '0');
+            if (width > 65535U) break;
+            width = (width * 10U) + (u32)(*format - '0');
             ++format;
         }
 

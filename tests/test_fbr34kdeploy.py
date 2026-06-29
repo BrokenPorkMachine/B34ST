@@ -14,7 +14,7 @@ class DeploymentCliTests(unittest.TestCase):
         result = subprocess.run([sys.executable, "host/fbr34kdeploy.py", "--version"],
                                 cwd=ROOT, text=True, capture_output=True, check=False)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("0.4.0", result.stdout)
+        self.assertIn("0.4.1", result.stdout)
 
     def test_plan(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

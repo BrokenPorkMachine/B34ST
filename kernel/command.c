@@ -1412,7 +1412,7 @@ static int command_display_test(int argument_count, char **arguments)
         return -1;
     }
     (void)framebuffer_console_clear();
-    framebuffer_console_write("FBR34KER 0.4.0 FRAMEBUFFER TEST\n");
+    framebuffer_console_write("FBR34KER 0.4.1 FRAMEBUFFER TEST\n");
     framebuffer_console_write("ABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789 []{} <> /\\ +-=_!?\n");
     for (u32 line = 0U; line < 6U; ++line) {
         framebuffer_console_write("SCROLL LINE ");

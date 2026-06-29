@@ -57,8 +57,8 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "1125fc66fd8c986d8673cca0e521d9e403aa2415d17b72823a56f105189409f1",
-        "size": 214416
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
+        "size": 214640
       },
       {
         "entry_address": 0,
@@ -75,7 +75,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -89,11 +89,11 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-a12-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/a12/boot.img",
-  "sha256": "4d77e0fb16fab53232165f484693837f3dac4c532235cb6e9f008d7d6e509ef1",
+  "sha256": "93126f0a058411580063c4cefb145445a332cc1761aee569658ec1a8119bbd52",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
@@ -111,8 +111,8 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "1125fc66fd8c986d8673cca0e521d9e403aa2415d17b72823a56f105189409f1",
-        "size": 214416
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
+        "size": 214640
       },
       {
         "entry_address": 0,
@@ -129,7 +129,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -144,11 +144,11 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-a12x-a12z-recovery-experimental",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/a12x/boot.img",
-  "sha256": "b9e28dad02938255cb3159d757a8fad7a229b56d311632c1d15200ff3d2f7bbd",
+  "sha256": "6af670f9f90343733f1ada6573c94e7f066c111a3f6cf62bbe7fa46b1c0bc18c",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
@@ -166,8 +166,8 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "1125fc66fd8c986d8673cca0e521d9e403aa2415d17b72823a56f105189409f1",
-        "size": 214416
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
+        "size": 214640
       },
       {
         "entry_address": 0,
@@ -184,7 +184,7 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -198,11 +198,11 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-a13-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/a13/boot.img",
-  "sha256": "e7d79404435a76bf23591f8abe4157bb5638e1dd36d18eea7048455996d184c9",
+  "sha256": "4f0f5faa1c8596c4000c78ef2ff8165f5ebc7a313c876fe4342383456cfcbdbc",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
@@ -220,8 +220,8 @@ python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "1125fc66fd8c986d8673cca0e521d9e403aa2415d17b72823a56f105189409f1",
-        "size": 214416
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
+        "size": 214640
       },
       {
         "entry_address": 0,
@@ -238,7 +238,7 @@ python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -252,11 +252,11 @@ python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-a14-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/a14/boot.img",
-  "sha256": "ccba6b19a28a4051147e315f67dd33316d0898f6ca73e55682e363024d0c3b3d",
+  "sha256": "0dca30c420b01dabdbd1a166df5449b48d1631e83fcc359932399b0df799875f",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
@@ -274,8 +274,8 @@ python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "1125fc66fd8c986d8673cca0e521d9e403aa2415d17b72823a56f105189409f1",
-        "size": 214416
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
+        "size": 214640
       },
       {
         "entry_address": 0,
@@ -292,7 +292,7 @@ python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -306,11 +306,11 @@ python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-a15-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/a15/boot.img",
-  "sha256": "1df503cb306c2021faee104e84f221005503c211bfe5a438422f8b511af9946b",
+  "sha256": "e790c71a42f51b675ee7e95024569ab89f0ccc0401e293aa1b77a5e17c646e86",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
@@ -328,8 +328,8 @@ python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "1125fc66fd8c986d8673cca0e521d9e403aa2415d17b72823a56f105189409f1",
-        "size": 214416
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
+        "size": 214640
       },
       {
         "entry_address": 0,
@@ -346,7 +346,7 @@ python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -360,11 +360,11 @@ python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-m1-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/m1/boot.img",
-  "sha256": "b662c71a1f793e1d431dc46d06ee24d9c752e72c12825331539c5cfd5bc24b53",
+  "sha256": "2346cf98c15a2a218c71d52aba4fc3f17b0662c4d3736c2f96e59b1d50f473cc",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
@@ -382,8 +382,8 @@ python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "1125fc66fd8c986d8673cca0e521d9e403aa2415d17b72823a56f105189409f1",
-        "size": 214416
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
+        "size": 214640
       },
       {
         "entry_address": 0,
@@ -400,7 +400,7 @@ python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -414,11 +414,11 @@ python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-m2-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/m2/boot.img",
-  "sha256": "c4e5da3a55d2c062802b21bdc7bf6eddeb290e4aa3a5750d08173f9edfbb31c7",
+  "sha256": "f2d2bd73bd355d9c9c543477c0d5d51a1f9a1c60b37c9b8e068fc0559883fdc9",
   "size": 245760
 }
 python3 host/boot_image.py inspect build-apple/a12/boot.img --json >/dev/null

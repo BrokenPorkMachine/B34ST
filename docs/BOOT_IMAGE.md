@@ -1,6 +1,6 @@
 # FBR34KER recovery boot image
 
-FBR34KER 0.4.0 can produce optional `boot.img` bundles for A12, A12X/A12Z,
+FBR34KER 0.4.1 can produce optional `boot.img` bundles for A12, A12X/A12Z,
 A13, A14, A15, M1, and M2 external-loader experiments. The file uses the
 bounded **FBRI v1** container format. It is not an Apple-signed IMG4 object and
 is not represented as directly compatible with stock iBoot.

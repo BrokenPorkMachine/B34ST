@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.1 -- Beta
+
+- Consolidated the latest Apple-platform fixes into a patch release, including
+  explicit A12X/T8027 and A12Z/T8028 identity handling plus M1/M2 platform
+  identifiers.
+- Retained bounded MMIO-footprint SoC discrimination and corrected FBRI
+  inspection for families that share a numeric header identifier.
+- Retained generated header dependencies so version changes cannot reuse stale
+  monitor, generic, probe, SDK, or reference-loader objects.
+- Retained the operational-package fix that includes the host runtime required
+  by the packaged CLI while excluding firmware/platform source.
+- Updated firmware, host tools, B34ST, modules, CI, manifests, packages, tests,
+  manuals, release evidence, and user documentation to `0.4.1-beta`.
+- Confirmed no public protocol, handoff, module ABI, FMOD, or FMBC format
+  changes.
+
 ## 0.4.0 -- Beta
 
 - Added a guided tethered-downgrade workflow with explicit planning, exact

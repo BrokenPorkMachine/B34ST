@@ -5,7 +5,7 @@ ROOT=pathlib.Path(__file__).resolve().parents[1]
 
 class SessionToolsTests(unittest.TestCase):
     def bundle(self,path):
-        summary={'schema_version':1,'project':'FBR34KER','release_version':'0.4.0','session_id':'1'*24,'profile_id':'p','device':{},'adapter':{},'image':{},'stages':[{'stage':'console','status':'passed'}],'passed':True}
+        summary={'schema_version':1,'project':'FBR34KER','release_version':'0.4.1','session_id':'1'*24,'profile_id':'p','device':{},'adapter':{},'image':{},'stages':[{'stage':'console','status':'passed'}],'passed':True}
         values={name:(summary if name in {'session.json','summary.json'} else {'records':[{'operation':'start','status':'passed'}]} if name=='trace.json' else {} if name.endswith('.json') else 'hello\n' if name=='console.log' else '') for name in STANDARD_FILES}
         write_session_bundle(path,values)
     def test_inspect_replay_trace_and_crash(self):

@@ -1,6 +1,6 @@
 # Reference loader simulator
 
-The 0.4.0 loader simulator is an **offline conformance and placement tool**. It does not exploit a device, execute the monitor, emulate peripherals, or call loader callbacks.
+The 0.4.1 loader simulator is an **offline conformance and placement tool**. It does not exploit a device, execute the monitor, emulate peripherals, or call loader callbacks.
 
 ## Inputs
 

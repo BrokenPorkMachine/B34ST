@@ -1,20 +1,10 @@
-clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"qemu_virt\" -DFBR34KER_SOURCE_ID=\"0.4.0-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
-		-MMD -MP -MF build/kernel/apple_platform.d -c kernel/apple_platform.c -o build/kernel/apple_platform.o
-ld.lld -T linker/qemu_virt.ld -Map=build/fbr34ker.map --gc-sections --fatal-warnings -o build/fbr34ker.elf build/arch/arm64/cpu.o build/arch/arm64/mmu.o build/kernel/allocator.o build/kernel/architecture.o build/kernel/board.o build/kernel/boot_evidence.o build/kernel/bringup_report.o build/kernel/build_info.o build/kernel/bringup.o build/kernel/command.o build/kernel/console.o build/kernel/crash.o build/kernel/crc32.o build/kernel/device_tree.o build/kernel/driver.o build/kernel/event.o build/kernel/exception.o build/kernel/fault.o build/kernel/framebuffer_console.o build/kernel/format.o build/kernel/handoff.o build/kernel/hardware_probe.o build/kernel/kernel_patches.o build/kernel/secure_boot_bypass.o build/kernel/persistence.o build/kernel/hal_sim.o build/kernel/interrupt.o build/kernel/lifecycle.o build/kernel/log.o build/kernel/main.o build/kernel/module.o build/kernel/mmio.o build/kernel/physical_memory.o build/kernel/protocol.o build/kernel/sha256.o build/kernel/service_guard.o build/kernel/service_registry.o build/kernel/stack_guard.o build/kernel/string.o build/kernel/trace.o build/kernel/watchdog.o build/kernel/apple_platform.o build/kernel/usb.o build/kernel/usbliter8_exploit.o build/kernel/trust_cache.o build/kernel/jailbreak.o build/modules/hello/hello.o build/platform/gic.o build/platform/qemu_virt/platform.o build/platform/qemu_virt/timer.o build/platform/qemu_virt/uart.o build/platform/qemu_virt/semihosting.o build/arch/arm64/start.o build/arch/arm64/vectors.o
-/opt/homebrew/opt/llvm/bin/llvm-objcopy -O binary build/fbr34ker.elf build/fbr34ker.bin
 /Applications/Xcode.app/Contents/Developer/usr/bin/make FBR34KER_PLATFORM=generic_arm64 BUILD_DIR=build-generic \
 		TARGET=build-generic/fbr34ker-generic all
-clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.4.0-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
-		-MMD -MP -MF build-generic/kernel/apple_platform.d -c kernel/apple_platform.c -o build-generic/kernel/apple_platform.o
-ld.lld -T linker/generic_arm64.ld -Map=build-generic/fbr34ker-generic.map --gc-sections --fatal-warnings -o build-generic/fbr34ker-generic.elf build-generic/arch/arm64/cpu.o build-generic/arch/arm64/mmu.o build-generic/kernel/allocator.o build-generic/kernel/architecture.o build-generic/kernel/board.o build-generic/kernel/boot_evidence.o build-generic/kernel/bringup_report.o build-generic/kernel/build_info.o build-generic/kernel/bringup.o build-generic/kernel/command.o build-generic/kernel/console.o build-generic/kernel/crash.o build-generic/kernel/crc32.o build-generic/kernel/device_tree.o build-generic/kernel/driver.o build-generic/kernel/event.o build-generic/kernel/exception.o build-generic/kernel/fault.o build-generic/kernel/framebuffer_console.o build-generic/kernel/format.o build-generic/kernel/handoff.o build-generic/kernel/hardware_probe.o build-generic/kernel/kernel_patches.o build-generic/kernel/secure_boot_bypass.o build-generic/kernel/persistence.o build-generic/kernel/hal_sim.o build-generic/kernel/interrupt.o build-generic/kernel/lifecycle.o build-generic/kernel/log.o build-generic/kernel/main.o build-generic/kernel/module.o build-generic/kernel/mmio.o build-generic/kernel/physical_memory.o build-generic/kernel/protocol.o build-generic/kernel/sha256.o build-generic/kernel/service_guard.o build-generic/kernel/service_registry.o build-generic/kernel/stack_guard.o build-generic/kernel/string.o build-generic/kernel/trace.o build-generic/kernel/watchdog.o build-generic/kernel/apple_platform.o build-generic/kernel/usb.o build-generic/kernel/usbliter8_exploit.o build-generic/kernel/trust_cache.o build-generic/kernel/jailbreak.o build-generic/modules/hello/hello.o build-generic/platform/gic.o build-generic/platform/generic_arm64/platform.o build-generic/platform/generic_arm64/timer.o build-generic/arch/arm64/start.o build-generic/arch/arm64/vectors.o
-/opt/homebrew/opt/llvm/bin/llvm-objcopy -O binary build-generic/fbr34ker-generic.elf build-generic/fbr34ker-generic.bin
+make[2]: Nothing to be done for `all'.
 /Applications/Xcode.app/Contents/Developer/usr/bin/make FBR34KER_PLATFORM=generic_arm64 BUILD_DIR=build-hardware-probe \
 		TARGET=build-hardware-probe/fbr34ker-hardware-probe \
 		EXTRA_CFLAGS=-DFBR34KER_PHYSICAL_PROBE_IMAGE=1 all
-clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.4.0-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1 -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
-		-MMD -MP -MF build-hardware-probe/kernel/apple_platform.d -c kernel/apple_platform.c -o build-hardware-probe/kernel/apple_platform.o
-ld.lld -T linker/generic_arm64.ld -Map=build-hardware-probe/fbr34ker-hardware-probe.map --gc-sections --fatal-warnings -o build-hardware-probe/fbr34ker-hardware-probe.elf build-hardware-probe/arch/arm64/cpu.o build-hardware-probe/arch/arm64/mmu.o build-hardware-probe/kernel/allocator.o build-hardware-probe/kernel/architecture.o build-hardware-probe/kernel/board.o build-hardware-probe/kernel/boot_evidence.o build-hardware-probe/kernel/bringup_report.o build-hardware-probe/kernel/build_info.o build-hardware-probe/kernel/bringup.o build-hardware-probe/kernel/command.o build-hardware-probe/kernel/console.o build-hardware-probe/kernel/crash.o build-hardware-probe/kernel/crc32.o build-hardware-probe/kernel/device_tree.o build-hardware-probe/kernel/driver.o build-hardware-probe/kernel/event.o build-hardware-probe/kernel/exception.o build-hardware-probe/kernel/fault.o build-hardware-probe/kernel/framebuffer_console.o build-hardware-probe/kernel/format.o build-hardware-probe/kernel/handoff.o build-hardware-probe/kernel/hardware_probe.o build-hardware-probe/kernel/kernel_patches.o build-hardware-probe/kernel/secure_boot_bypass.o build-hardware-probe/kernel/persistence.o build-hardware-probe/kernel/hal_sim.o build-hardware-probe/kernel/interrupt.o build-hardware-probe/kernel/lifecycle.o build-hardware-probe/kernel/log.o build-hardware-probe/kernel/main.o build-hardware-probe/kernel/module.o build-hardware-probe/kernel/mmio.o build-hardware-probe/kernel/physical_memory.o build-hardware-probe/kernel/protocol.o build-hardware-probe/kernel/sha256.o build-hardware-probe/kernel/service_guard.o build-hardware-probe/kernel/service_registry.o build-hardware-probe/kernel/stack_guard.o build-hardware-probe/kernel/string.o build-hardware-probe/kernel/trace.o build-hardware-probe/kernel/watchdog.o build-hardware-probe/kernel/apple_platform.o build-hardware-probe/kernel/usb.o build-hardware-probe/kernel/usbliter8_exploit.o build-hardware-probe/kernel/trust_cache.o build-hardware-probe/kernel/jailbreak.o build-hardware-probe/modules/hello/hello.o build-hardware-probe/platform/gic.o build-hardware-probe/platform/generic_arm64/platform.o build-hardware-probe/platform/generic_arm64/timer.o build-hardware-probe/arch/arm64/start.o build-hardware-probe/arch/arm64/vectors.o
-/opt/homebrew/opt/llvm/bin/llvm-objcopy -O binary build-hardware-probe/fbr34ker-hardware-probe.elf build-hardware-probe/fbr34ker-hardware-probe.bin
+make[2]: Nothing to be done for `all'.
 rm -rf build/loader-simulation
 python3 host/fbr34kctl.py loader-simulate examples/handoff-v4.json \
 		--image build-generic/fbr34ker-generic.elf \
@@ -44,13 +34,10 @@ python3 host/fbr34kctl.py loader-conformance --handoff build/handoff/handoff-v4.
 		TARGET=build-exploit/fbr34ker-operational \
 		EXTRA_CFLAGS="-DFBR34KER_ENABLE_FAULT_INJECTION=1 -DFBR34KER_ENABLE_TEST_COMMANDS=1" \
 		all
-clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.4.0-beta\" -DFBR34KER_ENABLE_FAULT_INJECTION=1 -DFBR34KER_ENABLE_TEST_COMMANDS=1 -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
-		-MMD -MP -MF build-exploit/kernel/apple_platform.d -c kernel/apple_platform.c -o build-exploit/kernel/apple_platform.o
-ld.lld -T linker/generic_arm64.ld -Map=build-exploit/fbr34ker-operational.map --gc-sections --fatal-warnings -o build-exploit/fbr34ker-operational.elf build-exploit/arch/arm64/cpu.o build-exploit/arch/arm64/mmu.o build-exploit/kernel/allocator.o build-exploit/kernel/architecture.o build-exploit/kernel/board.o build-exploit/kernel/boot_evidence.o build-exploit/kernel/bringup_report.o build-exploit/kernel/build_info.o build-exploit/kernel/bringup.o build-exploit/kernel/command.o build-exploit/kernel/console.o build-exploit/kernel/crash.o build-exploit/kernel/crc32.o build-exploit/kernel/device_tree.o build-exploit/kernel/driver.o build-exploit/kernel/event.o build-exploit/kernel/exception.o build-exploit/kernel/fault.o build-exploit/kernel/framebuffer_console.o build-exploit/kernel/format.o build-exploit/kernel/handoff.o build-exploit/kernel/hardware_probe.o build-exploit/kernel/kernel_patches.o build-exploit/kernel/secure_boot_bypass.o build-exploit/kernel/persistence.o build-exploit/kernel/hal_sim.o build-exploit/kernel/interrupt.o build-exploit/kernel/lifecycle.o build-exploit/kernel/log.o build-exploit/kernel/main.o build-exploit/kernel/module.o build-exploit/kernel/mmio.o build-exploit/kernel/physical_memory.o build-exploit/kernel/protocol.o build-exploit/kernel/sha256.o build-exploit/kernel/service_guard.o build-exploit/kernel/service_registry.o build-exploit/kernel/stack_guard.o build-exploit/kernel/string.o build-exploit/kernel/trace.o build-exploit/kernel/watchdog.o build-exploit/kernel/apple_platform.o build-exploit/kernel/usb.o build-exploit/kernel/usbliter8_exploit.o build-exploit/kernel/trust_cache.o build-exploit/kernel/jailbreak.o build-exploit/modules/hello/hello.o build-exploit/platform/gic.o build-exploit/platform/generic_arm64/platform.o build-exploit/platform/generic_arm64/timer.o build-exploit/arch/arm64/start.o build-exploit/arch/arm64/vectors.o
-/opt/homebrew/opt/llvm/bin/llvm-objcopy -O binary build-exploit/fbr34ker-operational.elf build-exploit/fbr34ker-operational.bin
+make[2]: Nothing to be done for `all'.
 Operational build complete: build-exploit/fbr34ker-operational.bin
--rwxr-xr-x@ 1 failbr34k  staff  217488 Jun 28 21:39 build-exploit/fbr34ker-operational.bin
--rwxr-xr-x@ 1 failbr34k  staff  889288 Jun 28 21:39 build-exploit/fbr34ker-operational.elf
+-rwxr-xr-x@ 1 failbr34k  staff  217504 Jun 28 22:21 build-exploit/fbr34ker-operational.bin
+-rwxr-xr-x@ 1 failbr34k  staff  889296 Jun 28 22:21 build-exploit/fbr34ker-operational.elf
 rm -rf build/deployment-simulation
 python3 scripts/run_deployment_simulation.py --output build/deployment-simulation
 {
@@ -80,7 +67,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "6bbdbe989d38dc53d3c388f94957fceb2eca86d59715b5a2997a3d95c50e77c6",
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
         "size": 214640
       },
       {
@@ -98,7 +85,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -112,11 +99,11 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-a12-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/a12/boot.img",
-  "sha256": "c9ac0addf497a3b8ac5b4bf529d1484ba7bf00851892c3f3481351e654664b9f",
+  "sha256": "93126f0a058411580063c4cefb145445a332cc1761aee569658ec1a8119bbd52",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
@@ -134,7 +121,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "6bbdbe989d38dc53d3c388f94957fceb2eca86d59715b5a2997a3d95c50e77c6",
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
         "size": 214640
       },
       {
@@ -152,7 +139,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -167,11 +154,11 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-a12x-a12z-recovery-experimental",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/a12x/boot.img",
-  "sha256": "572b01609a0c8c28651aa49992ef6da016541f0383e3250d4735451302fda490",
+  "sha256": "6af670f9f90343733f1ada6573c94e7f066c111a3f6cf62bbe7fa46b1c0bc18c",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
@@ -189,7 +176,7 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "6bbdbe989d38dc53d3c388f94957fceb2eca86d59715b5a2997a3d95c50e77c6",
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
         "size": 214640
       },
       {
@@ -207,7 +194,7 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -221,11 +208,11 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-a13-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/a13/boot.img",
-  "sha256": "7bcd753041a24c242dbc6c541b29db587808dc7524523546ff484ad071f6c2f6",
+  "sha256": "4f0f5faa1c8596c4000c78ef2ff8165f5ebc7a313c876fe4342383456cfcbdbc",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
@@ -243,7 +230,7 @@ python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "6bbdbe989d38dc53d3c388f94957fceb2eca86d59715b5a2997a3d95c50e77c6",
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
         "size": 214640
       },
       {
@@ -261,7 +248,7 @@ python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -275,11 +262,11 @@ python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-a14-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/a14/boot.img",
-  "sha256": "f6884c9dfec5e9eb20e3979a47334d96ce356963c219079a435fe1c5f9328cb4",
+  "sha256": "0dca30c420b01dabdbd1a166df5449b48d1631e83fcc359932399b0df799875f",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
@@ -297,7 +284,7 @@ python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "6bbdbe989d38dc53d3c388f94957fceb2eca86d59715b5a2997a3d95c50e77c6",
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
         "size": 214640
       },
       {
@@ -315,7 +302,7 @@ python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -329,11 +316,11 @@ python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-a15-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/a15/boot.img",
-  "sha256": "6c88d255ba64c3707b2e372ef607c589af2b825bdb4d246eab3ede31b927bc12",
+  "sha256": "e790c71a42f51b675ee7e95024569ab89f0ccc0401e293aa1b77a5e17c646e86",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
@@ -351,7 +338,7 @@ python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "6bbdbe989d38dc53d3c388f94957fceb2eca86d59715b5a2997a3d95c50e77c6",
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
         "size": 214640
       },
       {
@@ -369,7 +356,7 @@ python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -383,11 +370,11 @@ python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-m1-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/m1/boot.img",
-  "sha256": "feaf4f477f02093c23a1df8d8f08a674e4fb2ae37a46d17a73c6c97950fa9b58",
+  "sha256": "2346cf98c15a2a218c71d52aba4fc3f17b0662c4d3736c2f96e59b1d50f473cc",
   "size": 245760
 }
 python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
@@ -405,7 +392,7 @@ python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "6bbdbe989d38dc53d3c388f94957fceb2eca86d59715b5a2997a3d95c50e77c6",
+        "sha256": "2d2ae93244e9a9768f0b953c17924fa290a234f937df507d9d033049687e5e52",
         "size": 214640
       },
       {
@@ -423,7 +410,7 @@ python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 241664,
         "role": "module",
-        "sha256": "4f21425fc5b5767b85ff2aa05a3ebc7edb75b25754a349874c06dd6a7866ba5d",
+        "sha256": "72a9a7a1324721f03cadd158b1d0317981dfbdb8629a030c79f3ea6651d1f90e",
         "size": 299
       }
     ],
@@ -437,11 +424,11 @@ python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
     "image_size": 245760,
     "profile_id": "apple-m2-recovery",
     "project": "FBR34KER",
-    "release_version": "0.4.0",
+    "release_version": "0.4.1",
     "schema_version": 1
   },
   "path": "build-apple/m2/boot.img",
-  "sha256": "41543c8da76ecb833638022b81259547bee779699f5864668ebe221dc149579d",
+  "sha256": "f2d2bd73bd355d9c9c543477c0d5d51a1f9a1c60b37c9b8e068fc0559883fdc9",
   "size": 245760
 }
 python3 host/boot_image.py inspect build-apple/a12/boot.img --json >/dev/null
@@ -477,8 +464,8 @@ python3 host/physical_validation.py validate-session \
 python3 host/physical_validation.py validate-session \
 		build-apple/physical-validation-candidate/recovered-session.zip >/dev/null
 python3 scripts/release_manifest.py \
-		--version 0.4.0 --channel beta \
-		--source-id 0.4.0-beta --release-name FBR34KER_0.4.0_Beta \
+		--version 0.4.1 --channel beta \
+		--source-id 0.4.1-beta --release-name FBR34KER_0.4.1_Beta \
 		--output RELEASE_MANIFEST.json --checksums CHECKSUMS.sha256 \
 		build/fbr34ker.bin build/fbr34ker.elf build/fbr34ker.map \
 		build-generic/fbr34ker-generic.bin build-generic/fbr34ker-generic.elf \

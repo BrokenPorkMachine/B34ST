@@ -239,7 +239,7 @@ def send_image(args: argparse.Namespace) -> int:
     evidence = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "release_version": "0.4.0",
+        "release_version": "0.4.1",
         "operation": "irecovery-send",
         "profile_id": profile["profile_id"],
         "device": device.public_dict(),
@@ -311,7 +311,7 @@ def main(argv: list[str] | None = None) -> int:
             evidence = {
                 "schema_version": 1,
                 "project": "FBR34KER",
-        "release_version": "0.4.0",
+        "release_version": "0.4.1",
         "operation": "irecovery-verify",
                 "passed": True,
                 "profile_id": profile["profile_id"],

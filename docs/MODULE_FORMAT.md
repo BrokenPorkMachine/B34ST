@@ -9,7 +9,7 @@ followed by a payload.
 | format_version | 2 | `1` |
 | header_size | 2 | `96` |
 | image_size | 4 | exact payload length |
-| flags | 4 | reserved; must be zero in 0.4.0 |
+| flags | 4 | reserved; must be zero in 0.4.1 |
 | name | 32 | non-empty validated ASCII identifier, NUL terminated |
 | version | 16 | non-empty validated ASCII identifier, NUL terminated |
 | sha256 | 32 | SHA-256 of the complete payload |
@@ -19,7 +19,7 @@ size must equal `header_size + image_size`; trailing bytes are rejected.
 
 ## Executable payload policy
 
-FBR34KER 0.4.0 executes only FMBC bytecode versions 1 and 2. Opaque payloads
+FBR34KER 0.4.1 executes only FMBC bytecode versions 1 and 2. Opaque payloads
 can be packed and inspected by `fbr34kctl`, but monitor upload rejects them as
 executable modules.
 

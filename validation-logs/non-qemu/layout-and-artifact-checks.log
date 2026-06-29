@@ -6,7 +6,7 @@ layout verification passed
   heap=4194304 bytes
   build_info=0x00000000400a5800 size=148
   crashlog=464 bytes
-  boot_evidence=0x00000000400b17d0 size=56
+  boot_evidence=0x00000000400b17e0 size=56
   relocations=none
 python3 scripts/verify_layout.py build-generic/fbr34ker-generic.elf --expected-entry 0x80000000
 layout verification passed
@@ -39,8 +39,8 @@ layout verification passed
 python3 host/fbr34kctl.py manifest build/fbr34ker.bin
 {
   "file": "fbr34ker.bin",
-  "sha256": "67e0528b91474b3b65844783d2c2dcfb3fd45e7047fb59babcfe9dec53873886",
-  "size": 202240
+  "sha256": "d480d8e8e74c33fa303a2b302a3812b8ba8abfbff9fcfa3780a49032b6b1182a",
+  "size": 202256
 }
 python3 host/boot_image.py inspect build-apple/a12/boot.img --json >/dev/null
 python3 host/boot_image.py inspect build-apple/a12x/boot.img --json >/dev/null

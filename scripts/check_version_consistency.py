@@ -23,7 +23,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     version = args.expected
     if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version) is None:
-        parser.error("--expected must be a semantic version such as 0.4.0")
+        parser.error("--expected must be a semantic version such as 0.4.1")
 
     escaped = re.escape(version)
     release_name = re.escape(f"FBR34KER_{version}_Beta")

@@ -1,7 +1,7 @@
 # Callback safety contract
 
 External-loader callbacks cross the monitor/loader trust boundary. FBR34KER
-0.4.0 applies the following checks before and during use:
+0.4.1 applies the following checks before and during use:
 
 - callback pointers must be non-null when their capability is advertised;
 - callback addresses must be 4-byte aligned;

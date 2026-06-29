@@ -16,7 +16,7 @@ from deployment_transport import (FaultPlan, FramedStreamTransport,
                                   PosixSerialEndpoint, SimulatorTransport,
                                   SocketEndpoint, TransportError)
 
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 
 
 def parse_address(value: str) -> int:

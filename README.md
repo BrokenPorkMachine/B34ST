@@ -929,7 +929,7 @@ Built-in graph components:
 
 ### Security-state models
 
-Version 0.4.1 includes bounded in-memory models for patch, boot-policy, and persistence concepts. They exist to validate interface shape, status output, policy gates, event wiring, and failure handling. They do not modify target memory, Apple trust policy, filesystems, or reboot state.
+Version 0.4.2b includes bounded in-memory models for patch, boot-policy, and persistence concepts. They exist to validate interface shape, status output, policy gates, event wiring, and failure handling. They do not modify target memory, Apple trust policy, filesystems, or reboot state.
 
 Release builds do not define `FBR34KER_ENABLE_SECURITY_MODEL`, so mutation operations return failure. Immutable probe images remain locked regardless of build options.
 
@@ -1010,7 +1010,7 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 
 ---
 
-## Key features in 0.4.1
+## Key features in 0.4.2b
 
 - **Guided tethered downgrade** — exact firmware selection, local or downloaded
   IPSW verification, evidence-first planning, explicit adapter contract, and

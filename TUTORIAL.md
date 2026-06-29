@@ -28,7 +28,7 @@ Windows users should use WSL2 with USB passthrough for device operations.
 This checks for Clang, `ld.lld`, `llvm-objcopy`, `qemu-system-aarch64`, `make`, `pyusb`, `libusb`, and the chipset database. Output example:
 
 ```
-FBR34KER 0.4.1-beta — environment diagnostics
+FBR34KER 0.4.2b-beta — environment diagnostics
   [OK]   clang — found
   [OK]   ld.lld — found
   [OK]   llvm-objcopy — found
@@ -45,7 +45,7 @@ Address any `[MISSING]` items before proceeding.
 ## 3. Project structure
 
 ```
-FBR34KER_0.4.1_Beta/
+B34ST_0.4.2b_Beta/
 ├── TUTORIAL.md            ← this file
 ├── README.md              ← project overview
 ├── CHANGELOG.md           ← version history
@@ -191,8 +191,8 @@ This produces `build-exploit/fbr34ker-operational.bin`, which is required for th
 This boots `build/fbr34ker.bin` under QEMU virt. You will see the monitor's boot banner, initialization logs, and finally the shell prompt:
 
 ```
-FBR34KER 0.4.1 (beta)
-Target: qemu_virt; source: 0.4.1-beta
+FBR34KER 0.4.2b (beta)
+Target: qemu_virt; source: 0.4.2b-beta
 Protocol 4; handoff 4; module ABI 1; FMOD 1; FMBC 1
 
 interactive shell ready
@@ -251,7 +251,7 @@ Press `Ctrl-A` then `X`, or close the terminal window.
 This launches the B34ST interactive menu system. The initial screen shows the 15-category menu:
 
 ```
-FBR34KER B34ST v0.4.1 — Unified Multi-Tool Control Panel
+FBR34KER B34ST v0.4.2b — Unified Multi-Tool Control Panel
 
  1.  System           6.  Deployment      11.  Module
  2.  Device           7.  Hardware        12.  Research Runtime
@@ -301,7 +301,7 @@ Check version:
 
 ```sh
 ./fbr34ker version
-# → FBR34KER 0.4.1-beta
+# → FBR34KER 0.4.2b-beta
 ```
 
 ## 7. The jailbreak command walkthrough
@@ -1390,7 +1390,7 @@ Produces a clean public release archive in `dist/` containing everything needed 
 
 | Archive | Contents |
 |---|---|
-| `FBR34KER_0.4.1_Beta_operational.zip` | Public release — no private code |
+| `B34ST_0.4.2b_Beta_operational.zip` | Public release — no private code |
 
 ### Internal full-source release
 
@@ -1401,12 +1401,13 @@ make release-gate   # Full release gate (requires QEMU)
 make package
 ```
 
-Produces two archives in `dist/`:
+Produces three archives in `dist/`:
 
 | Archive | Contents |
 |---|---|
-| `FBR34KER_0.4.1_Beta_source.zip` | All source code, docs, scripts (excludes build artifacts) |
-| `FBR34KER_0.4.1_Beta_complete.zip` | Source + all build artifacts, SDK, boot images, simulations |
+| `B34ST_0.4.2b_Beta_source.zip` | All source code, docs, scripts (excludes build artifacts) |
+| `B34ST_0.4.2b_Beta_operational.zip` | Source + operational artifacts — public release |
+| `B34ST_0.4.2b_Beta_complete.zip` | Source + all build artifacts, SDK, boot images, simulations |
 
 Each archive has a corresponding `.sha256` checksum file.
 
@@ -1415,7 +1416,7 @@ Each archive has a corresponding `.sha256` checksum file.
 The operational release contains:
 
 ```
-FBR34KER_0.4.1_Beta/
+B34ST_0.4.2b_Beta/
 ├── TUTORIAL.md
 ├── README.md, CHANGELOG.md, LICENSE, SECURITY.md, RELEASE_NOTES.md
 ├── fbr34ker, b34stctl, b34stool.py
@@ -1653,7 +1654,7 @@ The Ctrl-A sequence must be pressed quickly. Try `Ctrl-A` then `X` (uppercase). 
 | `docs/PERSISTENCE.md` | Persistence subsystem, 8 hook types, 16-hook model |
 | `docs/B34ST_DESIGN.md` | B34ST unified multi-tool architecture, session instrumentation |
 | `docs/B34ST_DEVICE_WORKFLOW.md` | Device dashboard, upgrade/erase/downgrade workflows |
-| `docs/B34ST_TASKS.md` | Historical B34ST task list (all complete as of 0.4.1) |
+| `docs/B34ST_TASKS.md` | Historical B34ST task list (all complete as of 0.4.2b) |
 | `docs/LOADER_SDK.md` | SDK usage, handoff ABI v4 builder/validator |
 | `docs/BINARY_HANDOFF.md` | Handoff ABI specification |
 | `docs/HANDOFF.md` | Handoff protocol details |

@@ -36,9 +36,15 @@ def _load_host_module(name: str):
     module_key = spec.name
     previous = sys.modules.get(module_key)
     sys.modules[module_key] = module
+    host_path = str(HOST_DIR)
+    added_host_path = host_path not in sys.path
+    if added_host_path:
+        sys.path.insert(0, host_path)
     try:
         spec.loader.exec_module(module)
     finally:
+        if added_host_path:
+            sys.path.remove(host_path)
         if previous is None:
             sys.modules.pop(module_key, None)
         else:

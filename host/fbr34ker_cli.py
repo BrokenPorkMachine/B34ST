@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Unified FBR34KER public developer-preview command line."""
+"""Compatibility entry point for the canonical root FBR34KER command line."""
 from __future__ import annotations
 import argparse, contextlib, json, os, pathlib, re, shutil, subprocess, sys
+ROOT=pathlib.Path(os.environ.get('FBR34KER_SOURCE_ROOT', pathlib.Path(__file__).resolve().parents[1])).resolve()
+sys.path.insert(0, str(ROOT/'host'))
 try:
     from .process_support import preserved_stdio_flags
 except ImportError:
     from process_support import preserved_stdio_flags
-ROOT=pathlib.Path(__file__).resolve().parents[1]
 VERSION_RE=re.compile(r'^#define FBR34KER_MONITOR_VERSION "([^"]+)"$',re.M)
 VERSION=VERSION_RE.search((ROOT/'include/fbr34ker/version.h').read_text()).group(1)
 
@@ -55,6 +56,10 @@ def legacy(argv):
 
 def main(argv=None):
     raw=list(sys.argv[1:] if argv is None else argv); converted=legacy(raw)
+    effective=converted if converted is not None else raw
+    effective_command=next((value for value in effective if value != '--json'), None)
+    if effective_command != 'run':
+        return execute([ROOT/'fbr34ker',*raw],preserve_stdio=True)
     if raw and raw[0]=='b34stool':
         return execute([sys.executable,'b34stool.py',*raw[1:]],json_mode=False)
     if converted is not None:
@@ -68,7 +73,7 @@ def main(argv=None):
         if cmd=='version':
             print(json.dumps({'project':'FBR34KER','version':VERSION},sort_keys=True) if j else f'FBR34KER {VERSION}'); return 0
         if cmd=='doctor': return execute([sys.executable,'scripts/doctor.py'],json_mode=j)
-        if cmd=='build': return make(['all','modules','generic','hardware-probe','sdk','generic-loader','loader-check','loader-conformance-test','deployment-simulate','apple-boot-images','apple-bringup-simulate','physical-validation-candidate'],j,[f'-j{args.jobs}'])
+        if cmd=='build': return make(['all','modules','generic','hardware-probe','sdk','generic-loader','loader-check','loader-conformance-test','deployment-simulate','apple-boot-images','apple-bringup-simulate','physical-integration-simulate','physical-validation-candidate'],j,[f'-j{args.jobs}'])
         if cmd=='test':
             rc=make(['verify'],j,[f'BUILD_JOBS={args.jobs}'])
             if rc or not args.qemu: return rc

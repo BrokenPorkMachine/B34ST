@@ -1,4 +1,4 @@
-name: FBR34KER 0.4.5b Beta
+name: FBR34KER 0.5.0b Beta
 
 on:
   push:
@@ -71,5 +71,5 @@ jobs:
             build-apple/physical-validation-candidate/**
             RELEASE_MANIFEST.json
             CHECKSUMS.sha256
-            dist/B34ST_0.4.5b_Beta_*.zip
-            dist/B34ST_0.4.5b_Beta_*.zip.sha256
+            dist/B34ST_0.5.0b_Beta_*.zip
+            dist/B34ST_0.5.0b_Beta_*.zip.sha256

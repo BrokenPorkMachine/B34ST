@@ -11,6 +11,8 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "host"))
+from project_version import RELEASE_VERSION  # noqa: E402
 
 
 def run(command: list[str], expected: int) -> dict[str, object]:
@@ -58,7 +60,7 @@ def main(argv=None) -> int:
     summary = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "release_version": "0.4.3b",
+        "release_version": RELEASE_VERSION,
         "workflow": "persistent-first-stage-bridge-simulation",
         "success": success["passed"],
         "failure_observed": not failure["passed"],

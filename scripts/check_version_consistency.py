@@ -81,6 +81,81 @@ def main(argv: list[str] | None = None) -> int:
             "physical-validation release version does not match",
         ),
         (
+            "host/project_version.py",
+            r'^\s*\(ROOT / "include" / "fbr34ker" / "version\.h"\)\.read_text',
+            "host version helper does not read the canonical monitor header",
+        ),
+        (
+            "host/boot_image.py",
+            r'"release_version": RELEASE_VERSION',
+            "boot images do not use the canonical host version",
+        ),
+        (
+            "host/loader_simulator.py",
+            r'"version": RELEASE_VERSION',
+            "loader reports do not use the canonical host version",
+        ),
+        (
+            "host/hardware_workflow.py",
+            r'"release_version": RELEASE_VERSION',
+            "hardware workflow does not use the canonical host version",
+        ),
+        (
+            "host/irecovery_boot.py",
+            r'"release_version": RELEASE_VERSION,\n\s*"operation": "irecovery-send"',
+            "recovery send evidence does not use the canonical host version",
+        ),
+        (
+            "host/irecovery_boot.py",
+            r'"release_version": RELEASE_VERSION,\n\s*"operation": "irecovery-verify"',
+            "recovery verification evidence does not use the canonical host version",
+        ),
+        (
+            "host/ipsw_manager.py",
+            r'f"B34ST/\{RELEASE_VERSION\} IPSW catalog client"',
+            "IPSW client user agent does not use the canonical host version",
+        ),
+        (
+            "scripts/run_hardware_bringup_simulation.py",
+            r"'release_version':RELEASE_VERSION",
+            "bring-up simulation does not use the canonical host version",
+        ),
+        (
+            "scripts/run_physical_integration_simulation.py",
+            r'"release_version": RELEASE_VERSION',
+            "physical integration simulation does not use the canonical host version",
+        ),
+        (
+            "scripts/run_physical_validation_candidate.py",
+            r'"release_version": RELEASE_VERSION',
+            "physical-validation candidate does not use the canonical host version",
+        ),
+        (
+            "scripts/run_physical_validation_candidate.py",
+            r'"version": RELEASE_VERSION',
+            "physical-validation QEMU status does not use the canonical host version",
+        ),
+        (
+            "scripts/run_physical_validation_candidate.py",
+            r'"--version", RELEASE_VERSION',
+            "physical-validation release gate does not use the canonical host version",
+        ),
+        (
+            "kernel/command.c",
+            r'"FBR34KER " FBR34KER_MONITOR_VERSION',
+            "framebuffer banner does not use the canonical monitor version",
+        ),
+        (
+            "man/fbr34ker.1",
+            rf'"FBR34KER {escaped}"',
+            "fbr34ker manpage version does not match",
+        ),
+        (
+            "man/B34ST.1",
+            rf'"B34ST {escaped}"',
+            "B34ST manpage version does not match",
+        ),
+        (
             "modules/dynamic_hello/module.json",
             rf'"version": "{escaped}"',
             "dynamic module version does not match",

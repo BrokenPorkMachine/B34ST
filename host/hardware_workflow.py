@@ -8,9 +8,16 @@ import pathlib
 import subprocess
 import sys
 
-from boot_image import BootImageError, inspect_image, load_profile
-from irecovery_boot import RecoveryError, load_device_info, validate_target
-from physical_validation import checklist, explain_failure, validate_bundle
+try:
+    from .boot_image import BootImageError, inspect_image, load_profile
+    from .irecovery_boot import RecoveryError, load_device_info, validate_target
+    from .physical_validation import checklist, explain_failure, validate_bundle
+    from .project_version import RELEASE_VERSION
+except ImportError:
+    from boot_image import BootImageError, inspect_image, load_profile
+    from irecovery_boot import RecoveryError, load_device_info, validate_target
+    from physical_validation import checklist, explain_failure, validate_bundle
+    from project_version import RELEASE_VERSION
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -29,7 +36,7 @@ def prepare(args: argparse.Namespace) -> int:
     result = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "release_version": "0.4.3b",
+        "release_version": RELEASE_VERSION,
         "operation": "physical-validation-prepare",
         "ready": True,
         "mutation_performed": False,

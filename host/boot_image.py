@@ -12,6 +12,11 @@ import struct
 import sys
 from typing import Iterable
 
+try:
+    from .project_version import RELEASE_VERSION
+except ImportError:
+    from project_version import RELEASE_VERSION
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 MAGIC = b"FBRI"
 FORMAT_VERSION = 1
@@ -196,7 +201,7 @@ def build_image(
         "schema_version": 1,
         "format": "fbri-v1",
         "project": "FBR34KER",
-        "release_version": "0.4.3b",
+        "release_version": RELEASE_VERSION,
         "profile_id": profile["profile_id"],
         "family": profile["family"],
         "cpids": profile["cpids"],

@@ -22,8 +22,10 @@ from typing import Any
 
 try:
     from .tls_support import TLSConfigurationError, tls_client_context
+    from .project_version import RELEASE_VERSION
 except ImportError:
     from tls_support import TLSConfigurationError, tls_client_context
+    from project_version import RELEASE_VERSION
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = "https://api.ipsw.me/v4/device/{product}?type=ipsw"
@@ -70,7 +72,7 @@ def _read_json_source(source: str, *, timeout: float) -> Any:
             raise IPSWError(f"firmware catalog file does not exist: {path}")
         request = urllib.request.Request(
             source,
-            headers={"User-Agent": "B34ST/0.4.3b IPSW catalog client"},
+            headers={"User-Agent": f"B34ST/{RELEASE_VERSION} IPSW catalog client"},
         )
         try:
             context = tls_client_context()

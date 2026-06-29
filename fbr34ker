@@ -52,10 +52,10 @@ import sys
 import time
 import textwrap
 
-from host.process_support import preserved_stdio_flags
-
-ROOT = pathlib.Path(__file__).resolve().parent
+ROOT = pathlib.Path(os.environ.get("FBR34KER_SOURCE_ROOT", pathlib.Path(__file__).resolve().parent)).resolve()
 sys.path.insert(0, str(ROOT / "host"))
+
+from host.process_support import preserved_stdio_flags
 
 VERSION_RE = re.compile(r'^#define FBR34KER_MONITOR_VERSION "([^"]+)"$', re.M)
 VERSION = VERSION_RE.search((ROOT / "include/fbr34ker/version.h").read_text()).group(1)
@@ -243,7 +243,8 @@ def cmd_build(args):
     targets = ["all", "modules", "generic", "hardware-probe", "sdk",
                "generic-loader", "loader-check", "loader-conformance-test",
                "deployment-simulate", "apple-boot-images",
-               "apple-bringup-simulate", "physical-validation-candidate"]
+               "apple-bringup-simulate", "physical-integration-simulate",
+               "physical-validation-candidate"]
     env = {}
     security_model = getattr(args, "security_model", None)
     if security_model is True or (security_model is None and os.environ.get("FBR34KER_ENABLE_SECURITY_MODEL") == "1"):

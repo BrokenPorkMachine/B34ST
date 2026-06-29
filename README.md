@@ -640,55 +640,212 @@ The CVE subsystem includes a fuzzer framework with available fuzz targets for di
 
 ---
 
-## Forensics capabilities
+## Forensic research tools
 
-B34ST provides a comprehensive forensics and data acquisition subsystem.
+B34ST includes specialized forensic research tools for SEP/sepOS vulnerability discovery and evidence-gated research:
 
-### Commands
+### SEP Research Pipeline
 
-```sh
-B34ST forensics guided             # interactive guided forensics workflow
-B34ST forensics acquire            # standard evidence acquisition
-B34ST forensics verify             # verify a forensics evidence bundle
-B34ST forensics list-profiles      # list built-in acquisition profiles
+The SEP Research Pipeline is an evidence-gated automated fuzzing framework that systematically tests iOS/system/kernel security boundaries through 126 test variations across 7 stages:
+
+- **Stage 1**: Profile validation (6 tests) - Device capability mapping, component presence identification, architecture fingerprinting
+- **Stage 2**: Device mapping (7 tests) - Device tree construction, communication channel identification, memory region analysis
+- **Stage 3**: Architecture analysis (8 tests) - Component interaction modeling, data flow analysis, trust boundary identification
+- **Stage 4**: Attack surface identification (9 tests) - Entry point enumeration, lateral movement analysis, vulnerability classification
+- **Stage 5**: Exploit generation (6 tests) - Payload construction, adversary model application, attack simulation
+- **Stage 6**: Differential testing (20 canary variations) - Baseline testing, single fault injection (26 variations), double fault injection, cross-stage testing
+- **Stage 7**: Vulnerability classification (10 tests) - Impact assessment, exploitability analysis, bounty significance categorization
+
+**Key features:**
+- Evidence-gated execution with strict validation before stage progression
+- Chain-of-custody logging at every stage
+- Transport adapter integration (USB, serial, TCP, simulator, FBDP)
+- Machine-readable evidence validation before progression
+- Automated bounty significance classification
+
+**Usage examples:**
+
+```bash
+# Live device SEP Research Pipeline with USB adapter
+b34st sep-research run --transport usb \
+  --transport-args '{\"vid\": 0x05AC, \"pid\": 0x1234}' \
+  --profile full \
+  --canary single_fault \
+  --output-dir ./sep-research-campaign
+
+# Serial port device testing
+b34st sep-research run --transport serial \
+  --transport-args '{\"port\": \"/dev/ttyUSB0\", \"baud\": 115200}' \
+  --profile full \
+  --output-dir ./sep-serial-campaign
+
+# Remote testing via TCP
+b34st sep-research run --transport tcp \
+  --transport-args '{\"host\": \"192.168.1.100\", \"port\": 9999}' \
+  --profile full \
+  --output-dir ./sep-tcp-campaign
+
+# In-memory simulation for development/testing
+b34st sep-research run --transport simulator \
+  --profile test \
+  --output-dir ./sep-simulator-campaign
 ```
 
-### Acquisition profiles
+### SEP Deployment Transport Adapters
 
-- `quick` — Fast targeted acquisition
-- `full` — Complete device acquisition
-- `memory-only` — Volatile memory capture
-- `storage-only` — Non-volatile storage capture
-- `filesystem-only` — Filesystem logical acquisition
-- `network-only` — Network traffic capture
+The SEP deployment transport module provides a unified interface for bridging the SEP Research Pipeline and Key Fuzzer with live FBR34KER hardware:
 
-### Secrets extraction
+**Supported transport backends:**
+- **USBConsole** - Live USB CDC ACM connection to the FBR34KER monitor
+- **Serial** - Raw POSIX serial port via FBDP framed streams
+- **TCP** - TCP socket communication via FBDP
+- **Simulator** - In-memory simulated SEP service for testing
+- **FBDP** - Full FBR34KER Bounded Deployment Protocol for artifact deployment
 
-```sh
-B34ST forensics secrets            # iCloud/Keychain/Keybag extraction
+**Key capabilities:**
+
+#### USB Console Transport
+```python
+from host.forensics.sep_deploy import make_research_api, make_fuzzer_submit
+
+# Research pipeline via USB console
+api = make_research_api("usb", vid=0x05AC, pid=0x1234)
+pipeline = SEPResearchPipeline(device_model="iPhone14,2", api_fn=api)
+
+# Key fuzzer via USB
+fnsubmit = make_fuzzer_submit("usb", vid=0x05AC, pid=0x1234)
+campaign_results = run_campaign(fnsubmit, output_dir=\"sep-fuzzing-campaign\")
 ```
 
-### Activation and FMI control
-
-```sh
-B34ST forensics activation         # activation bypass, baseband, FMI control
+#### Serial Transport
+```python
+# Serial port via FBDP
+fnsubmit = make_fuzzer_submit("serial", port=\"/dev/ttyUSB0\", baud=115200)
+campaign_results = run_campaign(fnsubmit, output_dir=\"sep-serial-campaign\")
 ```
 
-### Passcode operations
+#### Deployment Tools
+```python
+from host.forensics.sep_deploy import deploy_swift_harness
 
-```sh
-B34ST forensics passcode           # passcode on/off/change/bypass
+# Deploy SEP key baseline harness to target device
+result = deploy_swift_harness(
+    profile_path=pathlib.Path(\"profiles/qemu-virt-deployment.json\"),
+    harness_path=pathlib.Path(\"build/BaselineHarness\"),
+    transport=\"serial\", \
+    transport_args={"port": "/dev/ttyUSB0"},
+    start=True,
+    authorize=True,
+)
 ```
 
-### Chain of custody
+### SEP Key Fuzzer
 
-All forensics operations include chain-of-custody logging, acquisition reports, and structured evidence output.
+The SEP Key Fuzzer provides automated discovery of SEP-specific vulnerabilities through 40 differential tests organized across 6 canary values:
 
----
+**Test Components:**
+- **Key Generation** (8 tests) - Key derivation, storage, access control validation
+- **Authenticated Encryption** (7 tests) - Symmetric/asymmetric encryption operation testing
+- **Secure Boot Validation** (6 tests) - Boot chain integrity and firmware verification
+- **Configuration Access** (5 tests) - Configuration read/write privilege boundaries
+- **Debug Access** (6 tests) - Debug enablement and session boundary testing
+- **Key Storage** (8 tests) - Key storage encryption, access control, error handling
 
-## Research runtime orchestrator
+**Key Features:**
+- **9 bounty significance levels** from Limited to Critical based on impact
+- **6 canary values** for systematic fault injection and boundary testing
+- **Component boundary validation** across Device, Authentication, Subsystem, Boot, Key, and Firmware components
+- **Evidence collection** with comprehensive chain-of-custody logging
+- **Canary value sequencing** from baseline to fault injection for systematic testing
 
-The research runtime orchestrator is an evidence-gated 16-stage state machine for authorized first-stage validation. It automates bounded validation and external-reviewed-adapter contracts. Target-specific exploit, kernel-patch, trust-cache, and bootstrap-install implementations remain external inputs and must provide machine-readable evidence before the state machine advances.
+**Usage examples:**
+
+```bash
+# Live device SEP Key Fuzzer with USB
+b34st sep-fuzz run --transport usb \
+  --transport-args '{\"vid\": 0x05AC, \"pid\": 0x1234}' \
+  --profile full \
+  --canary fault_injection \
+  --output-dir ./sep-fuzzing-campaign
+
+# Serial port device fuzzing
+b34st sep-fuzz run --transport serial \
+  --transport-args '{\"port\": \"/dev/ttyUSB0\", \"baud\": 115200}' \
+  --profile full \
+  --output-dir ./sep-serial-campaign
+
+# Canary value sequencing for systematic testing
+b34st sep-fuzz run --transport simulator \
+  --profile test \
+  --canary baseline \
+  --canary fault_injection \
+  --canary race_condition \
+  --output-dir ./sep-test-campaign
+```
+
+### Evidence Gated Execution
+
+Both the SEP Research Pipeline and Key Fuzzer implement strict evidence-gated execution:
+
+1. **Entry Validation** - Evidence required before pipeline execution
+2. **Stage Dependencies** - Each stage validated before progression
+3. **Canary Validation** - Canary value configurations validated before testing
+4. **Boundary Crossing** - Security boundary crossing requires explicit evidence
+5. **Artifact Validation** - All evidence artifacts validated against schemas
+
+### API Integration
+
+```python
+from host.forensics.sep_key_fuzzer import SEPKeyFuzzer
+from host.forensics.sep_research_pipeline import SEPResearchPipeline
+from host.forensics.sep_deploy import make_fuzzer_submit, make_research_api
+
+# Initialize with live device transport
+fnsubmit = make_fuzzer_submit("usb", vid=0x05AC, pid=0x1234)
+submitter = SEPKeyFuzzer(fnsubmit)
+
+# Run comprehensive fuzzing campaign
+results = submitter.run_campaign(output_dir=\"sep-fuzzing-campaign\")
+
+# Initialize SEP Research Pipeline
+api = make_research_api("usb", vid=0x05AC, pid=0x1234)
+pipeline = SEPResearchPipeline(device_model=\"iPhone14,2\", api_fn=api, evidence_gated=True)
+
+# Execute evidence-gated research
+research_results = pipeline.run(output_dir=\"sep-research-campaign\")
+```
+
+### Testing Strategy
+
+**Systematic SEP testing approach:**
+
+1. **Start with Simulator** - For initial validation and proof of concept
+2. **Canary Value Sequencing** - Begin with baseline, add fault injection gradually
+3. **Component Isolation** - Test each 6 SEP components independently
+4. **Evidence Collection** - Use comprehensive chain-of-custody logging
+5. **Canary Value Automation** - Automated canary sequencing for systematic testing
+
+### Evidence Output Format
+
+**Comprehensive evidence collection with structured output:**
+
+```json
+{
+  \"session_id\": \"sep-fuzz-20240915-142230-123456\",
+  \"operation\": \"sep_key_fuzz\",
+  \"parameters\": {
+    \"backend\": \"usb\",
+    \"bounty_threshold\": \"moderate\",
+    \"canary_values\": [\"baseline\", \"fault_injection\"]
+  },
+  \"timestamp\": \"2024-9-15T14:22:30.123Z\",
+  \"test_results\": [\n    {\n      \"component\": \"KeyGeneration\",\n      \"canary\": \"fault_injection\",\n      \"bounty_level\": \"Significant\",\n      \"accepted\": true,\n      \"public_key_hex\": \"00...\",
+\"error\": \"\",\n      \"duration_ms\": 2500\n    }\n  ],\n  \"evidence_chains\": [\n    {\n      \"component\": \"SEPKeyWrapper\",\n      \"boundary\": \"AccessControl\",\n      \"violations\": [\n        {\n          \"canary\": \"fault_injection\",
+\"violation_type\": \"InvalidKey\",
+          \"impact\": \"system_compromise\"\n        }\n      ]\n    }\n  ]\n}
+```
+
+This comprehensive forensic research framework provides B34ST users with systematic SEP discovery capabilities, comprehensive evidence collection, and integration with the broader B34ST research ecosystem for iOS security analysis and vulnerability discovery.
 
 ### 16-stage state machine
 

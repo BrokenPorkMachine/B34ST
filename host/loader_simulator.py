@@ -498,7 +498,7 @@ def simulate_loader(handoff_path: pathlib.Path, image_path: pathlib.Path,
     report = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "version": "0.3.0",
+        "version": "0.4.0",
         "result": "fail" if invalid_or_unsafe else "pass",
         "offline_only": True,
         "entry_point": f"0x{image.entry:x}",

@@ -13,7 +13,7 @@ from typing import Any
 from boot_image import BootImageError, load_profile
 from session_bundle import SessionBundleError, read_session_bundle, verify_session_bundle
 
-RELEASE_VERSION = "0.3.0"
+RELEASE_VERSION = "0.4.0"
 MATURITY_ORDER = (
     "simulated",
     "qemu-verified",

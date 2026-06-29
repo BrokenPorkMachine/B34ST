@@ -126,7 +126,7 @@ class B34STCLI:
         print("FBR34KER Runtime Authentication Tool")
         print("Beta")
         print(
-            "\nB34ST v0.3.0 is a lightweight CLI wrapper for FBR34KER's\nphysical validation framework, providing access to:\n"
+            "\nB34ST v0.4.0 is a lightweight CLI wrapper for FBR34KER's\nphysical validation framework, providing access to:\n"
         )
         print("• Bundle validation")
         print("• Candidate report generation")
@@ -171,7 +171,7 @@ class B34STCLI:
         print("  ./fbr34ker validate-session --bundle <file>")
         print("  ./fbr34ker physical-validation candidate-report <options>")
         print("  ./fbr34ker hardware-prepare --list-categories\n")
-        print("B34ST v0.3.0 is part of FBR34KER 0.3.0 Beta")
+        print("B34ST v0.4.0 is part of FBR34KER 0.4.0 Beta")
 
     def _validate_session(self, argv: list[str]) -> int:
         """Validate a session bundle using FBR34KER's validate-session command."""
@@ -1593,7 +1593,7 @@ B34ST (B34KER/STAR) is a lightweight CLI wrapper for FBR34KER that
 provides access to deterministic validation workflows, profile maturity
 enforcement, and evidence-based authentication for A12/A13 iPhone hardware.
 
-B34ST v0.3.0 is part of FBR34KER 0.3.0 Beta.
+B34ST v0.4.0 is part of FBR34KER 0.4.0 Beta.
 It integrates with existing FBR34KER validation capabilities while
 providing a streamlined interface for common operations.
         """,
@@ -1610,7 +1610,7 @@ providing a streamlined interface for common operations.
     if len(sys.argv) == 1:
         print("B34ST - FBR34KER Runtime Authentication Tool")
         print(f"Version {__version__} ({__release_name__})")
-        print("\nB34ST v0.3.0 is a lightweight CLI wrapper for FBR34KER")
+        print("\nB34ST v0.4.0 is a lightweight CLI wrapper for FBR34KER")
         print("\nAvailable commands:")
         print("  b34st validate-session         Validate a session bundle")
         print(

@@ -6,8 +6,8 @@ Archive kinds:
   complete    — Source + all build artifacts, boot images, simulations
   sdk         — Minimal SDK-only: headers, library, examples, templates, tests
   operational — Public release: B34ST, scripts, tests, all builds, SDK,
-                linker, profiles, modules, curated docs, tutorial, CLI.
-                Excludes private kernel/exploit/host source code.
+                host tools, linker, profiles, modules, curated docs, tutorial,
+                and CLI. Excludes private firmware/platform source code.
   all         — source + complete + sdk + operational
 """
 
@@ -25,7 +25,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 # ── Private/internal source directories (excluded from operational release) ──
 PRIVATE_SOURCE_DIRS = {
-    "kernel", "arch", "platform", "host",
+    "kernel", "arch", "platform",
 }
 OPERATIONAL_EXCLUDED_DIRS = {
     ".git", "__pycache__",
@@ -107,7 +107,7 @@ COMPLETE_ARTIFACTS = (
     # Deployment simulation
     pathlib.Path("build/deployment-simulation/simulation-summary.json"),
     pathlib.Path("build/deployment-simulation/evidence.zip"),
-    # Apple A12/A13 boot images
+    # Apple-family boot images
     pathlib.Path("build-apple/a12/boot.img"),
     pathlib.Path("build-apple/a12/boot.img.json"),
     pathlib.Path("build-apple/a12/boot.raw"),
@@ -120,6 +120,22 @@ COMPLETE_ARTIFACTS = (
     pathlib.Path("build-apple/a13/boot.img.json"),
     pathlib.Path("build-apple/a13/boot.raw"),
     pathlib.Path("build-apple/a13/boot.raw.json"),
+    pathlib.Path("build-apple/a14/boot.img"),
+    pathlib.Path("build-apple/a14/boot.img.json"),
+    pathlib.Path("build-apple/a14/boot.raw"),
+    pathlib.Path("build-apple/a14/boot.raw.json"),
+    pathlib.Path("build-apple/a15/boot.img"),
+    pathlib.Path("build-apple/a15/boot.img.json"),
+    pathlib.Path("build-apple/a15/boot.raw"),
+    pathlib.Path("build-apple/a15/boot.raw.json"),
+    pathlib.Path("build-apple/m1/boot.img"),
+    pathlib.Path("build-apple/m1/boot.img.json"),
+    pathlib.Path("build-apple/m1/boot.raw"),
+    pathlib.Path("build-apple/m1/boot.raw.json"),
+    pathlib.Path("build-apple/m2/boot.img"),
+    pathlib.Path("build-apple/m2/boot.img.json"),
+    pathlib.Path("build-apple/m2/boot.raw"),
+    pathlib.Path("build-apple/m2/boot.raw.json"),
     # Apple bring-up simulation
     pathlib.Path("build-apple/bringup-simulation/simulation-summary.json"),
     pathlib.Path("build-apple/bringup-simulation/success-evidence.zip"),
@@ -162,6 +178,7 @@ EXECUTABLE_PATHS = {
     pathlib.Path("host/fbr34kbridge"),
     pathlib.Path("host/fbr34ksession"),
     pathlib.Path("host/fbr34khardware"),
+    pathlib.Path("examples/tether_adapter_contract_example.py"),
 }
 
 
@@ -248,8 +265,8 @@ def operational_paths() -> list[pathlib.Path]:
     """Return paths for the public operational release — no private code.
 
     Includes all source, scripts, tests, build artifacts, B34ST, SDK, linker
-    scripts, profiles, demo modules, curated docs, and CLI — but excludes
-    kernel/, arch/, platform/, host/ (private exploit/kernel source).
+    scripts, profiles, demo modules, curated docs, host-side runtime tools, and
+    CLI — but excludes kernel/, arch/, and platform/ firmware source.
     """
     results: list[pathlib.Path] = []
 

@@ -32,7 +32,7 @@ from hardware_profile import (HardwareProfileError, check_profile, format_matrix
                               import_probe_results, load_profile, validate_profile,
                               write_profile_template)
 
-FBR34KCTL_VERSION = "0.3.0"
+FBR34KCTL_VERSION = "0.4.0"
 
 FMOD_MAGIC = b"FMOD"
 FMOD_FORMAT_VERSION = 1

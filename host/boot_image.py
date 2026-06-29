@@ -19,8 +19,8 @@ HEADER_SIZE = 128
 MANIFEST_CAPACITY = 16 * 1024
 ALIGNMENT = 4096
 HEADER = struct.Struct("<4sHHIIIIQQQQQ32s32s")
-FAMILY_IDS = {"generic": 0, "a12": 1, "a12x": 2, "a13": 3, "a14": 4, "m1": 5, "a15": 6, "m2": 7}
-ID_FAMILIES = {value: key for key, value in FAMILY_IDS.items()}
+FAMILY_IDS = {"generic": 0, "a12": 1, "a12x": 2, "a12z": 2, "a13": 3, "a14": 4, "m1": 5, "a15": 6, "m2": 7}
+KNOWN_FAMILY_IDS = frozenset(FAMILY_IDS.values())
 MAX_PROFILE_SIZE = 256 * 1024
 MAX_COMPONENTS = 8
 MAX_IMAGE_SIZE = 64 * 1024 * 1024
@@ -196,7 +196,7 @@ def build_image(
         "schema_version": 1,
         "format": "fbri-v1",
         "project": "FBR34KER",
-        "release_version": "0.3.0",
+        "release_version": "0.4.0",
         "profile_id": profile["profile_id"],
         "family": profile["family"],
         "cpids": profile["cpids"],
@@ -292,7 +292,7 @@ def inspect_image(path: pathlib.Path) -> dict[str, object]:
         raise BootImageError("unsupported boot image header")
     if flags != 0:
         raise BootImageError("unknown boot image flags")
-    if family_id not in ID_FAMILIES:
+    if family_id not in KNOWN_FAMILY_IDS:
         raise BootImageError("unknown boot image family")
     if count < 1 or count > MAX_COMPONENTS:
         raise BootImageError("invalid component count")
@@ -338,7 +338,8 @@ def inspect_image(path: pathlib.Path) -> dict[str, object]:
         raise BootImageError("manifest layout metadata mismatch")
     if any(data[manifest_offset + manifest_size:payload_offset]):
         raise BootImageError("non-zero bytes in reserved manifest capacity")
-    if manifest.get("family") != ID_FAMILIES[family_id]:
+    manifest_family = manifest.get("family")
+    if not isinstance(manifest_family, str) or FAMILY_IDS.get(manifest_family) != family_id:
         raise BootImageError("family mismatch between header and manifest")
     components = manifest.get("components")
     if not isinstance(components, list) or len(components) != count:
@@ -394,7 +395,7 @@ def inspect_image(path: pathlib.Path) -> dict[str, object]:
         "path": str(path),
         "size": len(data),
         "sha256": sha256_file(path),
-        "family": ID_FAMILIES[family_id],
+        "family": manifest_family,
         "component_count": count,
         "manifest": manifest,
     }

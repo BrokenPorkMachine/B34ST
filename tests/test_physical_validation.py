@@ -33,7 +33,7 @@ class PhysicalValidationTests(unittest.TestCase):
                     item["status"] = "failed"
             failure = f"injected failure at {failed_stage}"
         session = {
-            "schema_version": 1, "project": "FBR34KER", "release_version": "0.3.0",
+            "schema_version": 1, "project": "FBR34KER", "release_version": "0.4.0",
             "session_id": name * 24, "profile_id": "apple-a13-iphone-recovery",
             "device": {"cpid": "0x8030", "product": "iPhone12,1"},
             "adapter": {"adapter_id": "authorized-test-bridge", "capabilities": ["console"]},

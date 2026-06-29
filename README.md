@@ -1,6 +1,6 @@
-# B34ST - FBR34KER 0.3.0
+# B34ST - FBR34KER 0.4.0
 
-FBR34KER is a freestanding ARM64 preboot monitor, USBliter8 exploit chain, and authorized loader-integration research toolkit. Version 0.3.0 (Beta, codename "B34ST") provides deterministic QEMU simulation, bridge validation, DWC3 firmware exploitation, kernel patching with per-SoC offset tables, boot-policy bypass, persistence modeling, evidence collection, and the B34ST unified multi-tool control panel.
+FBR34KER is a freestanding ARM64 preboot monitor, USBliter8 exploit chain, and authorized loader-integration research toolkit. Version 0.4.0 (Beta, codename "B34ST") provides deterministic QEMU simulation, bridge validation, DWC3 firmware exploitation, kernel patching with per-SoC offset tables, boot-policy bypass, persistence modeling, evidence collection, and the B34ST unified multi-tool control panel.
 
 The tree contains operational exploit primitives including the USBliter8 DWC3 firmware exploit chain for A12+ (T8015/T8020/T8030/T8028/T8103/T8110/T8112), kernel patch engines with per-SoC offset tables across 7 SoCs x 2 iOS versions, secure boot bypass state machines with 6 bypass types, persistence deployment models with 8 hook types, a CVE database and exploit chain planner, forensics acquisition, and an evidence-gated 16-stage research runtime orchestrator. All mutation paths are compile-time gated by the `FBR34KER_ENABLE_SECURITY_MODEL` flag. Build with `SECURITY_MODEL=1` to enable the full exploit chain. The default build (`make`) keeps mutation paths disabled for safety.
 
@@ -44,7 +44,7 @@ For the full B34ST menu-driven experience:
 git clone https://github.com/BrokenPorkMachine/B34ST.git
 cd B34ST
 ./fbr34ker doctor   # verify toolchain
-make all             # build everything
+./fbr34ker build     # build and validate all release targets
 ```
 
 Install to system path (optional):
@@ -80,11 +80,11 @@ Output: `build-exploit/fbr34ker-operational.bin`. Enables the USBliter8 exploit 
 ### Other build targets
 
 ```sh
-make all              # build everything (default + generic + apple images)
-make apple-boot-images # A12/A13/A14 boot images for recovery upload
+make all              # build the direct QEMU monitor
+make apple-boot-images # A12/A12X/A13/A14/A15/M1/M2 recovery bundles
 make check-native     # all non-QEMU verification
 make release-gate     # QEMU-backed release gate
-make sdk-release      # produce dist/FBR34KER_0.3.0_Beta_operational.zip
+make sdk-release      # produce dist/FBR34KER_0.4.0_Beta_operational.zip
 make exploit-chain    # build + capability summary
 make establish-persistence  # generate persistence concept inventory
 ```
@@ -848,16 +848,18 @@ make apple-boot-images
 make sdk-release
 ```
 
-Produces `dist/FBR34KER_0.3.0_Beta_operational.zip` containing:
+Produces `dist/FBR34KER_0.4.0_Beta_operational.zip` containing:
 
 - B34ST research runtime framework (`b34st/`, `b34stctl`, `b34stool.py`)
 - All build artifacts (`build/`, `build-generic/`, `build-exploit/`, `build-apple/`, `build-loader/`, `build-hardware-probe/`, `build-sdk/`)
 - SDK (headers, library, examples, templates, tests)
 - Linker scripts, board profiles, demo modules
-- 46 curated documentation files
-- Test suite (30 C harnesses + 37 Python tests)
+- 47 documentation files
+- Test suite (32 C sources/harnesses + 42 Python test modules)
 - CLI (`fbr34ker`, completions)
-- **Excludes**: `kernel/`, `arch/`, `platform/`, `host/` (private exploit/kernel source)
+- **Excludes**: `kernel/`, `arch/`, and `platform/` firmware source. Required
+  public host-side runtime tools are included so the packaged CLI remains
+  functional.
 
 ---
 
@@ -887,7 +889,7 @@ Built-in graph components:
 
 ### Security-state models
 
-Version 0.3.0 includes bounded in-memory models for patch, boot-policy, and persistence concepts. They exist to validate interface shape, status output, policy gates, event wiring, and failure handling. They do not modify target memory, Apple trust policy, filesystems, or reboot state.
+Version 0.4.0 includes bounded in-memory models for patch, boot-policy, and persistence concepts. They exist to validate interface shape, status output, policy gates, event wiring, and failure handling. They do not modify target memory, Apple trust policy, filesystems, or reboot state.
 
 Release builds do not define `FBR34KER_ENABLE_SECURITY_MODEL`, so mutation operations return failure. Immutable probe images remain locked regardless of build options.
 
@@ -966,8 +968,17 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 
 ---
 
-## Key features in 0.3.0
+## Key features in 0.4.0
 
+- **Guided tethered downgrade** — exact firmware selection, local or downloaded
+  IPSW verification, evidence-first planning, explicit adapter contract, and
+  separately acknowledged execution
+- **Reliable installed tooling** — working `forensics`/`cve` routing,
+  interactive QEMU without a launcher timeout, terminal flag restoration, and
+  macOS TLS CA discovery
+- **Expanded release coverage** — generic and exact-product profiles for A14,
+  A15, M1, and M2, with deterministic boot images included in manifests and
+  complete packages
 - **USBliter8 exploit chain** for A12+ (T8015/T8020/T8030/T8028/T8103/T8110/T8112) — DWC3 firmware exploitation with real SoC-specific patch byte sequences, PWNDFU entry, vendor-specific physical memory access (SET_ADDR/MEM_READ/MEM_WRITE/EXECUTE), and image loading/execution
 - **Jailbreak coordinator** — 14-state machine: PAC bypass, APRR bypass, WXN bypass, kernel detection, KASLR slide computation, boot-args injection, SEP readiness, kernel boot
 - **Per-SoC kernel patch offset tables** for A12/A13/A14/A12Z/A15/M1/M2 across iOS 16/17 — amfi, task_for_pid, privilege escalation, root mount, codesign, sandbox, PE_debugger, cs_enforcement (8 patch types)
@@ -995,4 +1006,4 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 - **License**: See [LICENSE](LICENSE)
 - **Security policy**: See [SECURITY.md](SECURITY.md) for security boundary, responsible disclosure, and policy
 - **Changelog**: See [CHANGELOG.md](CHANGELOG.md) for version history
-- **Release notes**: See [RELEASE_NOTES.md](RELEASE_NOTES.md) for 0.3.0 Beta release notes
+- **Release notes**: See [RELEASE_NOTES.md](RELEASE_NOTES.md) for 0.4.0 Beta release notes

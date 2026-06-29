@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.4.0 -- Beta
+
+- Added a guided tethered-downgrade workflow with explicit planning, exact
+  firmware selection, SHA-256 verification, evidence output, execution
+  acknowledgements, and a documented external-adapter contract.
+- Documented public adapter/tooling categories and their compatibility limits;
+  added a safe executable contract example that performs no device I/O.
+- Added A14, A15, M1, and M2 generic and exact-product recovery profiles and
+  included their deterministic boot images in builds, manifests, layout
+  verification, and complete release archives.
+- Restored explicit A12X/T8027 alongside A12Z/T8028 profile matching and added
+  M1/M2 platform identifiers plus MMIO-footprint SoC discrimination.
+- Fixed installed `forensics` and `cve` command routing, interactive QEMU
+  timeout handling, inherited nonblocking terminal flags, and macOS TLS CA
+  discovery for firmware catalog access.
+- Expanded the monitor formatter with width, left-alignment, zero-padding, and
+  `size_t` support, with a native regression harness.
+- Added release-version consistency validation across firmware, host tools,
+  B34ST, modules, CI, and packaging metadata.
+- Refreshed release documentation, canonical validation evidence, and package
+  contents for the 0.4.0 Beta.
+
 ## 0.3.0 -- Beta
 
 - Completed full completeness/correctness audit of all exploit source code and

@@ -4,8 +4,19 @@
 Defines version information for B34ST and provides version-related utilities.
 """
 
-__version__ = "0.4.2b"
-__release_name__ = "B34ST_0.4.2b_Beta"
+from __future__ import annotations
+
+import re
+
+__version__ = "0.4.4b"
+__release_name__ = "B34ST_0.4.4b_Beta"
+_VERSION_RE = re.compile(
+    r"^(?P<major>0|[1-9][0-9]*)\."
+    r"(?P<minor>0|[1-9][0-9]*)\."
+    r"(?P<patch>0|[1-9][0-9]*)"
+    r"(?:(?P<stage>a|b|rc)(?P<stage_number>[0-9]+)?)?$"
+)
+_STAGE_ORDER = {"a": 0, "b": 1, "rc": 2, None: 3}
 
 
 class VersionError(Exception):
@@ -38,20 +49,28 @@ class B34STVersion:
         }
 
     @staticmethod
-    def validate_version() -> bool:
+    def validate_version(version: str | None = None) -> bool:
         """Validate version format.
 
         Returns True if version is valid, False otherwise.
         """
-        parts = B34STVersion.VERSION.split(".")
-        if len(parts) != 3:
-            return False
+        candidate = B34STVersion.VERSION if version is None else version
+        return _VERSION_RE.fullmatch(candidate) is not None
 
-        for part in parts:
-            if not part.isdigit():
-                return False
-
-        return True
+    @staticmethod
+    def _version_key(version: str) -> tuple[int, int, int, int, int]:
+        match = _VERSION_RE.fullmatch(version)
+        if match is None:
+            raise VersionError(f"invalid release version: {version!r}")
+        stage = match.group("stage")
+        stage_number = int(match.group("stage_number") or 0)
+        return (
+            int(match.group("major")),
+            int(match.group("minor")),
+            int(match.group("patch")),
+            _STAGE_ORDER[stage],
+            stage_number,
+        )
 
     @staticmethod
     def compare_versions(version1: str, version2: str) -> int:
@@ -62,19 +81,9 @@ class B34STVersion:
            0 if version1 == version2
            1 if version1 > version2
         """
-        v1_parts = list(map(int, version1.split(".")))
-        v2_parts = list(map(int, version2.split(".")))
-
-        for i in range(max(len(v1_parts), len(v2_parts))):
-            v1 = v1_parts[i] if i < len(v1_parts) else 0
-            v2 = v2_parts[i] if i < len(v2_parts) else 0
-
-            if v1 < v2:
-                return -1
-            elif v1 > v2:
-                return 1
-
-        return 0
+        key1 = B34STVersion._version_key(version1)
+        key2 = B34STVersion._version_key(version2)
+        return (key1 > key2) - (key1 < key2)
 
 
 def main():
@@ -86,8 +95,8 @@ def main():
         prog="b34st-version",
         description="Display B34ST version information",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-The B34ST (B34KER/STAR) version is part of the FBR34KER 0.4.2b release.
+        epilog=f"""
+The B34ST (B34KER/STAR) version is part of the FBR34KER {__version__} release.
 This is a Beta version with evidence-based
 profile maturity enforcement and deterministic validation.
         """,
@@ -130,7 +139,7 @@ profile maturity enforcement and deterministic validation.
         print(f"  Version: {info['version']}")
         print(f"  Release Name: {info['release_name']}")
         print(f"  Status: {info['status']}")
-        print(f"  Source: FBR34KER 0.4.2b Beta")
+        print(f"  Source: FBR34KER {__version__} Beta")
 
     return 0
 

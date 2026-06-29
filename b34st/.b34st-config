@@ -5,10 +5,10 @@ This file contains project configuration for the B34ST (B34KER/STAR) runtime aut
 ## Project Identity
 
 - **Name**: B34ST (B34KER/STAR)
-- **Version**: 0.4.1 (as part of FBR34KER 0.4.1)
+- **Version**: 0.4.3b (as part of FBR34KER 0.4.3b)
 - **Status**: Beta
 - **Release Channel**: beta
-- **Release Name**: B34ST_0.4.1_Beta
+- **Release Name**: B34ST_0.4.3b_Beta
 
 ## Project Purpose
 
@@ -310,7 +310,7 @@ b34st-validation:
 
 ### Upgrading from Earlier Versions
 
-When migrating to B34ST 0.4.1:
+When migrating to B34ST 0.4.3b:
 
 1. **Source Repo**: Source code now maintained in private repository
 2. **Release Process**: Public releases contain only artifacts, not source

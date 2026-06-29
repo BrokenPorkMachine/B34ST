@@ -17,7 +17,9 @@ import argparse
 import hashlib
 import os
 import pathlib
+import re
 import stat
+import subprocess
 import time
 import zipfile
 
@@ -58,6 +60,7 @@ SDK_INCLUDED_DOCS = {
 SOURCE_EXCLUDED_DIRS = {
     ".git", "__pycache__", "build", "build-generic", "build-loader", "build-hardware-probe", "build-sdk", "build-integration",
     "runtime-artifacts", "diagnostics", "dist", "validation-logs", "build-apple",
+    ".pytest_cache", ".ruff_cache",
 }
 SOURCE_EXCLUDED_NAMES = {
     ".DS_Store", "RELEASE_MANIFEST.json", "CHECKSUMS.sha256",
@@ -180,6 +183,18 @@ EXECUTABLE_PATHS = {
     pathlib.Path("host/fbr34khardware"),
     pathlib.Path("examples/tether_adapter_contract_example.py"),
 }
+BUILD_OUTPUT_DIRS = (
+    "build",
+    "build-generic",
+    "build-loader",
+    "build-hardware-probe",
+    "build-sdk",
+    "build-integration",
+    "build-apple",
+    "build-exploit",
+)
+TRANSIENT_BUILD_SUFFIXES = {".d", ".o", ".pyc", ".tmp"}
+RELEASE_NAME_RE = re.compile(r"(?:FBR34KER|B34ST)_[A-Za-z0-9][A-Za-z0-9._-]*")
 
 
 def hash_file(path: pathlib.Path) -> str:
@@ -200,10 +215,42 @@ def executable_path(path: pathlib.Path) -> bool:
     return False
 
 
+def validate_release_name(release_name: str) -> None:
+    if RELEASE_NAME_RE.fullmatch(release_name) is None:
+        raise ValueError(
+            "release name must use FBR34KER_ or B34ST_ followed by "
+            "letters, digits, dots, underscores, or hyphens"
+        )
+
+
+def _tracked_paths() -> list[pathlib.Path] | None:
+    """List tracked paths while retaining modified working-tree contents."""
+    if not (ROOT / ".git").exists():
+        return None
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(ROOT), "ls-files", "-z"],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return [
+        pathlib.Path(os.fsdecode(value))
+        for value in completed.stdout.split(b"\0")
+        if value
+    ]
+
+
 def source_paths() -> list[pathlib.Path]:
     results: list[pathlib.Path] = []
-    for path in ROOT.rglob("*"):
-        relative = path.relative_to(ROOT)
+    tracked = _tracked_paths()
+    candidates = tracked if tracked is not None else [
+        path.relative_to(ROOT) for path in ROOT.rglob("*")
+    ]
+    for relative in candidates:
+        path = ROOT / relative
         if path.is_symlink():
             raise ValueError(f"release source contains a symbolic link: {relative}")
         if any(part in SOURCE_EXCLUDED_DIRS for part in relative.parts):
@@ -240,9 +287,11 @@ def sdk_paths() -> list[pathlib.Path]:
     if sdk_build.is_dir():
         for path in sdk_build.rglob("*"):
             relative = path.relative_to(ROOT)
+            if path.is_symlink():
+                raise ValueError(f"SDK release contains a symbolic link: {relative}")
             if path.is_dir():
                 continue
-            if path.suffix in {".pyc", ".o"}:
+            if path.suffix in TRANSIENT_BUILD_SUFFIXES:
                 continue
             results.append(relative)
 
@@ -268,27 +317,35 @@ def operational_paths() -> list[pathlib.Path]:
     scripts, profiles, demo modules, curated docs, host-side runtime tools, and
     CLI — but excludes kernel/, arch/, and platform/ firmware source.
     """
-    results: list[pathlib.Path] = []
+    results = {
+        relative
+        for relative in source_paths()
+        if not any(part in PRIVATE_SOURCE_DIRS for part in relative.parts)
+        and not any(part in OPERATIONAL_EXCLUDED_DIRS for part in relative.parts)
+    }
 
-    # Walk the entire source tree, excluding only private and transient dirs
-    for path in ROOT.rglob("*"):
-        relative = path.relative_to(ROOT)
-        if path.is_symlink():
-            raise ValueError(f"operational release contains a symbolic link: {relative}")
-        if any(part in PRIVATE_SOURCE_DIRS for part in relative.parts):
+    # Build products are generated and therefore untracked. Include them only
+    # from known output roots, excluding compiler intermediates and staging.
+    for directory in BUILD_OUTPUT_DIRS:
+        root = ROOT / directory
+        if not root.is_dir():
             continue
-        if any(part in OPERATIONAL_EXCLUDED_DIRS for part in relative.parts):
-            continue
-        if path.is_dir():
-            continue
-        if path.suffix in {".pyc", ".zip"}:
-            continue
-        if path.name in {".DS_Store", "RELEASE_MANIFEST.json", "CHECKSUMS.sha256",
-                          "b34st_complete.tar.gz", "idevicerestore_verbose.log"}:
-            continue
-        if path.name.startswith("FBR34KER_0.1") and (path.name.endswith(".zip") or path.name.endswith(".sha256")):
-            continue
-        results.append(relative)
+        for path in root.rglob("*"):
+            relative = path.relative_to(ROOT)
+            if path.is_symlink():
+                raise ValueError(
+                    f"operational release contains a symbolic link: {relative}"
+                )
+            if path.is_dir():
+                continue
+            nested = relative.parts[1:]
+            if (
+                "install-test" in nested
+                or "__pycache__" in nested
+                or path.suffix in TRANSIENT_BUILD_SUFFIXES | {".zip"}
+            ):
+                continue
+            results.add(relative)
 
     return sorted(results, key=lambda value: value.as_posix())
 
@@ -314,6 +371,7 @@ def write_archive(
     release_name: str,
     paths: list[pathlib.Path],
 ) -> None:
+    validate_release_name(release_name)
     timestamp = archive_timestamp()
     temporary = archive.with_suffix(archive.suffix + ".tmp")
     if temporary.exists():
@@ -417,8 +475,10 @@ def main(argv: list[str] | None = None) -> int:
                         default="all")
     arguments = parser.parse_args(argv)
 
-    if not arguments.release_name.startswith("FBR34KER_") and not arguments.release_name.startswith("B34ST_"):
-        parser.error("release name must start with FBR34KER_ or B34ST_")
+    try:
+        validate_release_name(arguments.release_name)
+    except ValueError as exc:
+        parser.error(str(exc))
     output_dir = arguments.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
     sources = source_paths()

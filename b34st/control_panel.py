@@ -14,6 +14,8 @@ import shutil
 import subprocess
 import sys
 
+from b34st.version import __version__
+
 SECURITY_MODEL_CONFIG_PATH = pathlib.Path("~/.config/fbr34ker/security-model").expanduser()
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -1104,7 +1106,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
     report = {
         "schema_version": 1,
         "project": "FBR34KER",
-        "version": "0.4.2b",
+        "version": __version__,
         "operation": "usbliter8-pwn-and-inspect",
         "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
         "authorization": "confirmed",

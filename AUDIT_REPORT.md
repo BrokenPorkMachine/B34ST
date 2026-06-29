@@ -1,8 +1,8 @@
-# FBR34KER 0.4.1 Beta completeness and correctness audit
+# FBR34KER 0.4.4b Beta completeness and correctness audit
 
 ## Outcome
 
-The 0.4.1 tree is prepared as a **Beta patch release** for deterministic QEMU
+The 0.4.4b tree is prepared as a **Beta patch release** for deterministic QEMU
 validation, external-loader integration, evidence-gated physical bring-up, and
 guided tethered-downgrade planning.
 

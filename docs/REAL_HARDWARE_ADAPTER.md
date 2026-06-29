@@ -1,6 +1,6 @@
 # Real-hardware adapter boundary
 
-FBR34KER 0.4.1 does not include a device-specific boot or exploit adapter. An
+FBR34KER 0.4.4b does not include a device-specific boot or exploit adapter. An
 authorized loader port may expose FBDP only after it has established its own
 legitimate development execution environment.
 

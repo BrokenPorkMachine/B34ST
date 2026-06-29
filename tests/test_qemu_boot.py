@@ -19,7 +19,7 @@ import fbr34kctl  # noqa: E402
 QEMU = shutil.which("qemu-system-aarch64")
 REQUIRED = os.environ.get("FBR34KER_QEMU_REQUIRED") == "1"
 SKIP_QEMU = os.environ.get("FBR34KER_SKIP_QEMU_TESTS") == "1"
-EXPECTED_VERSION = os.environ.get("FBR34KER_EXPECTED_VERSION", "0.4.2b")
+EXPECTED_VERSION = os.environ.get("FBR34KER_EXPECTED_VERSION", "0.4.4b")
 IMAGE = pathlib.Path(os.environ.get(
     "FBR34KER_QEMU_IMAGE", str(ROOT / "build" / "fbr34ker.bin")
 )).resolve()

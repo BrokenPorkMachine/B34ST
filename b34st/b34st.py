@@ -51,7 +51,7 @@ def main() -> int:
         print("  b34st validate-session --bundle runtime-artifacts/success-session.zip")
         print("  b34st physical-validation candidate-report --success success.zip --failure failure.zip --recovered recovered.zip --output report.json")
         print("  b34st hardware-prepare --save-checklists ./checklists/\n")
-        print("B34ST v0.4.2b is part of FBR34KER 0.4.2b Beta\n")
+        print(f"B34ST v{__version__} is part of FBR34KER {__version__} Beta\n")
         print("For detailed documentation, see b34st/README.md and b34st/.b34st-config\n")
         return 0
 

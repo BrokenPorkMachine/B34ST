@@ -22,18 +22,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--expected", required=True)
     args = parser.parse_args(argv)
     version = args.expected
-    if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version) is None:
-        parser.error("--expected must be a semantic version such as 0.4.2b")
+    if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:[ab]|rc[0-9]+)?", version) is None:
+        parser.error(
+            "--expected must be a release version such as 0.4.3 or 0.4.3b"
+        )
 
     escaped = re.escape(version)
-    release_name = re.escape(f"FBR34KER_{version}_Beta")
-    b34st_release_name = re.escape(f"B34ST_{version}_Beta")
+    release_name = re.escape(f"B34ST_{version}_Beta")
     checks = (
         ("Makefile", rf"^VERSION := {escaped}$", "VERSION does not match"),
         ("Makefile", r"^RELEASE_CHANNEL := beta$", "release channel is not beta"),
         (
             "Makefile",
-            r"^RELEASE_NAME := FBR34KER_\$\(VERSION\)_Beta$",
+            r"^RELEASE_NAME := B34ST_\$\(VERSION\)_Beta$",
             "release-name template is inconsistent",
         ),
         (
@@ -54,13 +55,13 @@ def main(argv: list[str] | None = None) -> int:
         ("b34st/version.py", rf'^__version__ = "{escaped}"$', "B34ST version does not match"),
         (
             "b34st/version.py",
-            rf'^__release_name__ = "{b34st_release_name}"$',
+            rf'^__release_name__ = "{release_name}"$',
             "B34ST release name does not match",
         ),
         ("b34st/build.py", rf'^__version__ = "{escaped}"$', "B34ST build version does not match"),
         (
             "b34st/build.py",
-            rf'^__release_name__ = "{b34st_release_name}"$',
+            rf'^__release_name__ = "{release_name}"$',
             "B34ST build release name does not match",
         ),
         (

@@ -654,9 +654,9 @@ def main() -> None:
 
     print(f"[USB Host Emulation Fuzzer] Generating {args.num_cases} test cases...")
     output_path = fuzzer.generate_payload_for_honggfuzz(pathlib.Path(args.output))
-    print(f"[USB Host Emulation Fuzzer] Corpus generated at: {{output_path}}")
+    print(f"[USB Host Emulation Fuzzer] Corpus generated at: {output_path}")
     print(
-        f"[USB Host Emulation Fuzzer] Run: honggfuzz --input {{output_path / 'corpus'}} --output {{output_path / 'out'}} -- {{fuzzer.honggfuzz_command}}"
+        f"[USB Host Emulation Fuzzer] Run: honggfuzz --input {output_path / 'corpus'} --output {output_path / 'out'} -- {fuzzer.honggfuzz_command}"
     )
 
 

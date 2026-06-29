@@ -5,11 +5,13 @@ This protocol is intentionally transport-neutral.  It carries only deployment
 artifacts that have already been checked against a board profile.  It does not
 provide arbitrary memory access or an exploit transport.
 """
+
 from __future__ import annotations
 
 import dataclasses
 import enum
 import struct
+import threading
 import zlib
 
 MAGIC = b"FBDP"
@@ -78,21 +80,26 @@ def encode_frame(frame: Frame) -> bytes:
         0,
     )[:16]
     checksum = _crc(prefix, payload)
-    return HEADER.pack(
-        MAGIC,
-        VERSION,
-        int(frame.message_type),
-        frame.flags,
-        frame.sequence,
-        len(payload),
-        checksum,
-    ) + payload
+    return (
+        HEADER.pack(
+            MAGIC,
+            VERSION,
+            int(frame.message_type),
+            frame.flags,
+            frame.sequence,
+            len(payload),
+            checksum,
+        )
+        + payload
+    )
 
 
 def decode_frame(data: bytes, *, require_exact: bool = True) -> Frame:
     if len(data) < HEADER_SIZE:
         raise ProtocolError("truncated deployment frame header")
-    magic, version, message_type, flags, sequence, length, checksum = HEADER.unpack_from(data)
+    magic, version, message_type, flags, sequence, length, checksum = (
+        HEADER.unpack_from(data)
+    )
     if magic != MAGIC:
         raise ProtocolError("deployment frame magic mismatch")
     if version != VERSION:
@@ -115,30 +122,37 @@ class StreamDecoder:
 
     def __init__(self) -> None:
         self._buffer = bytearray()
+        self._buffer_lock = threading.Lock()
 
     def feed(self, data: bytes) -> list[Frame]:
-        if data:
-            self._buffer.extend(data)
-        frames: list[Frame] = []
-        while True:
-            if len(self._buffer) < HEADER_SIZE:
-                break
-            magic, version, _kind, _flags, _seq, length, _crc_value = HEADER.unpack_from(self._buffer)
-            if magic != MAGIC:
-                del self._buffer[0]
-                continue
-            if version != VERSION:
-                raise ProtocolError(f"unsupported deployment protocol version {version}")
-            if length > MAX_PAYLOAD:
-                raise ProtocolError(f"declared payload exceeds {MAX_PAYLOAD} bytes")
-            total = HEADER_SIZE + length
-            if len(self._buffer) < total:
-                break
-            raw = bytes(self._buffer[:total])
-            del self._buffer[:total]
-            frames.append(decode_frame(raw))
-        return frames
+        with self._buffer_lock:
+            if data:
+                self._buffer.extend(data)
+            frames: list[Frame] = []
+            while True:
+                if len(self._buffer) < HEADER_SIZE:
+                    break
+                magic, version, _kind, _flags, _seq, length, _crc_value = (
+                    HEADER.unpack_from(self._buffer)
+                )
+                if magic != MAGIC:
+                    del self._buffer[0]
+                    continue
+                if version != VERSION:
+                    raise ProtocolError(
+                        f"unsupported deployment protocol version {version}"
+                    )
+                if length > MAX_PAYLOAD:
+                    raise ProtocolError(f"declared payload exceeds {MAX_PAYLOAD} bytes")
+                total = HEADER_SIZE + length
+                if len(self._buffer) < total:
+                    break
+                raw = bytes(self._buffer[:total])
+                del self._buffer[:total]
+                frames.append(decode_frame(raw))
+            return frames
 
     @property
     def buffered_bytes(self) -> int:
-        return len(self._buffer)
+        with self._buffer_lock:
+            return len(self._buffer)

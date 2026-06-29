@@ -163,15 +163,23 @@ class B34STCLI:
         print("    forensics secrets             iCloud/Keychain/Keybag extraction")
         print("    forensics activation          Activation bypass & FMI control")
         print("    forensics passcode            Passcode on/off/change/bypass")
-        print("  b34st sep-fuzz                SEP Key Fuzzer — differential wrapper testing")
+        print(
+            "  b34st sep-fuzz                SEP Key Fuzzer — differential wrapper testing"
+        )
         print("    sep-fuzz run                   Run a full fuzzing campaign")
-        print("      --transport <type>             Device transport: simulator|usb|serial")
+        print(
+            "      --transport <type>             Device transport: simulator|usb|serial"
+        )
         print("    sep-fuzz list-variations       List all fuzz variations")
         print("    sep-fuzz list-categories       List fuzz categories")
         print("    sep-fuzz generate-harness      Generate baseline Swift harness")
-        print("  b34st sep-research             SEP Research Pipeline — automated SEP/sepOS fuzzing")
+        print(
+            "  b34st sep-research             SEP Research Pipeline — automated SEP/sepOS fuzzing"
+        )
         print("    sep-research run               Run the full research pipeline")
-        print("      --transport <type>             Device transport: simulator|usb|serial|tcp")
+        print(
+            "      --transport <type>             Device transport: simulator|usb|serial|tcp"
+        )
         print("    sep-research list-stages       List pipeline stages")
         print("    sep-research info              Show pipeline information")
         print("  b34st cve                     CVE database & exploit chain planner")
@@ -184,7 +192,9 @@ class B34STCLI:
         print("    cve goals                     List all built-in exploit goals")
         print("    cve fuzz list                 List available fuzz targets")
         print("  b34st fbr34ker <args...>       Run a backend FBR34KER command")
-        print("  b34st usbliter8                USBliter8 exploit workflow (hardware prep + execution)")
+        print(
+            "  b34st usbliter8                USBliter8 exploit workflow (hardware prep + execution)"
+        )
         print("  b34st --version               Show version information\n")
         print("\nFor FBR34KER's full validation workflow:\n")
         print("  ./fbr34ker validate-session --bundle <file>")
@@ -229,7 +239,9 @@ class B34STCLI:
 
             # Execute FBR34KER command
             self.log(f"Running: {' '.join(cmd)}")
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=".")
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=".", check=False
+            )
 
             if result.returncode == 0:
                 print(result.stdout)
@@ -283,7 +295,9 @@ class B34STCLI:
             import json
 
             self.log(f"Running: {' '.join(cmd)}")
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=".")
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=".", check=False
+            )
 
             if result.returncode == 0:
                 if args.output and pathlib.Path(args.output).exists():
@@ -358,7 +372,9 @@ class B34STCLI:
                 ]
 
                 self.log(f"Running: {' '.join(cmd)}")
-                result = subprocess.run(cmd, capture_output=True, text=True, cwd=".")
+                result = subprocess.run(
+                    cmd, capture_output=True, text=True, cwd=".", check=False
+                )
 
                 if result.returncode == 0:
                     print(result.stdout)
@@ -383,7 +399,9 @@ class B34STCLI:
                     args.validate_bundle,
                 ]
                 self.log(f"Running: {' '.join(cmd)}")
-                result = subprocess.run(cmd, capture_output=True, text=True, cwd=".")
+                result = subprocess.run(
+                    cmd, capture_output=True, text=True, cwd=".", check=False
+                )
                 if result.returncode == 0:
                     print(result.stdout)
                     return 0
@@ -498,9 +516,7 @@ class B34STCLI:
         )
         sub = parser.add_subparsers(dest="forensics_command", required=True)
 
-        sub.add_parser(
-            "list-profiles", help="List built-in acquisition profiles"
-        )
+        sub.add_parser("list-profiles", help="List built-in acquisition profiles")
 
         acq = sub.add_parser("acquire", help="Run a forensic acquisition session")
         acq.add_argument(
@@ -1229,18 +1245,12 @@ class B34STCLI:
         )
         sub = parser.add_subparsers(dest="sep_fuzz_command", required=True)
 
-        run_p = sub.add_parser(
-            "run", help="Run a full SEP key fuzzing campaign"
-        )
+        run_p = sub.add_parser("run", help="Run a full SEP key fuzzing campaign")
         run_p.add_argument(
             "--device-model", default="iPhone14,2", help="Device model identifier"
         )
-        run_p.add_argument(
-            "--os-build", default="21A123", help="iOS build number"
-        )
-        run_p.add_argument(
-            "--chipset", default="A15", help="SoC chipset identifier"
-        )
+        run_p.add_argument("--os-build", default="21A123", help="iOS build number")
+        run_p.add_argument("--chipset", default="A15", help="SoC chipset identifier")
         run_p.add_argument(
             "--output",
             type=pathlib.Path,
@@ -1274,7 +1284,7 @@ class B34STCLI:
         run_p.add_argument(
             "--transport-args",
             default="{}",
-            help="JSON dict of transport arguments (e.g. '{\"port\": \"/dev/ttyUSB0\"}')",
+            help='JSON dict of transport arguments (e.g. \'{"port": "/dev/ttyUSB0"}\')',
         )
 
         list_p = sub.add_parser(
@@ -1287,9 +1297,7 @@ class B34STCLI:
             help="Filter variations by category",
         )
 
-        sub.add_parser(
-            "list-categories", help="List fuzz categories"
-        )
+        sub.add_parser("list-categories", help="List fuzz categories")
 
         generate_p = sub.add_parser(
             "generate-harness", help="Generate the baseline Swift harness"
@@ -1358,9 +1366,7 @@ class B34STCLI:
                 print(f"Bounty report generated: {report_path}")
                 return 0
 
-            categories = (
-                set(args.categories) if args.categories else None
-            )
+            categories = set(args.categories) if args.categories else None
 
             fuzzer = SEPKeyFuzzer(
                 device_model=args.device_model,
@@ -1371,6 +1377,7 @@ class B34STCLI:
 
             # Build submit function from transport backend
             if args.transport == "simulator":
+
                 def _simulated_submit(
                     wrapper: bytes, metadata: dict[str, Any]
                 ) -> dict[str, Any]:
@@ -1381,12 +1388,12 @@ class B34STCLI:
                         "error": "simulated — deploy harness to device for live testing",
                         "duration_ms": 0.0,
                     }
+
                 submit_fn = _simulated_submit
             else:
                 from host.forensics.sep_deploy import make_fuzzer_submit
-                transport_kwargs: dict[str, Any] = json.loads(
-                    args.transport_args
-                )
+
+                transport_kwargs: dict[str, Any] = json.loads(args.transport_args)
                 submit_fn = make_fuzzer_submit(args.transport, **transport_kwargs)
 
             manifest = fuzzer.run(
@@ -1451,7 +1458,7 @@ class B34STCLI:
         run_p.add_argument(
             "--transport-args",
             default="{}",
-            help="JSON dict of transport arguments (e.g. '{\"port\": \"/dev/ttyUSB0\"}')",
+            help='JSON dict of transport arguments (e.g. \'{"port": "/dev/ttyUSB0"}\')',
         )
 
         sub.add_parser("list-stages", help="List pipeline stages")
@@ -1463,7 +1470,8 @@ class B34STCLI:
             return e.code
 
         from host.forensics.sep_research_pipeline import (
-            STAGES, run_pipeline,
+            STAGES,
+            run_pipeline,
         )
 
         if args.pipeline_command == "list-stages":
@@ -1485,7 +1493,9 @@ class B34STCLI:
             print("                             one variable")
             print("  4. structural_fuzzing   — Length errors, integer overflow,")
             print("                             type confusion mutations")
-            print("  5. stateful_fuzzing     — Sequence mutations (create→use→delete→use)")
+            print(
+                "  5. stateful_fuzzing     — Sequence mutations (create→use→delete→use)"
+            )
             print("  6. concurrency_fuzzing  — Race conditions (delete vs sign,")
             print("                             cancel vs complete)")
             print("  7. crash_triage         — Classify fault layer")
@@ -1501,9 +1511,8 @@ class B34STCLI:
             api_fn = None
             if args.transport != "simulator":
                 from host.forensics.sep_deploy import make_research_api
-                transport_kwargs: dict[str, Any] = json.loads(
-                    args.transport_args
-                )
+
+                transport_kwargs: dict[str, Any] = json.loads(args.transport_args)
                 api_fn = make_research_api(args.transport, **transport_kwargs)
 
             result = run_pipeline(
@@ -1992,19 +2001,26 @@ class B34STCLI:
             prep_record = evidence_dir / "hardware-prep.json"
             if not args.skip_evidence:
                 prep_record.write_text(
-                    json.dumps({
-                        "schema_version": 1,
-                        "stage": "hardware_preparation",
-                        "status": "verified",
-                        "items": [{"item": item, "status": "done"} for item, _ in items],
-                    }, indent=2)
+                    json.dumps(
+                        {
+                            "schema_version": 1,
+                            "stage": "hardware_preparation",
+                            "status": "verified",
+                            "items": [
+                                {"item": item, "status": "done"} for item, _ in items
+                            ],
+                        },
+                        indent=2,
+                    )
                 )
                 self.log(f"Hardware preparation record: {prep_record}")
 
         operational_bin = ROOT / "build-exploit" / "fbr34ker-operational.bin"
         if args.force_rebuild or not operational_bin.is_file():
             if operational_bin.is_file():
-                self.log("Found existing operational image, rebuilding (--force-rebuild)")
+                self.log(
+                    "Found existing operational image, rebuilding (--force-rebuild)"
+                )
             else:
                 self.log("Operational image not found, building now")
             if args.skip_build:
@@ -2014,7 +2030,10 @@ class B34STCLI:
             if not args.skip_build:
                 result = subprocess.run(
                     ["make", "build-operational"],
-                    cwd=ROOT, capture_output=True, text=True, timeout=120,
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    timeout=120,
                 )
                 if result.returncode != 0:
                     self.log(f"Build failed: {result.stderr}", "ERROR")
@@ -2037,12 +2056,18 @@ class B34STCLI:
             self.log(f"Exploit script not found: {exploit_script}", "ERROR")
             return 1
 
-        evidence = None if args.skip_evidence else (args.evidence or evidence_dir / "usbliter8-jailbreak.json")
+        evidence = (
+            None
+            if args.skip_evidence
+            else (args.evidence or evidence_dir / "usbliter8-jailbreak.json")
+        )
         cmd = [
             sys.executable,
             str(exploit_script),
-            "--monitor", str(operational_bin),
-            "--timeout", str(args.timeout),
+            "--monitor",
+            str(operational_bin),
+            "--timeout",
+            str(args.timeout),
         ]
         if evidence is not None:
             cmd.extend(["--evidence", str(evidence)])
@@ -2050,26 +2075,30 @@ class B34STCLI:
             cmd.append("--no-dfu-wait")
 
         print(f"\nRunning: {' '.join(cmd)}\n")
-        result = subprocess.run(cmd, cwd=ROOT, text=True)
+        result = subprocess.run(cmd, cwd=ROOT, text=True, check=False)
         return_code = result.returncode
 
         if return_code == 0:
             self.log("USBliter8 exploit chain completed successfully")
 
             if not args.no_console:
-                connect = input("\nConnect to FBR34KER console for live exploration? (y/N): ")
+                connect = input(
+                    "\nConnect to FBR34KER console for live exploration? (y/N): "
+                )
                 if connect.lower() in ("y", "yes"):
                     console_cmd = [
-                        sys.executable, "-c",
+                        sys.executable,
+                        "-c",
                         "from host.usb_serial import USBConsole; "
                         "c = USBConsole(); c.open(); "
-                        "print(c.read_until_prompt(timeout=10.0))"
+                        "print(c.read_until_prompt(timeout=10.0))",
                     ]
-                    subprocess.run(console_cmd, cwd=ROOT)
+                    subprocess.run(console_cmd, cwd=ROOT, check=False)
 
             if args.return_to_b34st and not args.no_return:
                 print("\nReturning to B34ST...")
                 from b34st.control_panel import run_control_panel
+
                 return run_control_panel()
 
         else:
@@ -2126,7 +2155,9 @@ providing a streamlined interface for common operations.
             "  b34st cve device-info          Device/SoC database for iPhone 4-15, T2, M1/M2"
         )
         print("  b34st cve device-chain         Device-aware exploit chain planning")
-        print("  b34st usbliter8                USBliter8 exploit workflow (hardware prep + execution)")
+        print(
+            "  b34st usbliter8                USBliter8 exploit workflow (hardware prep + execution)"
+        )
         print("\nFor detailed help:")
         print("  b34st <command> --help")
         return 0

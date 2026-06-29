@@ -22,11 +22,42 @@ import sys
 from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "host"))
+HOST_DIR = ROOT / "host"
 
-from boot_image import BootImageError, inspect_image, load_profile  # noqa: E402
-from irecovery_boot import RecoveryError, load_device_info, validate_target  # noqa: E402
-from physical_validation import ValidationError, validate_bundle  # noqa: E402
+
+def _load_host_module(name: str):
+    import importlib.util
+
+    path = HOST_DIR / f"{name}.py"
+    if not path.is_file():
+        raise ImportError(f"host module not found: {path}")
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    module_key = spec.name
+    previous = sys.modules.get(module_key)
+    sys.modules[module_key] = module
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        if previous is None:
+            sys.modules.pop(module_key, None)
+        else:
+            sys.modules[module_key] = previous
+    return module
+
+
+boot_image = _load_host_module("boot_image")
+irecovery_boot = _load_host_module("irecovery_boot")
+physical_validation = _load_host_module("physical_validation")
+
+BootImageError = boot_image.BootImageError
+inspect_image = boot_image.inspect_image
+load_profile = boot_image.load_profile
+RecoveryError = irecovery_boot.RecoveryError
+load_device_info = irecovery_boot.load_device_info
+validate_target = irecovery_boot.validate_target
+ValidationError = physical_validation.ValidationError
+validate_bundle = physical_validation.validate_bundle
 
 OWNER_ACK = "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE"
 EXECUTION_ACK = "START AUTHORIZED FIRST STAGE"
@@ -118,10 +149,9 @@ def _macho_uuid(data: bytes) -> str | None:
         if size < 8 or cursor + size > end:
             return None
         if command == 0x1B and size >= 24:
-            raw = data[cursor + 8:cursor + 24]
+            raw = data[cursor + 8 : cursor + 24]
             text = raw.hex()
-            return "-".join((text[:8], text[8:12], text[12:16],
-                             text[16:20], text[20:]))
+            return "-".join((text[:8], text[8:12], text[12:16], text[16:20], text[20:]))
         cursor += size
     return None
 
@@ -143,8 +173,13 @@ def inspect_kernelcache(path: pathlib.Path) -> dict[str, Any]:
         "sha256": sha256_file(path),
         "magic": magic,
         "macho_uuid": uuid,
-        "format_recognized": uuid is not None or magic in {
-            "cffaedfe", "feedfacf", "cefaedfe", "feedface",
+        "format_recognized": uuid is not None
+        or magic
+        in {
+            "cffaedfe",
+            "feedfacf",
+            "cefaedfe",
+            "feedface",
         },
     }
 
@@ -189,10 +224,14 @@ def validate_kernel_identity(
     if value.get("product") != product:
         raise OrchestrationError("kernel identity product does not match the device")
     if value.get("kernelcache_sha256") != inventory["sha256"]:
-        raise OrchestrationError("kernelcache hash is not in the reviewed identity manifest")
+        raise OrchestrationError(
+            "kernelcache hash is not in the reviewed identity manifest"
+        )
     expected_uuid = value.get("macho_uuid")
     if expected_uuid and expected_uuid != inventory["macho_uuid"]:
-        raise OrchestrationError("kernelcache UUID does not match the reviewed identity manifest")
+        raise OrchestrationError(
+            "kernelcache UUID does not match the reviewed identity manifest"
+        )
     for field in ("ios_version", "build"):
         item = value.get(field)
         if not isinstance(item, str) or not item or item == "REVIEW_REQUIRED":
@@ -229,17 +268,24 @@ def validate_stage_evidence(
     if value.get("status") != "verified":
         raise OrchestrationError("stage evidence status must be 'verified'")
     target = value.get("target")
-    if not isinstance(target, dict) or target.get("kernelcache_sha256") != kernel_sha256:
+    if (
+        not isinstance(target, dict)
+        or target.get("kernelcache_sha256") != kernel_sha256
+    ):
         raise OrchestrationError("stage evidence does not match this kernelcache")
     observations = value.get("observations")
-    if not isinstance(observations, list) or not observations or not all(
-        isinstance(item, str) and item.strip() for item in observations
+    if (
+        not isinstance(observations, list)
+        or not observations
+        or not all(isinstance(item, str) and item.strip() for item in observations)
     ):
         raise OrchestrationError("stage evidence requires non-empty observations")
     if expected_stage in {"KERNEL_PATCH_VERIFIED", "CODE_SIGNING_POLICY_VERIFIED"}:
         rollback = value.get("rollback")
         if not isinstance(rollback, dict) or rollback.get("available") is not True:
-            raise OrchestrationError(f"{expected_stage} requires rollback.available=true")
+            raise OrchestrationError(
+                f"{expected_stage} requires rollback.available=true"
+            )
     return {
         "path": str(path.resolve()),
         "sha256": sha256_file(path),
@@ -336,7 +382,11 @@ class RuntimeSession:
             stream.write(f"[{timestamp}] {message}\n")
 
     def set_state(self, stage: str, status: str, **evidence: Any) -> None:
-        if stage not in STAGE_ORDER or status not in {"VERIFIED", "ATTEMPTED", "BLOCKED"}:
+        if stage not in STAGE_ORDER or status not in {
+            "VERIFIED",
+            "ATTEMPTED",
+            "BLOCKED",
+        }:
             raise OrchestrationError(f"invalid state update: {stage}={status}")
         self.report["states"][stage] = {"status": status, **evidence}
         self.log(f"STATE {stage}={status}")
@@ -359,12 +409,14 @@ class RuntimeSession:
         )
         transcript = self.output / f"{len(self.report['commands']) + 1:02d}-{label}.log"
         transcript.write_text(result.stdout, encoding="utf-8")
-        self.report["commands"].append({
-            "label": label,
-            "command": command,
-            "exit_code": result.returncode,
-            "transcript": str(transcript),
-        })
+        self.report["commands"].append(
+            {
+                "label": label,
+                "command": command,
+                "exit_code": result.returncode,
+                "transcript": str(transcript),
+            }
+        )
         self.log(f"END {label}: exit={result.returncode}")
         self.save()
         print(result.stdout, end="")
@@ -372,7 +424,8 @@ class RuntimeSession:
 
     def finalize(self) -> None:
         missing = [
-            stage for stage in READY_REQUIREMENTS
+            stage
+            for stage in READY_REQUIREMENTS
             if self.report["states"][stage]["status"] != "VERIFIED"
         ]
         self.report["blockers"] = missing
@@ -422,8 +475,10 @@ def _write_templates(session: RuntimeSession, kernel_sha256: str) -> None:
     for stage in sorted(EXTERNAL_EVIDENCE_STAGES):
         path = directory / f"{stage.lower()}.json"
         path.write_text(
-            json.dumps(stage_evidence_template(stage, kernel_sha256),
-                       indent=2, sort_keys=True) + "\n",
+            json.dumps(
+                stage_evidence_template(stage, kernel_sha256), indent=2, sort_keys=True
+            )
+            + "\n",
             encoding="utf-8",
         )
     session.artifact("evidence_templates", {"directory": str(directory)})
@@ -483,7 +538,9 @@ def guided(args: argparse.Namespace) -> int:
     print("B34ST guided research-runtime orchestrator")
     print(f"Evidence directory: {session.output}")
     print("\nThis script automates validation and evidence handling.")
-    print("Target-specific exploit and kernel mutation implementations remain external.")
+    print(
+        "Target-specific exploit and kernel mutation implementations remain external."
+    )
 
     if _prompt(f'Type "{OWNER_ACK}" to continue') != OWNER_ACK:
         raise OrchestrationError("owner/authorization acknowledgement was not accepted")
@@ -503,11 +560,14 @@ def guided(args: argparse.Namespace) -> int:
         json.dumps(audit, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
-    session.artifact("legacy_component_audit", {
-        "path": str(audit_path),
-        "sha256": sha256_file(audit_path),
-        "result": audit["result"],
-    })
+    session.artifact(
+        "legacy_component_audit",
+        {
+            "path": str(audit_path),
+            "sha256": sha256_file(audit_path),
+            "result": audit["result"],
+        },
+    )
 
     profile_path = _path_prompt(
         "Exact target profile",
@@ -522,11 +582,14 @@ def guided(args: argparse.Namespace) -> int:
     validate_target(profile, device)
     if not profile.get("requires_exact_product"):
         raise OrchestrationError("physical workflow requires an exact-product profile")
-    session.artifact("profile", {
-        "path": str(profile_path.resolve()),
-        "sha256": sha256_file(profile_path),
-        "profile_id": profile.get("profile_id"),
-    })
+    session.artifact(
+        "profile",
+        {
+            "path": str(profile_path.resolve()),
+            "sha256": sha256_file(profile_path),
+            "profile_id": profile.get("profile_id"),
+        },
+    )
     session.artifact("device", device.public_dict())
     session.set_state("TARGET_PROFILE_VALIDATED", "VERIFIED")
 
@@ -543,13 +606,17 @@ def guided(args: argparse.Namespace) -> int:
                 kernel_identity_template(kernel, product=device.product or "unknown"),
                 indent=2,
                 sort_keys=True,
-            ) + "\n",
+            )
+            + "\n",
             encoding="utf-8",
         )
-        session.artifact("kernel_identity_template", {
-            "path": str(identity_path),
-            "sha256": sha256_file(identity_path),
-        })
+        session.artifact(
+            "kernel_identity_template",
+            {
+                "path": str(identity_path),
+                "sha256": sha256_file(identity_path),
+            },
+        )
         session.set_state(
             "KERNEL_IDENTIFIED",
             "BLOCKED",
@@ -566,12 +633,15 @@ def guided(args: argparse.Namespace) -> int:
         inventory=kernel,
         product=device.product or "unknown",
     )
-    session.artifact("kernel_identity", {
-        "path": str(identity_path.resolve()),
-        "sha256": sha256_file(identity_path),
-        "ios_version": identity["ios_version"],
-        "build": identity["build"],
-    })
+    session.artifact(
+        "kernel_identity",
+        {
+            "path": str(identity_path.resolve()),
+            "sha256": sha256_file(identity_path),
+            "ios_version": identity["ios_version"],
+            "build": identity["build"],
+        },
+    )
     session.set_state(
         "KERNEL_IDENTIFIED",
         "VERIFIED",
@@ -588,13 +658,18 @@ def guided(args: argparse.Namespace) -> int:
     )
     image = inspect_image(image_path)
     if image.get("manifest", {}).get("profile_id") != profile.get("profile_id"):
-        raise OrchestrationError("boot image profile does not match the selected profile")
-    session.artifact("boot_image", {
-        "path": str(image_path.resolve()),
-        "sha256": image["sha256"],
-        "family": image["family"],
-        "profile_id": image["manifest"]["profile_id"],
-    })
+        raise OrchestrationError(
+            "boot image profile does not match the selected profile"
+        )
+    session.artifact(
+        "boot_image",
+        {
+            "path": str(image_path.resolve()),
+            "sha256": image["sha256"],
+            "family": image["family"],
+            "profile_id": image["manifest"]["profile_id"],
+        },
+    )
     session.set_state("MONITOR_IMAGE_VALIDATED", "VERIFIED")
 
     bootstrap_value = _prompt("Trusted bootstrap archive path (optional)")
@@ -612,7 +687,10 @@ def guided(args: argparse.Namespace) -> int:
         adapter_command = _prompt("External authorized adapter command")
         if not adapter_command:
             raise OrchestrationError("external adapter command is required")
-        if _prompt(f'Type "{EXECUTION_ACK}" to upload and start the monitor') != EXECUTION_ACK:
+        if (
+            _prompt(f'Type "{EXECUTION_ACK}" to upload and start the monitor')
+            != EXECUTION_ACK
+        ):
             raise OrchestrationError("first-stage execution was not confirmed")
         authorization_id = _prompt(
             "Session authorization identifier",
@@ -693,8 +771,12 @@ def guided(args: argparse.Namespace) -> int:
                         )
                         final_evidence = session.output / "final-monitor-session.zip"
                         final_command = list(command)
-                        final_command[final_command.index(authorization_id)] = final_authorization_id
-                        final_command[final_command.index(str(evidence))] = str(final_evidence)
+                        final_command[final_command.index(authorization_id)] = (
+                            final_authorization_id
+                        )
+                        final_command[final_command.index(str(evidence))] = str(
+                            final_evidence
+                        )
                         final_result = session.run(
                             final_command,
                             "authorized-monitor-restart",
@@ -725,7 +807,9 @@ def guided(args: argparse.Namespace) -> int:
                     "schema_version": 1,
                     "operator": operator,
                     "created_at": dt.datetime.now().astimezone().isoformat(),
-                    "pre_attestation_runtime_state_sha256": sha256_file(session.report_path),
+                    "pre_attestation_runtime_state_sha256": sha256_file(
+                        session.report_path
+                    ),
                     "requirements": list(READY_REQUIREMENTS),
                     "owner_authorized": True,
                     "result": "JAILBREAK_ATTESTED",
@@ -805,7 +889,9 @@ def parser() -> argparse.ArgumentParser:
     template.add_argument("--output", type=pathlib.Path, required=True)
     validate = sub.add_parser("validate-evidence")
     validate.add_argument("input", type=pathlib.Path)
-    validate.add_argument("--stage", choices=sorted(EXTERNAL_EVIDENCE_STAGES), required=True)
+    validate.add_argument(
+        "--stage", choices=sorted(EXTERNAL_EVIDENCE_STAGES), required=True
+    )
     validate.add_argument("--kernelcache-sha256", required=True)
     return root
 

@@ -76,7 +76,7 @@ class SepMailbox:
             test = self._read(self.sep_base, 4)
             val = struct.unpack("<I", test)[0] if len(test) >= 4 else 0
             available = val != 0 and val != 0xFFFFFFFF
-        except Exception:
+        except (OSError, struct.error):
             available = False
         return {
             "sep_base": self.sep_base,
@@ -121,7 +121,7 @@ class SepMailbox:
                             if sz > 0 and sz <= self.SHARED_MEM_SIZE:
                                 response = self._read(self.shared_mem, sz)
                                 break
-            except Exception:
+            except (OSError, struct.error):
                 pass
             time.sleep(self.POLL_INTERVAL)
 
@@ -204,7 +204,9 @@ class KeybagAcquisitor:
 
         manifest = {
             "acquisition": {
-                "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+                "timestamp": dt.datetime.now()
+                .astimezone()
+                .isoformat(timespec="seconds"),
                 "bag_count": len(bags),
                 "extracted": sum(1 for r in results if r.get("extracted")),
                 "errors": len(errors),
@@ -251,12 +253,16 @@ class KeychainAcquisitor:
         for line in raw.strip().splitlines():
             parts = line.strip().split()
             if len(parts) >= 2:
-                items.append({
-                    "key": parts[0],
-                    "class": parts[1] if len(parts) > 1 else "",
-                    "size": int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0,
-                    "protection": parts[3] if len(parts) > 3 else "",
-                })
+                items.append(
+                    {
+                        "key": parts[0],
+                        "class": parts[1] if len(parts) > 1 else "",
+                        "size": int(parts[2])
+                        if len(parts) > 2 and parts[2].isdigit()
+                        else 0,
+                        "protection": parts[3] if len(parts) > 3 else "",
+                    }
+                )
         return items
 
     def acquire_item(self, item_key: str) -> dict[str, Any]:
@@ -301,7 +307,9 @@ class KeychainAcquisitor:
 
         summary = {
             "acquisition": {
-                "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+                "timestamp": dt.datetime.now()
+                .astimezone()
+                .isoformat(timespec="seconds"),
                 "total_items": len(items),
                 "acquired": sum(1 for r in results if r.get("acquired")),
                 "errors": len(errors),
@@ -338,11 +346,13 @@ class ICloudAcquisitor:
         for line in raw.strip().splitlines():
             parts = line.strip().split()
             if len(parts) >= 1:
-                accounts.append({
-                    "account": parts[0],
-                    "type": parts[1] if len(parts) > 1 else "unknown",
-                    "status": parts[2] if len(parts) > 2 else "unknown",
-                })
+                accounts.append(
+                    {
+                        "account": parts[0],
+                        "type": parts[1] if len(parts) > 1 else "unknown",
+                        "status": parts[2] if len(parts) > 2 else "unknown",
+                    }
+                )
         return accounts
 
     def acquire_tokens(self) -> list[dict[str, Any]]:
@@ -351,11 +361,13 @@ class ICloudAcquisitor:
         for line in raw.strip().splitlines():
             parts = line.strip().split()
             if len(parts) >= 2:
-                tokens.append({
-                    "service": parts[0],
-                    "token_hash": parts[1],
-                    "expiry": parts[2] if len(parts) > 2 else "",
-                })
+                tokens.append(
+                    {
+                        "service": parts[0],
+                        "token_hash": parts[1],
+                        "expiry": parts[2] if len(parts) > 2 else "",
+                    }
+                )
         return tokens
 
     def acquire_identity_services(self) -> dict[str, Any]:
@@ -378,7 +390,9 @@ class ICloudAcquisitor:
 
         manifest = {
             "acquisition": {
-                "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+                "timestamp": dt.datetime.now()
+                .astimezone()
+                .isoformat(timespec="seconds"),
                 "account_count": len(accounts),
                 "token_count": len(tokens),
             },
@@ -394,7 +408,9 @@ class ICloudAcquisitor:
         )
 
         for acct in accounts:
-            acct_file = icloud_dir / f"account-{acct['account'].replace('@', '_at_')}.json"
+            acct_file = (
+                icloud_dir / f"account-{acct['account'].replace('@', '_at_')}.json"
+            )
             acct_file.write_text(
                 json.dumps(acct, indent=2, sort_keys=True) + "\n",
                 encoding="utf-8",
@@ -485,9 +501,7 @@ class SecretsAcquisitor:
             f"sep_exploit={use_sep_exploit})",
         )
 
-        unlock_result = self.sep_unlock(
-            passcode, use_exploit=use_sep_exploit
-        )
+        unlock_result = self.sep_unlock(passcode, use_exploit=use_sep_exploit)
         sep_unlocked = unlock_result.get("unlocked", False)
         self.custody.record("secrets.sep_unlock", f"SEP unlock: {unlock_result}")
 

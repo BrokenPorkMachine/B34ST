@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Transport adapters for the bounded FBR34KER deployment protocol."""
+
 from __future__ import annotations
 
 import dataclasses
@@ -12,7 +13,13 @@ import time
 from typing import Protocol
 
 from deployment_target import SimulatedDeploymentTarget
-from wire_protocol import Frame, ProtocolError, StreamDecoder, decode_frame, encode_frame
+from wire_protocol import (
+    Frame,
+    ProtocolError,
+    StreamDecoder,
+    decode_frame,
+    encode_frame,
+)
 
 
 class TransportError(IOError):
@@ -44,27 +51,41 @@ class FaultPlan:
     def from_json(cls, value: object) -> "FaultPlan":
         if not isinstance(value, dict):
             raise TransportError("fault plan must be a JSON object")
-        allowed = {"drop_request_at", "drop_response_at", "corrupt_response_at",
-                   "disconnect_at", "delay_ms"}
+        allowed = {
+            "drop_request_at",
+            "drop_response_at",
+            "corrupt_response_at",
+            "disconnect_at",
+            "delay_ms",
+        }
         unknown = sorted(set(value) - allowed)
         if unknown:
             raise TransportError("unknown fault-plan fields: " + ", ".join(unknown))
 
         def indexes(name: str) -> frozenset[int]:
             raw = value.get(name, [])
-            if not isinstance(raw, list) or not all(isinstance(item, int) and item > 0 for item in raw):
+            if not isinstance(raw, list) or not all(
+                isinstance(item, int) and item > 0 for item in raw
+            ):
                 raise TransportError(f"{name} must contain positive frame numbers")
             return frozenset(raw)
 
         delay = value.get("delay_ms", 0)
         if not isinstance(delay, int) or not 0 <= delay <= 10000:
             raise TransportError("delay_ms must be 0..10000")
-        return cls(indexes("drop_request_at"), indexes("drop_response_at"),
-                   indexes("corrupt_response_at"), indexes("disconnect_at"), delay)
+        return cls(
+            indexes("drop_request_at"),
+            indexes("drop_response_at"),
+            indexes("corrupt_response_at"),
+            indexes("disconnect_at"),
+            delay,
+        )
 
 
 class SimulatorTransport:
-    def __init__(self, target: SimulatedDeploymentTarget, fault_plan: FaultPlan | None = None):
+    def __init__(
+        self, target: SimulatedDeploymentTarget, fault_plan: FaultPlan | None = None
+    ):
         self.target = target
         self.fault_plan = fault_plan or FaultPlan()
         self.exchange_count = 0
@@ -83,7 +104,9 @@ class SimulatorTransport:
         if self.fault_plan.delay_ms:
             delay = self.fault_plan.delay_ms / 1000.0
             if delay >= timeout:
-                raise TransportTimeout(f"injected delay exceeded timeout at exchange {number}")
+                raise TransportTimeout(
+                    f"injected delay exceeded timeout at exchange {number}"
+                )
             time.sleep(delay)
         request = encode_frame(frame)
         if number in self.fault_plan.drop_request_at:
@@ -188,10 +211,21 @@ class PosixSerialEndpoint:
     """Raw 8N1 serial stream. The peer must implement FBDP framing."""
 
     def __init__(self, path: pathlib.Path, baud: int):
+        resolved = path.resolve()
+        if not resolved.exists():
+            raise TransportError(f"serial device does not exist: {path}")
+        try:
+            st = resolved.stat()
+            if st.st_mode & 0o170000 != 0o020000:
+                raise TransportError(f"not a character device: {path}")
+        except OSError as exc:
+            raise TransportError(f"cannot stat serial device {path}: {exc}") from exc
         speed = getattr(termios, f"B{baud}", None)
         if speed is None:
             raise TransportError(f"unsupported serial baud rate {baud}")
-        self.file_descriptor = os.open(path, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
+        self.file_descriptor = os.open(
+            resolved, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK
+        )
         try:
             attributes = termios.tcgetattr(self.file_descriptor)
             attributes[0] = 0
@@ -217,7 +251,10 @@ class PosixSerialEndpoint:
             _, writable, _ = select.select([], [self.file_descriptor], [], remaining)
             if not writable:
                 raise TransportTimeout("serial write timed out")
-            written = os.write(self.file_descriptor, view)
+            try:
+                written = os.write(self.file_descriptor, view)
+            except BlockingIOError:
+                continue
             if written <= 0:
                 raise TransportDisconnected("serial write made no progress")
             view = view[written:]

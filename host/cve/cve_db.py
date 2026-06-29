@@ -16,26 +16,33 @@ class VersionRange:
     start: str
     end: str | None = None
 
-    def contains(self, version: str) -> bool:
-        def _parse(v):
-            parts = v.split(".")
-            result = []
-            for p in parts:
-                if p.replace(".", "").isdigit():
-                    result.append(int(p))
-                elif "x" in p.lower():
-                    result.append(999)
-                else:
-                    result.append(0)
-            return tuple(result)
+    @staticmethod
+    def _normalize(v: str) -> tuple[int, ...]:
+        parts = v.split(".")
+        result = []
+        for p in parts:
+            if p.replace(".", "").isdigit():
+                result.append(int(p))
+            elif "x" in p.lower():
+                result.append(999)
+            else:
+                result.append(0)
+        return tuple(result)
 
-        ver = _parse(version)
-        start = _parse(self.start)
-        if ver < start:
+    def contains(self, version: str) -> bool:
+        ver = self._normalize(version)
+        start = self._normalize(self.start)
+        length = max(len(ver), len(start))
+        ver_norm = ver + (0,) * (length - len(ver))
+        start_norm = start + (0,) * (length - len(start))
+        if ver_norm < start_norm:
             return False
         if self.end is not None:
-            end = _parse(self.end)
-            if ver > end:
+            end = self._normalize(self.end)
+            length = max(len(ver_norm), len(end))
+            ver_norm = ver_norm + (0,) * (length - len(ver_norm))
+            end_norm = end + (0,) * (length - len(end))
+            if ver_norm > end_norm:
                 return False
         return True
 
@@ -128,10 +135,7 @@ class CVEDatabase:
 
     def add_from_dict(self, data: dict[str, Any]) -> None:
         vr_data = data.get("affected_versions", [])
-        vrs = tuple(
-            VersionRange(start=v["start"], end=v.get("end"))
-            for v in vr_data
-        )
+        vrs = tuple(VersionRange(start=v["start"], end=v.get("end")) for v in vr_data)
         cve = CVE(
             id=data["id"],
             description=data.get("description", ""),
@@ -173,7 +177,9 @@ class CVEDatabase:
                             break
         return tuple(results)
 
-    def query_by_component(self, component: str, version: str | None = None) -> tuple[CVE, ...]:
+    def query_by_component(
+        self, component: str, version: str | None = None
+    ) -> tuple[CVE, ...]:
         results = []
         for cve in self._cves.values():
             if component in cve.affected_components:
@@ -186,7 +192,9 @@ class CVEDatabase:
                             break
         return tuple(results)
 
-    def query_by_severity(self, severity: str, version: str | None = None) -> tuple[CVE, ...]:
+    def query_by_severity(
+        self, severity: str, version: str | None = None
+    ) -> tuple[CVE, ...]:
         results = []
         for cve in self._cves.values():
             if cve.severity == severity:
@@ -233,16 +241,26 @@ class CVEDatabase:
         results = list(self._cves.values())
 
         if version:
-            results = [c for c in results if any(vr.contains(version) for vr in c.affected_versions)]
+            results = [
+                c
+                for c in results
+                if any(vr.contains(version) for vr in c.affected_versions)
+            ]
 
         if goals:
             results = [c for c in results if any(g in c.goals for g in goals)]
 
         if components:
-            results = [c for c in results if any(co in c.affected_components for co in components)]
+            results = [
+                c
+                for c in results
+                if any(co in c.affected_components for co in components)
+            ]
 
         if exploit_types:
-            results = [c for c in results if any(et in c.exploit_type for et in exploit_types)]
+            results = [
+                c for c in results if any(et in c.exploit_type for et in exploit_types)
+            ]
 
         if exploit_available is not None:
             results = [c for c in results if c.exploit_available == exploit_available]
@@ -250,33 +268,37 @@ class CVEDatabase:
         if min_severity:
             severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
             min_val = severity_order.get(min_severity, 1)
-            results = [c for c in results if severity_order.get(c.severity, 99) <= min_val]
+            results = [
+                c for c in results if severity_order.get(c.severity, 99) <= min_val
+            ]
 
         return tuple(results)
 
     def to_dict(self) -> list[dict[str, Any]]:
         result = []
         for cve_id, cve in sorted(self._cves.items()):
-            result.append({
-                "id": cve.id,
-                "description": cve.description,
-                "affected_versions": [
-                    {"start": vr.start, "end": vr.end}
-                    for vr in cve.affected_versions
-                ],
-                "affected_components": list(cve.affected_components),
-                "exploit_type": list(cve.exploit_type),
-                "exploit_available": cve.exploit_available,
-                "goals": list(cve.goals),
-                "chainable_with": list(cve.chainable_with),
-                "mitigations": list(cve.mitigations),
-                "patch_version": cve.patch_version,
-                "severity": cve.severity,
-                "published": cve.published,
-                "references": list(cve.references),
-                "credits": list(cve.credits),
-                "exploit_path": cve.exploit_path,
-            })
+            result.append(
+                {
+                    "id": cve.id,
+                    "description": cve.description,
+                    "affected_versions": [
+                        {"start": vr.start, "end": vr.end}
+                        for vr in cve.affected_versions
+                    ],
+                    "affected_components": list(cve.affected_components),
+                    "exploit_type": list(cve.exploit_type),
+                    "exploit_available": cve.exploit_available,
+                    "goals": list(cve.goals),
+                    "chainable_with": list(cve.chainable_with),
+                    "mitigations": list(cve.mitigations),
+                    "patch_version": cve.patch_version,
+                    "severity": cve.severity,
+                    "published": cve.published,
+                    "references": list(cve.references),
+                    "credits": list(cve.credits),
+                    "exploit_path": cve.exploit_path,
+                }
+            )
         return result
 
     def save_json(self, path: pathlib.Path) -> None:
@@ -321,5 +343,7 @@ class CVEDatabase:
             "by_severity": dict(sorted(by_severity.items())),
             "by_component": dict(sorted(by_component.items(), key=lambda x: -x[1])),
             "by_goal": dict(sorted(by_goal.items(), key=lambda x: -x[1])),
-            "by_exploit_type": dict(sorted(by_exploit_type.items(), key=lambda x: -x[1])),
+            "by_exploit_type": dict(
+                sorted(by_exploit_type.items(), key=lambda x: -x[1])
+            ),
         }

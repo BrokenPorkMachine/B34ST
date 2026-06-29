@@ -21,6 +21,7 @@ class FileSystemAcquisitionError(RuntimeError):
 @dataclasses.dataclass(frozen=True)
 class FileEntry:
     """Describes a file discovered during filesystem enumeration."""
+
     path: str
     size: int
     sha256: str = ""
@@ -61,9 +62,7 @@ class FileSystemAcquisitor:
         try:
             entries = self._list_fn(path)
         except Exception as exc:
-            raise FileSystemAcquisitionError(
-                f"failed to list {path}: {exc}"
-            ) from exc
+            raise FileSystemAcquisitionError(f"failed to list {path}: {exc}") from exc
 
         manifest_path = output_dir / "filesystem" / "listing.json"
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -104,7 +103,7 @@ class FileSystemAcquisitor:
 
         try:
             entry = self._stat_fn(path) if self._stat_fn else None
-        except Exception:
+        except OSError:
             entry = None
 
         sha256 = hashlib.sha256()
@@ -131,11 +130,13 @@ class FileSystemAcquisitor:
             with chunk_file.open("ab") as f:
                 f.write(data)
 
-            chunks.append({
-                "offset": offset,
-                "size": len(data),
-                "sha256": chunk_hash,
-            })
+            chunks.append(
+                {
+                    "offset": offset,
+                    "size": len(data),
+                    "sha256": chunk_hash,
+                }
+            )
             total += len(data)
             offset += len(data)
 
@@ -158,7 +159,9 @@ class FileSystemAcquisitor:
                 "mode": entry.mode if entry else "",
                 "owner": entry.owner if entry else "",
                 "modified": entry.modified if entry else "",
-            } if entry else {},
+            }
+            if entry
+            else {},
         }
         return result
 

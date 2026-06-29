@@ -16,7 +16,9 @@ import sys
 
 from b34st.version import __version__
 
-SECURITY_MODEL_CONFIG_PATH = pathlib.Path("~/.config/fbr34ker/security-model").expanduser()
+SECURITY_MODEL_CONFIG_PATH = pathlib.Path(
+    "~/.config/fbr34ker/security-model"
+).expanduser()
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 ARTIFACT_ROOT = ROOT / "runtime-artifacts" / "b34st" / "control-panel"
@@ -43,12 +45,48 @@ class Session:
         self.directory = ARTIFACT_ROOT / stamp
         self.directory.mkdir(parents=True, exist_ok=True)
         self.log_path = self.directory / "session.log"
+        self._log_lock = threading.Lock()
+        self._log_buffer: list[str] = []
+        self._log_thread: threading.Thread | None = None
+        self._log_stop = threading.Event()
+        self._start_log_flusher()
         self.record("B34ST control-panel session started")
+
+    def _start_log_flusher(self) -> None:
+        def _flush():
+            while not self._log_stop.wait(timeout=0.5):
+                with self._log_lock:
+                    if self._log_buffer:
+                        try:
+                            with self.log_path.open("a", encoding="utf-8") as stream:
+                                stream.writelines(self._log_buffer)
+                                stream.flush()
+                        except OSError:
+                            pass
+                        self._log_buffer.clear()
+            with self._log_lock:
+                if self._log_buffer:
+                    try:
+                        with self.log_path.open("a", encoding="utf-8") as stream:
+                            stream.writelines(self._log_buffer)
+                            stream.flush()
+                    except OSError:
+                        pass
+                    self._log_buffer.clear()
+
+        self._log_thread = threading.Thread(target=_flush, daemon=True)
+        self._log_thread.start()
 
     def record(self, message: str) -> None:
         timestamp = dt.datetime.now().astimezone().isoformat(timespec="seconds")
-        with self.log_path.open("a", encoding="utf-8") as stream:
-            stream.write(f"[{timestamp}] {message}\n")
+        line = f"[{timestamp}] {message}\n"
+        with self._log_lock:
+            self._log_buffer.append(line)
+
+    def close(self) -> None:
+        self._log_stop.set()
+        if self._log_thread is not None:
+            self._log_thread.join(timeout=2.0)
 
     def run(
         self,
@@ -92,11 +130,29 @@ class Session:
                     bufsize=1,
                 )
                 assert process.stdout is not None
-                for line in process.stdout:
-                    print(line, end="")
-                    with self.log_path.open("a", encoding="utf-8") as stream:
-                        stream.write(line)
-                return_code = process.wait()
+                try:
+                    while True:
+                        line = process.stdout.readline()
+                        if not line and process.poll() is not None:
+                            break
+                        if line:
+                            print(line, end="")
+                            self.record(line.rstrip("\n"))
+                except (OSError, IOError) as exc:
+                    print(f"\n[WARN] subprocess stream error: {exc}", file=sys.stderr)
+                rc = process.returncode
+                if rc is None:
+                    try:
+                        process.wait(timeout=5)
+                        rc = process.returncode
+                    except (subprocess.TimeoutExpired, OSError):
+                        process.kill()
+                        try:
+                            process.wait(timeout=5)
+                        except (OSError, subprocess.TimeoutExpired):
+                            pass
+                        rc = getattr(process, "returncode", -9)
+                return_code = rc
         except OSError as exc:
             self.record(f"ERROR {label}: {exc}")
             print(f"Unable to start command: {exc}", file=sys.stderr)
@@ -109,7 +165,7 @@ class Session:
 
     def run_command(
         self,
-        command: list[str],
+        arguments: list[str],
         *,
         label: str,
         interactive: bool = False,
@@ -148,11 +204,29 @@ class Session:
                     bufsize=1,
                 )
                 assert process.stdout is not None
-                for line in process.stdout:
-                    print(line, end="")
-                    with self.log_path.open("a", encoding="utf-8") as stream:
-                        stream.write(line)
-                return_code = process.wait()
+                try:
+                    while True:
+                        line = process.stdout.readline()
+                        if not line and process.poll() is not None:
+                            break
+                        if line:
+                            print(line, end="")
+                            self.record(line.rstrip("\n"))
+                except (OSError, IOError) as exc:
+                    print(f"\n[WARN] subprocess stream error: {exc}", file=sys.stderr)
+                rc = process.returncode
+                if rc is None:
+                    try:
+                        process.wait(timeout=5)
+                        rc = process.returncode
+                    except (subprocess.TimeoutExpired, OSError):
+                        process.kill()
+                        try:
+                            process.wait(timeout=5)
+                        except (OSError, subprocess.TimeoutExpired):
+                            pass
+                        rc = getattr(process, "returncode", -9)
+                return_code = rc
         except OSError as exc:
             self.record(f"ERROR {label}: {exc}")
             print(f"Unable to start command: {exc}", file=sys.stderr)
@@ -186,7 +260,9 @@ def _pause() -> None:
         _prompt("Press Enter to continue")
 
 
-def _header(session: Session, subtitle: str = "Operator control plane", show_help: bool = True) -> None:
+def _header(
+    session: Session, subtitle: str = "Operator control plane", show_help: bool = True
+) -> None:
     print("B34ST // FBR34KER")
     print(subtitle)
     print(f"Session: {session.directory.relative_to(ROOT)}")
@@ -198,51 +274,96 @@ def _header(session: Session, subtitle: str = "Operator control plane", show_hel
 def _main_menu_options() -> list[tuple[str, str, str]]:
     """
     Returns the enhanced main menu options with descriptions and automation indicators.
-    
+
     Returns:
         List of tuples (key, label, description) for main menu options
     """
     return [
-        ("1", "External hardware / USBliter8 / first-stage execution", 
-         "Pwn, inspect, and jailbreak A12+ devices via USBliter8 (guided automation available)"),
-        ("2", "Load images, next stages, modules, or deployment", 
-         "Boot chain, deployment, modules, runtime (guided deployment plan with default options)"),
-        ("3", "Authorized runtime modifications and evidence", 
-         "Kernel patches, secure boot bypass, persistence (validate evidence-gated workflows)"),
-        ("4", "Build, test, and QEMU simulation", 
-         "Host check, build, test, simulate safely (guided validation with full scriptable automation)"),
-        ("5", "Runtime console / logger / shell", 
-         "Interactive shell, logging, exploration (guided runtime inspection and log export)"),
-        ("6", "Evidence, validation, and release", 
-         "Validate sessions, generate reports, release gate (full automation)"),
-        ("7", "Targeted IPSW downloads, upgrades, and tethered downgrades", 
-         "Firmware catalog, signed updates, guide (guided with interactive planning)"),
-        ("8", "Create a bounded environment plan", 
-         "Plan iOS 17+ research environment (structured with defaults)"),
-        ("9", "Open the FBR34KER maintenance menu", 
-         "Legacy FBR34KER guided console (original workflow walkthrough)"),
-        ("10", "View this B34ST session log", 
-         "Review command transcript and explain evidence flow (auto-generate summaries)"),
-        ("11", "Forensics and data acquisition", 
-         "iCloud/Keychain, activation, passcode, memory/storage (profile-based)"),
-        ("12", "CVE database & exploit chain planner", 
-         "Search exploits, plan chains, suggest attacks (guidance provided)"),
-        ("13", "Fuzzer orchestration", 
-         "Schedule fuzzing across all targets (automated with presets)"),
-        ("14", "Ramdisk maker and loader", 
-         "Build deterministic FBRD bundles (guided for common use cases)"),
-        ("0", "Exit", 
-         "Save, validate session state, and exit B34ST (with confirmation)"),
+        (
+            "1",
+            "External hardware / USBliter8 / first-stage execution",
+            "Pwn, inspect, and jailbreak A12+ devices via USBliter8 (guided automation available)",
+        ),
+        (
+            "2",
+            "Load images, next stages, modules, or deployment",
+            "Boot chain, deployment, modules, runtime (guided deployment plan with default options)",
+        ),
+        (
+            "3",
+            "Authorized runtime modifications and evidence",
+            "Kernel patches, secure boot bypass, persistence (validate evidence-gated workflows)",
+        ),
+        (
+            "4",
+            "Build, test, and QEMU simulation",
+            "Host check, build, test, simulate safely (guided validation with full scriptable automation)",
+        ),
+        (
+            "5",
+            "Runtime console / logger / shell",
+            "Interactive shell, logging, exploration (guided runtime inspection and log export)",
+        ),
+        (
+            "6",
+            "Evidence, validation, and release",
+            "Validate sessions, generate reports, release gate (full automation)",
+        ),
+        (
+            "7",
+            "Targeted IPSW downloads, upgrades, and tethered downgrades",
+            "Firmware catalog, signed updates, guide (guided with interactive planning)",
+        ),
+        (
+            "8",
+            "Create a bounded environment plan",
+            "Plan iOS 17+ research environment (structured with defaults)",
+        ),
+        (
+            "9",
+            "Open the FBR34KER maintenance menu",
+            "Legacy FBR34KER guided console (original workflow walkthrough)",
+        ),
+        (
+            "10",
+            "View this B34ST session log",
+            "Review command transcript and explain evidence flow (auto-generate summaries)",
+        ),
+        (
+            "11",
+            "Forensics and data acquisition",
+            "iCloud/Keychain, activation, passcode, memory/storage (profile-based)",
+        ),
+        (
+            "12",
+            "CVE database & exploit chain planner",
+            "Search exploits, plan chains, suggest attacks (guidance provided)",
+        ),
+        (
+            "13",
+            "Fuzzer orchestration",
+            "Schedule fuzzing across all targets (automated with presets)",
+        ),
+        (
+            "14",
+            "Ramdisk maker and loader",
+            "Build deterministic FBRD bundles (guided for common use cases)",
+        ),
+        (
+            "0",
+            "Exit",
+            "Save, validate session state, and exit B34ST (with confirmation)",
+        ),
     ]
 
 
 def get_category_description(category: str) -> str:
     """
     Get a detailed description of a menu category for educational purposes.
-    
+
     Args:
         category: The category name to get description for
-        
+
     Returns:
         Detailed description of the category
     """
@@ -322,16 +443,16 @@ def get_category_description(category: str) -> str:
         "Exit": (
             "Save session state and exit gracefully. Confirmation required "
             "to prevent accidental termination."
-        )
+        ),
     }
-    
+
     return descriptions.get(category, f"Documentation for {category} not available.")
 
 
 def _load_augmented_help() -> dict[str, dict]:
     """
     Load augmented help with detailed explanations for each menu option.
-    
+
     Returns:
         Dictionary with detailed help information
     """
@@ -341,106 +462,106 @@ def _load_augmented_help() -> dict[str, dict]:
             "automation": "Guided workflows with automatic hardware validation",
             "best_for": "First-time hardware exploitation, automated evidence collection",
             "risk_level": "High - requires physical device",
-            "estimated_time": "10-30 minutes depending on setup"
+            "estimated_time": "10-30 minutes depending on setup",
         },
         "Load images, next stages, modules, or deployment": {
             "overview": "Manage boot chain components, modules, and deployment workflows",
             "automation": "Predefined deployment scripts with evidence validation",
             "best_for": "Controlled deployment with audit trails",
             "risk_level": "Medium - requires authorization",
-            "estimated_time": "5-15 minutes"
+            "estimated_time": "5-15 minutes",
         },
         "Authorized runtime modifications and evidence": {
             "overview": "Perform kernel patches, secure boot bypass, persistence operations",
             "automation": "Evidence-gated with mandatory verification",
             "best_for": "Research environments with strict evidence requirements",
             "risk_level": "High - memory writes enabled",
-            "estimated_time": "15-45 minutes"
+            "estimated_time": "15-45 minutes",
         },
         "Build, test, and QEMU simulation": {
             "overview": "Verify host readiness, build artifacts, run tests, simulate",
             "automation": "Complete automation with all builds and test suites",
             "best_for": "Continuous integration, initial setup, verification",
             "risk_level": "Low - no hardware required",
-            "estimated_time": "30-120 minutes depending on build size"
+            "estimated_time": "30-120 minutes depending on build size",
         },
         "Runtime console / logger / shell": {
             "overview": "Interactive shell for exploration, logging, and debugging",
             "automation": "Live recording with export capabilities",
             "best_for": "Real-time investigation and forensic analysis",
             "risk_level": "Low - read-only by default",
-            "estimated_time": "As needed"
+            "estimated_time": "As needed",
         },
         "Evidence, validation, and release": {
             "overview": "Validate sessions, generate reports, package releases",
             "automation": "Full automation with validation gates",
             "best_for": "Release management with audit requirements",
             "risk_level": "High - high-privilege operations",
-            "estimated_time": "10-30 minutes"
+            "estimated_time": "10-30 minutes",
         },
         "Targeted IPSW downloads, upgrades, and tethered downgrades": {
             "overview": "Manage iOS firmware with signed updates and guided workflows",
             "automation": "Guided with configurable preserve-data options",
             "best_for": "iOS firmware management with data preservation",
             "risk_level": "Medium - requires device authorization",
-            "estimated_time": "20-60 minutes"
+            "estimated_time": "20-60 minutes",
         },
         "Create a bounded environment plan": {
             "overview": "Plan iOS 17+ research environments with exact configuration",
             "automation": "Structured planning with validation",
             "best_for": "Research environment setup with documentation",
             "risk_level": "Low - planning only",
-            "estimated_time": "5-10 minutes"
+            "estimated_time": "5-10 minutes",
         },
         "Open the FBR34KER maintenance menu": {
             "overview": "Legacy guided console with 15-category menu system",
             "automation": "Original guided workflows preserved",
             "best_for": "Existing users familiar with legacy interface",
             "risk_level": "Same as original",
-            "estimated_time": "As needed"
+            "estimated_time": "As needed",
         },
         "View this B34ST session log": {
             "overview": "Review complete command transcript with evidence summaries",
             "automation": "Auto-generated reports and searchable logs",
             "best_for": "Audit trails and investigation documentation",
             "risk_level": "Low - read-only access",
-            "estimated_time": "5-20 minutes"
+            "estimated_time": "5-20 minutes",
         },
         "Forensics and data acquisition": {
             "overview": "Comprehensive data collection from connected devices",
             "automation": "Profile-based acquisition with validation",
             "best_for": "Systematic forensic data collection",
             "risk_level": "High - read device state",
-            "estimated_time": "30-120 minutes"
+            "estimated_time": "30-120 minutes",
         },
         "CVE database & exploit chain planner": {
             "overview": "Plan and suggest exploit chains for specific goals",
             "automation": "AI-assisted suggestion with version compatibility",
             "best_for": "Strategic exploitation planning",
             "risk_level": "Medium - planning only",
-            "estimated_time": "5-15 minutes"
+            "estimated_time": "5-15 minutes",
         },
         "Fuzzer orchestration": {
             "overview": "Schedule and manage fuzzing campaigns across targets",
             "automation": "Automated scheduling with predefined targets",
             "best_for": "Security research and vulnerability discovery",
             "risk_level": "High - may generate crashes",
-            "estimated_time": "Variable"
+            "estimated_time": "Variable",
         },
         "Ramdisk maker and loader": {
             "overview": "Create deterministic FBRD bundles with iOS compatibility",
             "automation": "Guided production with template support",
             "best_for": "Deterministic iOS image creation",
             "risk_level": "High - requires approved components",
-            "estimated_time": "30-90 minutes"
+            "estimated_time": "30-90 minutes",
         },
         "Exit": {
             "overview": "Save and exit with session confirmation",
             "automation": "Auto-save and cleanup",
             "best_for": "Graceful teardown of interactive sessions",
             "risk_level": "Low - safe operation",
-            "estimated_time": "Immediately"
-        }
+            "estimated_time": "Immediately",
+        },
     }
 
 
@@ -449,7 +570,7 @@ def _help_for_category(subtitle: str) -> None:
         "Safe simulation workflow": {
             "1": "Validate host, build QEMU profile, run test",
             "2": "Standard simulation (QEMU virt)",
-            "3": "Guided simulation with validation"
+            "3": "Guided simulation with validation",
         },
         "Build, test, and simulation": {
             "1": "System diagnostics (doctor check)",
@@ -459,7 +580,7 @@ def _help_for_category(subtitle: str) -> None:
             "5": "Non-QEMU verification",
             "6": "Full verification with QEMU",
             "7": "Hardware-probe QEMU test",
-            "8": "Clean build artifacts"
+            "8": "Clean build artifacts",
         },
         "Build, test, and QEMU simulation": {
             "1": "System diagnostics (doctor check)",
@@ -469,7 +590,7 @@ def _help_for_category(subtitle: str) -> None:
             "5": "Non-QEMU verification",
             "6": "Full verification with QEMU",
             "7": "Hardware-probe QEMU test",
-            "8": "Clean build artifacts"
+            "8": "Clean build artifacts",
         },
         "A12+ USBliter8 — Pwn, Inspect, Jailbreak": {
             "1": "Run hardware guide and checklist",
@@ -481,7 +602,7 @@ def _help_for_category(subtitle: str) -> None:
             "7": "iRecovery firmware verification",
             "8": "Authorized first-stage bring-up",
             "9": "Collect adapter evidence",
-            "10": "Authorized adapter reset"
+            "10": "Authorized adapter reset",
         },
         "External hardware / USBliter8 / first-stage execution": {
             "1": "Run hardware guide and checklist",
@@ -493,24 +614,24 @@ def _help_for_category(subtitle: str) -> None:
             "7": "Verify firmware compatibility",
             "8": "Perform authorized first-stage bring-up",
             "9": "Collect adapter evidence",
-            "10": "Reset the adapter session"
+            "10": "Reset the adapter session",
         },
         "Guided research-runtime workflow": {
             "1": "Launch evidence-gated B34ST orchestrator",
             "2": "Generate runtime-stage evidence template",
-            "3": "Create exact-kernel evidence template"
+            "3": "Create exact-kernel evidence template",
         },
         "Authorized modification workflows": {
             "1": "Evidence-gated kernel/bootstrap workflow",
             "2": "Validate external modification evidence",
-            "3": "Generate evidence template"
+            "3": "Generate evidence template",
         },
         "Authorized runtime modifications and evidence": {
             "1": "Kernel patch workflow with evidence gates",
             "2": "Secure boot bypass workflow",
             "3": "Persistence workflow",
             "4": "Validate external modification evidence",
-            "5": "Generate evidence templates"
+            "5": "Generate evidence templates",
         },
         "Evidence, validation, and release": {
             "1": "Validate a session bundle",
@@ -518,7 +639,7 @@ def _help_for_category(subtitle: str) -> None:
             "3": "Compare two evidence bundles",
             "4": "Generate a physical-validation report",
             "5": "Release gate checks",
-            "6": "Package release"
+            "6": "Package release",
         },
         "Targeted IPSW and restore workflows": {
             "1": "List firmware for a product",
@@ -529,7 +650,7 @@ def _help_for_category(subtitle: str) -> None:
             "6": "Execute signed update preserving data",
             "7": "Erase restore",
             "8": "Guided tethered downgrade",
-            "9": "Explain tethered downgrade requirements"
+            "9": "Explain tethered downgrade requirements",
         },
         "Targeted IPSW downloads, upgrades, and tethered downgrades": {
             "1": "List firmware for a product",
@@ -540,13 +661,13 @@ def _help_for_category(subtitle: str) -> None:
             "6": "Execute a signed update preserving data",
             "7": "Perform an erase restore",
             "8": "Guided tethered downgrade",
-            "9": "Explain tethered downgrade requirements"
+            "9": "Explain tethered downgrade requirements",
         },
         "Load images, next stages, modules, or deployment": {
             "1": "Plan or execute deployment workflows",
             "2": "Manage runtime modules",
             "3": "Build or inspect boot images",
-            "4": "Review loader and next-stage flows"
+            "4": "Review loader and next-stage flows",
         },
         "Ramdisk maker and loader": {
             "1": "Guided maker/loader (recommended)",
@@ -555,7 +676,7 @@ def _help_for_category(subtitle: str) -> None:
             "4": "Create target/build compatibility plan",
             "5": "Build deterministic FBRD bundle",
             "6": "Inspect and verify an FBRD bundle",
-            "7": "Plan or execute external adapter load"
+            "7": "Plan or execute external adapter load",
         },
         "Forensics and data acquisition": {
             "1": "List built-in acquisition profiles",
@@ -568,7 +689,7 @@ def _help_for_category(subtitle: str) -> None:
             "8": "Verify an evidence bundle",
             "9": "iCloud/Keychain/Keybag acquisition",
             "10": "Activation/FMI/Baseband operations",
-            "11": "Passcode management"
+            "11": "Passcode management",
         },
         "CVE database & exploit chain planner": {
             "1": "Show database statistics",
@@ -577,36 +698,32 @@ def _help_for_category(subtitle: str) -> None:
             "4": "Plan exploit chain for a goal",
             "5": "Suggest achievable goals for a version",
             "6": "List available exploit goals",
-            "7": "Filter CVEs by criteria"
+            "7": "Filter CVEs by criteria",
         },
-        "Fuzzer orchestration": {
-            "1": "List available fuzz targets"
-        },
+        "Fuzzer orchestration": {"1": "List available fuzz targets"},
         "Runtime console / logger / shell": {
             "1": "Open an interactive runtime console",
             "2": "Capture and export logs",
-            "3": "Inspect runtime state safely"
+            "3": "Inspect runtime state safely",
         },
         "Create a bounded environment plan": {
             "simulation": "Create a safe simulation plan",
-            "research-runtime": "Create an evidence-gated runtime plan"
+            "research-runtime": "Create an evidence-gated runtime plan",
         },
         "Open the FBR34KER maintenance menu": {
             "1": "Launch the legacy guided maintenance console"
         },
         "View this B34ST session log": {
             "1": "Review the session transcript",
-            "2": "Inspect collected evidence paths"
+            "2": "Inspect collected evidence paths",
         },
-        "Exit": {
-            "0": "Save the session log and exit the control panel"
-        },
+        "Exit": {"0": "Save the session log and exit the control panel"},
         "Environment planning": {
             "simulation": "Review, verify, and launch virtualization",
-            "research-runtime": "Guide for evidence-gated orchestration"
-        }
+            "research-runtime": "Guide for evidence-gated orchestration",
+        },
     }
-    
+
     if subtitle in categories:
         print("  Help - " + subtitle + ":")
         for key, desc in categories[subtitle].items():
@@ -625,34 +742,34 @@ def _help_for_whole_menu() -> None:
     print("\n" + "=" * 70)
     print("B34ST MENU SYSTEM - COMPREHENSIVE HELP")
     print("=" * 70)
-    
+
     print("\nThe B34ST (B34KER/STAR) unified control panel provides 15 main workflow")
     print("categories for conducting authorized physical validation and")
     print("research on A12+ iPhone/iPad hardware.\n")
-    
+
     print("Each category contains guided workflows with:")
     print("  • Interactive step-by-step instructions")
     print("  • Smart defaults for common use cases")
     print("  • Comprehensive help documentation")
     print("  • Evidence-gated operations for security")
     print("  • Session logging and audit trails\n")
-    
+
     menu_options = _main_menu_options()
-    
+
     print("Main Workflow Categories:")
     print("-" * 70)
-    
+
     for key, label, desc in menu_options:
         print(f"\n  {key}. {label}")
         print(f"     {desc}")
-    
+
     print("\n" + "-" * 70)
     print("\nNavigation:")
     print("  • Press number to select a workflow")
     print("  • Press 'h' or '?' at prompts for detailed help")
     print("  • Press 'q' at any time to return to previous menu")
     print("  • Default selections are suggested for optimal first-time usage\n")
-    
+
     print("Special Features:")
     print("  • Session logging — All operations recorded with timestamps")
     print("  • Evidence collection — Structured results with validation")
@@ -660,125 +777,171 @@ def _help_for_whole_menu() -> None:
     print("  • Help system — Category-specific guidance")
     print("  • Automation ready — Scriptable workflows available")
     print("  • Educational content — Step-by-step instructions")
-    
+
     print("\n" + "=" * 70)
 
 
-def _enhanced_prompt(label: str, options: dict[str, str], default: str | None = None, help_text: str | None = None) -> str:
+def _enhanced_prompt(
+    label: str,
+    options: dict[str, str],
+    default: str | None = None,
+    help_text: str | None = None,
+) -> str:
     """
     Enhanced interactive prompt with comprehensive help and validation.
-    
+
     Args:
         label: Prompt label
         options: Dictionary mapping choices to descriptions
         default: Default option (optional)
         help_text: Additional help information (optional)
-    
+
     Returns:
         User's choice
     """
     if help_text:
         print(f"  {help_text}")
         print()
-    
+
     print("  Available options:")
     for key, desc in options.items():
         marker = " (recommended)" if default and key == default else ""
         print(f"    {key}. {desc}{marker}")
-    
+
     if default:
         prompt_text = f"{label} ({default})"
     else:
         prompt_text = label
-    
+
     choice = _prompt(prompt_text, "")
-    
+
     if choice == "?" or choice == "h":
         print("\n  Option details:")
         for key, desc in options.items():
             print(f"    {key}: {desc}")
         print("    Press Enter to use default or available choice")
         return _enhanced_prompt(label, options, default, help_text)
-    
+
     return choice
 
 
-def _smart_default_recommendation(category: str, device_info: dict | None = None) -> tuple[str, str]:
+def _smart_default_recommendation(
+    category: str, device_info: dict | None = None
+) -> tuple[str, str]:
     """
     Provide intelligent default recommendations based on category and device info.
-    
+
     Args:
         category: Menu category
         device_info: Device information (optional)
-    
+
     Returns:
         Tuple of (recommended_choice, reason)
     """
     if category == "Build, test, and simulation":
         if device_info and device_info.get("chipset", "").startswith("A12"):
-            return "6", "QEMU verification tests provide safe simulation for A12+ hardware"
+            return (
+                "6",
+                "QEMU verification tests provide safe simulation for A12+ hardware",
+            )
         return "1", "Start with system diagnostics to verify host environment"
 
     elif category == "Build, test, and QEMU simulation":
         if device_info and device_info.get("chipset", "").startswith("A12"):
             return "6", "QEMU verification gives the safest first pass for A12+ targets"
         return "1", "Start with host diagnostics before building or testing"
-    
+
     elif category == "A12+ USBliter8 — Pwn, Inspect, Jailbreak":
         if device_info and device_info.get("chipset", "").startswith("A12"):
-            return "3", "Start with Pwn & Inspect for full protection audit of detected A12+ chipset"
+            return (
+                "3",
+                "Start with Pwn & Inspect for full protection audit of detected A12+ chipset",
+            )
         return "2", "Begin with hardware preparation for USBliter8"
 
     elif category == "External hardware / USBliter8 / first-stage execution":
         if device_info and device_info.get("chipset", "").startswith("A12"):
-            return "3", "Inspect the detected hardware before attempting a full exploit chain"
-        return "2", "Begin with hardware and firmware preparation before live device work"
+            return (
+                "3",
+                "Inspect the detected hardware before attempting a full exploit chain",
+            )
+        return (
+            "2",
+            "Begin with hardware and firmware preparation before live device work",
+        )
 
     elif category == "Load images, next stages, modules, or deployment":
-        return "1", "Start with deployment planning to verify image and module choices safely"
+        return (
+            "1",
+            "Start with deployment planning to verify image and module choices safely",
+        )
 
     elif category == "Authorized runtime modifications and evidence":
-        return "1", "Begin with the evidence-gated kernel workflow before higher-risk modifications"
+        return (
+            "1",
+            "Begin with the evidence-gated kernel workflow before higher-risk modifications",
+        )
 
     elif category == "Runtime console / logger / shell":
         return "1", "Open the console first to inspect live state before making changes"
 
     elif category == "Evidence, validation, and release":
-        return "1", "Validate the session bundle first before generating reports or release artifacts"
-    
+        return (
+            "1",
+            "Validate the session bundle first before generating reports or release artifacts",
+        )
+
     elif category == "Targeted IPSW and restore workflows":
         return "5", "Guided tethered downgrade is recommended for A12+ with validation"
 
     elif category == "Targeted IPSW downloads, upgrades, and tethered downgrades":
-        return "1", "List available firmware first so the plan uses a valid signed or cached target"
-    
+        return (
+            "1",
+            "List available firmware first so the plan uses a valid signed or cached target",
+        )
+
     elif category == "Ramdisk maker and loader":
         return "1", "Guided maker/loader provides the most robust workflow"
-    
+
     elif category == "Forensics and data acquisition":
-        return "2", "Quick acquisition is ideal for initial investigation with lower overhead"
-    
+        return (
+            "2",
+            "Quick acquisition is ideal for initial investigation with lower overhead",
+        )
+
     elif category == "CVE database & exploit chain planner":
         return "4", "Plan exploit chain to achieve specific security objectives"
-    
+
     elif category == "Fuzzer orchestration":
         return "1", "List available fuzz targets first to understand scope"
-    
+
     elif category == "Environment planning":
         return "simulation", "Safe simulation workflow requires no physical hardware"
 
     elif category == "Create a bounded environment plan":
-        return "simulation", "A bounded simulation plan is the safest default starting point"
+        return (
+            "simulation",
+            "A bounded simulation plan is the safest default starting point",
+        )
 
     elif category == "Open the FBR34KER maintenance menu":
-        return "1", "Launch the legacy console only when you specifically need the older workflow surface"
+        return (
+            "1",
+            "Launch the legacy console only when you specifically need the older workflow surface",
+        )
 
     elif category == "View this B34ST session log":
-        return "1", "Review the transcript first to understand command flow and evidence capture"
+        return (
+            "1",
+            "Review the transcript first to understand command flow and evidence capture",
+        )
 
     elif category == "Exit":
-        return "0", "Exit only after the current session transcript and evidence are reviewed"
-    
+        return (
+            "0",
+            "Exit only after the current session transcript and evidence are reviewed",
+        )
+
     return "", "No specific recommendation available"
 
 
@@ -792,19 +955,21 @@ def _guided_start(device_info: dict | None = None) -> tuple[str, str]:
     return _smart_default_recommendation("Build, test, and simulation", device_info)
 
 
-def _expand_menu_for_category(title: str, items: list[tuple[str, str]]) -> list[tuple[str, str]]:
+def _expand_menu_for_category(
+    title: str, items: list[tuple[str, str]]
+) -> list[tuple[str, str]]:
     """
     Intelligently expand menu items with additional subcategories.
-    
+
     Args:
         title: Menu title
         items: Original menu items
-    
+
     Returns:
         Expanded menu items with subcategories
     """
     expanded_items = list(items)
-    
+
     category_expansions = {
         "Build, test, and simulation": [
             ("1a", "Host readiness verification only"),
@@ -839,11 +1004,11 @@ def _expand_menu_for_category(title: str, items: list[tuple[str, str]]) -> list[
             ("8a", "Verify extracted artifacts"),
         ],
     }
-    
+
     if title in category_expansions:
         for item in category_expansions[title]:
             expanded_items.append(item)
-    
+
     return expanded_items
 
 
@@ -962,7 +1127,9 @@ def _external_hardware(session: Session) -> None:
         print()
         print("  Security Model:")
         print("    • State model: No kernel memory writes (default, safe)")
-        print("    • Active model: Memory writes enabled (requires explicit authorization)")
+        print(
+            "    • Active model: Memory writes enabled (requires explicit authorization)"
+        )
         print()
         print("  Workflow Overview:")
         print("    1. Hardware preparation and validation")
@@ -1505,18 +1672,27 @@ def _usbliter8_prepare_hardware(session: Session) -> int:
 
     prep_record = session.directory / "hardware-prep.json"
     import json
-    prep_record.write_text(json.dumps({
-        "schema_version": 1,
-        "stage": "hardware_preparation",
-        "status": "completed",
-        "items": [{"item": k, "status": v} for k, v in statuses.items()],
-        "session": str(session.directory),
-    }, indent=2) + "\n")
+
+    prep_record.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "stage": "hardware_preparation",
+                "status": "completed",
+                "items": [{"item": k, "status": v} for k, v in statuses.items()],
+                "session": str(session.directory),
+            },
+            indent=2,
+        )
+        + "\n"
+    )
     session.record(f"Hardware preparation record: {prep_record}")
 
     build_skip = _prompt("Build operational image? (Y/skip)", "Y")
     if not build_skip.lower() in ("s", "skip"):
-        session.run_command(["make", "build-operational"], label="Build operational image")
+        session.run_command(
+            ["make", "build-operational"], label="Build operational image"
+        )
     else:
         session.record("Operational image build skipped by user")
         print("Skipped build. Ensure build-exploit/fbr34ker-operational.bin exists.")
@@ -1546,17 +1722,22 @@ def _usbliter8_jailbreak(session: Session) -> int:
     operational_bin = ROOT / "build-exploit" / "fbr34ker-operational.bin"
     if operational_bin.is_file():
         rebuild = _prompt(
-            f"Found existing image ({operational_bin.stat().st_size} bytes). Rebuild? (y/N)", "N"
+            f"Found existing image ({operational_bin.stat().st_size} bytes). Rebuild? (y/N)",
+            "N",
         )
         if rebuild.lower() in ("y", "yes"):
-            session.run_command(["make", "build-operational"], label="Build operational image")
+            session.run_command(
+                ["make", "build-operational"], label="Build operational image"
+            )
         else:
             session.record("USBliter8 jailbreak: image build skipped (exists)")
             print("Using existing operational image.")
     else:
         build = _prompt("No operational image found. Build now? (Y/n)", "Y")
         if not build.lower() in ("n", "no"):
-            session.run_command(["make", "build-operational"], label="Build operational image")
+            session.run_command(
+                ["make", "build-operational"], label="Build operational image"
+            )
         else:
             print("Cannot proceed without operational image.")
             _pause()
@@ -1611,11 +1792,31 @@ def _usbliter8_jailbreak(session: Session) -> int:
             bufsize=1,
         )
         assert process.stdout is not None
-        for line in process.stdout:
-            print(line, end="")
-            with session.log_path.open("a", encoding="utf-8") as stream:
-                stream.write(line)
-        return_code = process.wait()
+        try:
+            while True:
+                line = process.stdout.readline()
+                if not line and process.poll() is not None:
+                    break
+                if line:
+                    print(line, end="")
+                    session.record(line.rstrip("\n"))
+        except (OSError, IOError) as exc:
+            print(f"\n[WARN] subprocess stream error: {exc}", file=sys.stderr)
+        return_code = process.returncode
+        if return_code is None:
+            try:
+                process.wait(timeout=5)
+                return_code = process.returncode
+            except (subprocess.TimeoutExpired, OSError):
+                process.kill()
+                try:
+                    process.wait(timeout=5)
+                except (OSError, subprocess.TimeoutExpired):
+                    pass
+                rc = process.returncode
+                if rc is None:
+                    rc = -9
+                return_code = rc
     except OSError as exc:
         session.record(f"ERROR {label}: {exc}")
         print(f"Unable to start exploit: {exc}", file=sys.stderr)
@@ -1796,14 +1997,14 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
         if console is not None:
             try:
                 console.close()
-            except Exception:
+            except OSError:
                 pass
 
     try:
         from host.chipset_db import all_chipsets, chipset_summary
 
         all_socs = {c["cpid"]: c for c in all_chipsets()}
-    except Exception:
+    except ImportError:
         all_socs = {}
 
     known_protections = [
@@ -1964,17 +2165,25 @@ def _forensics_workflow(session: Session) -> None:
         print("  7. Run network-only acquisition")
         print("  8. Verify an evidence bundle")
         print("  9. iCloud/Keychain/Keybag acquisition  (via SEP/exploit)")
-        print(" 10. Activation/FMI/Baseband operations  (bypass, FMI on/off, baseband unlock)")
+        print(
+            " 10. Activation/FMI/Baseband operations  (bypass, FMI on/off, baseband unlock)"
+        )
         print(" 11. Passcode management  (on/off/change/bypass)")
         print("  0. Back")
         choice = _prompt("Selection", "1")
         if choice == "1":
-            session.run(["forensics", "list-profiles"], label="List acquisition profiles")
+            session.run(
+                ["forensics", "list-profiles"], label="List acquisition profiles"
+            )
             _pause()
         elif choice in {"2", "3", "4", "5", "6", "7"}:
             profile_map = {
-                "2": "quick", "3": "full", "4": "memory-only",
-                "5": "storage-only", "6": "filesystem-only", "7": "network-only",
+                "2": "quick",
+                "3": "full",
+                "4": "memory-only",
+                "5": "storage-only",
+                "6": "filesystem-only",
+                "7": "network-only",
             }
             profile = profile_map[choice]
             device_id = _prompt("Device identifier", "unknown")
@@ -1982,11 +2191,16 @@ def _forensics_workflow(session: Session) -> None:
             bundle_path = session.directory / f"forensics-{profile}.zip"
             session.run(
                 [
-                    "forensics", "acquire",
-                    "--profile", profile,
-                    "--device-id", device_id,
-                    "--operator", operator or "",
-                    "--bundle", str(bundle_path),
+                    "forensics",
+                    "acquire",
+                    "--profile",
+                    profile,
+                    "--device-id",
+                    device_id,
+                    "--operator",
+                    operator or "",
+                    "--bundle",
+                    str(bundle_path),
                 ],
                 label=f"Acquisition: {profile}",
             )
@@ -1996,7 +2210,9 @@ def _forensics_workflow(session: Session) -> None:
         elif choice == "8":
             path = _prompt("Evidence bundle path")
             if path and path != "q":
-                session.run(["forensics", "verify", path], label="Verify evidence bundle")
+                session.run(
+                    ["forensics", "verify", path], label="Verify evidence bundle"
+                )
             _pause()
         elif choice == "9":
             _forensics_secrets_menu(session)
@@ -2030,7 +2246,9 @@ def _forensics_activation_menu(session: Session) -> None:
         _clear()
         _header(session, "Activation / FMI / Baseband / mobileactivationd")
         print("  1. Query activation state")
-        print("  2. Apply full activation bypass (clear records + patch daemon + inject ticket)")
+        print(
+            "  2. Apply full activation bypass (clear records + patch daemon + inject ticket)"
+        )
         print("  3. Clear activation records")
         print("  4. Query FMI state (Find My iPhone)")
         print("  5. Turn FMI OFF")
@@ -2042,51 +2260,61 @@ def _forensics_activation_menu(session: Session) -> None:
         print("  0. Back")
         choice = _prompt("Selection", "1")
         if choice == "1":
-            session.run(["forensics", "activation", "status"],
-                        label="Activation status")
+            session.run(
+                ["forensics", "activation", "status"], label="Activation status"
+            )
             _pause()
         elif choice == "2":
             if _confirm("Apply full activation bypass"):
-                session.run(["forensics", "activation", "bypass"],
-                            label="Activation bypass")
+                session.run(
+                    ["forensics", "activation", "bypass"], label="Activation bypass"
+                )
             _pause()
         elif choice == "3":
             if _confirm("Clear activation records"):
-                session.run(["forensics", "activation", "clear-records"],
-                            label="Clear records")
+                session.run(
+                    ["forensics", "activation", "clear-records"], label="Clear records"
+                )
             _pause()
         elif choice == "4":
-            session.run(["forensics", "activation", "fmi", "status"],
-                        label="FMI status")
+            session.run(
+                ["forensics", "activation", "fmi", "status"], label="FMI status"
+            )
             _pause()
         elif choice == "5":
             if _confirm("Turn FMI OFF"):
-                session.run(["forensics", "activation", "fmi", "off"],
-                            label="FMI off")
+                session.run(["forensics", "activation", "fmi", "off"], label="FMI off")
             _pause()
         elif choice == "6":
             if _confirm("Turn FMI ON"):
-                session.run(["forensics", "activation", "fmi", "on"],
-                            label="FMI on")
+                session.run(["forensics", "activation", "fmi", "on"], label="FMI on")
             _pause()
         elif choice == "7":
             if _confirm("Clear FMI activation lock"):
-                session.run(["forensics", "activation", "fmi", "clear-activation-lock"],
-                            label="Clear FMI lock")
+                session.run(
+                    ["forensics", "activation", "fmi", "clear-activation-lock"],
+                    label="Clear FMI lock",
+                )
             _pause()
         elif choice == "8":
-            session.run(["forensics", "activation", "baseband", "status"],
-                        label="Baseband status")
+            session.run(
+                ["forensics", "activation", "baseband", "status"],
+                label="Baseband status",
+            )
             _pause()
         elif choice == "9":
             if _confirm("Unlock baseband (SIM lock)"):
-                session.run(["forensics", "activation", "baseband", "unlock"],
-                            label="Baseband unlock")
+                session.run(
+                    ["forensics", "activation", "baseband", "unlock"],
+                    label="Baseband unlock",
+                )
             _pause()
         elif choice == "10":
             output = session.directory / "activation-query"
-            session.run(["forensics", "activation", "query-all", "--output", str(output)],
-                        label="Query all activation state")
+            session.run(
+                ["forensics", "activation", "query-all", "--output", str(output)],
+                label="Query all activation state",
+            )
             _pause()
         elif choice in {"0", "q", ""}:
             return
@@ -2105,12 +2333,10 @@ def _forensics_passcode_menu(session: Session) -> None:
         print("  0. Back")
         choice = _prompt("Selection", "1")
         if choice == "1":
-            session.run(["forensics", "passcode", "status"],
-                        label="Passcode status")
+            session.run(["forensics", "passcode", "status"], label="Passcode status")
             _pause()
         elif choice == "2":
-            session.run(["forensics", "passcode", "policy"],
-                        label="Passcode policy")
+            session.run(["forensics", "passcode", "policy"], label="Passcode policy")
             _pause()
         elif choice == "3":
             passcode = _prompt("Current passcode (leave blank for exploit)")
@@ -2125,8 +2351,7 @@ def _forensics_passcode_menu(session: Session) -> None:
         elif choice == "4":
             new = _prompt("New passcode")
             if new and len(new) >= 4:
-                session.run(["forensics", "passcode", "set", new],
-                            label="Set passcode")
+                session.run(["forensics", "passcode", "set", new], label="Set passcode")
             else:
                 print("Passcode must be at least 4 characters.")
             _pause()
@@ -2134,15 +2359,18 @@ def _forensics_passcode_menu(session: Session) -> None:
             current = _prompt("Current passcode")
             new = _prompt("New passcode")
             if current and new and len(new) >= 4:
-                session.run(["forensics", "passcode", "change", current, new],
-                            label="Change passcode")
+                session.run(
+                    ["forensics", "passcode", "change", current, new],
+                    label="Change passcode",
+                )
             else:
                 print("Both passcodes required; new must be at least 4 characters.")
             _pause()
         elif choice == "6":
             if _confirm("Attempt passcode bypass"):
-                session.run(["forensics", "passcode", "bypass"],
-                            label="Passcode bypass")
+                session.run(
+                    ["forensics", "passcode", "bypass"], label="Passcode bypass"
+                )
             _pause()
         elif choice in {"0", "q", ""}:
             return
@@ -2181,14 +2409,18 @@ def _cve_workflow(session: Session) -> None:
             print("  tethered-jailbreak, jailbreak-remote")
             goal = _prompt("Exploit goal", "jailbreak")
             if version and goal:
-                session.run(["cve", "chain", goal, version],
-                            label=f"Chain: {goal} on iOS {version}")
+                session.run(
+                    ["cve", "chain", goal, version],
+                    label=f"Chain: {goal} on iOS {version}",
+                )
             _pause()
         elif choice == "5":
             version = _prompt("Target iOS version", "16.5")
             if version:
-                session.run(["cve", "suggest", version],
-                            label=f"Suggest goals for iOS {version}")
+                session.run(
+                    ["cve", "suggest", version],
+                    label=f"Suggest goals for iOS {version}",
+                )
             _pause()
         elif choice == "6":
             session.run(["cve", "goals"], label="List exploit goals")
@@ -2247,23 +2479,30 @@ def _resolve_security_model() -> bool:
     print("=" * 64)
     print()
     from b34st.environment import SECURITY_MODEL_DESCRIPTION
+
     print(SECURITY_MODEL_DESCRIPTION)
     print()
 
     while True:
-        choice = _prompt("Select [1] State model (default)  [2] Active security model", "1")
+        choice = _prompt(
+            "Select [1] State model (default)  [2] Active security model", "1"
+        )
         if choice == "1":
             enable = False
             break
         elif choice == "2":
-            if not _confirm("WARNING: Active security model WILL write to kernel memory. Continue"):
+            if not _confirm(
+                "WARNING: Active security model WILL write to kernel memory. Continue"
+            ):
                 continue
             owner = _prompt('Type "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE"')
             if owner != "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE":
                 print("Authorization not confirmed.")
                 continue
             enable = True
-            print(f"\n{Colors.RED}Active security model selected. Writes to kernel memory are enabled.{Colors.RESET}")
+            print(
+                f"\n{Colors.RED}Active security model selected. Writes to kernel memory are enabled.{Colors.RESET}"
+            )
             break
         else:
             print("Invalid selection.")
@@ -2506,10 +2745,14 @@ def run_control_panel() -> int:
     session.record(f"Security model: {'ACTIVE' if security_model else 'STATE MODEL'}")
     if security_model:
         session.run(["build", "--security-model"], label="Build with security model")
-        print(f"\n{Colors.RED}SECURITY MODEL ACTIVE: memory writes enabled{Colors.RESET}")
+        print(
+            f"\n{Colors.RED}SECURITY MODEL ACTIVE: memory writes enabled{Colors.RESET}"
+        )
     else:
         session.run(["build"], label="Build (state model only)")
-        print(f"\n{Colors.GREEN}State model only: no kernel memory writes{Colors.RESET}")
+        print(
+            f"\n{Colors.GREEN}State model only: no kernel memory writes{Colors.RESET}"
+        )
     _pause()
 
     try:
@@ -2534,7 +2777,9 @@ def run_control_panel() -> int:
             print(f"       {Colors.DIM}{desc}{Colors.RESET}")
         print()
 
-        choice = _enhanced_prompt("\n  Selection", {key: label for key, label, _ in main_menu_options}, "1")
+        choice = _enhanced_prompt(
+            "\n  Selection", {key: label for key, label, _ in main_menu_options}, "1"
+        )
 
         choice = choice.lower()
 
@@ -2557,8 +2802,11 @@ def run_control_panel() -> int:
             _header(session, "Environment planning")
             mode = _enhanced_prompt(
                 "Mode",
-                {"simulation": "Safe simulation - no hardware required, full observability", "research-runtime": "Evidence-gated - requires adapter and exact kernel evidence"},
-                "simulation"
+                {
+                    "simulation": "Safe simulation - no hardware required, full observability",
+                    "research-runtime": "Evidence-gated - requires adapter and exact kernel evidence",
+                },
+                "simulation",
             )
             if mode not in {"simulation", "research-runtime"}:
                 print("Invalid mode.")

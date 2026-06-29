@@ -50,7 +50,7 @@ class B34STBuilder:
         self.log(f"Running: {' '.join(cmd)}")
         self.log(f"Description: {description}")
 
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
 
         if result.returncode != 0:
             raise BuildError(
@@ -392,18 +392,18 @@ if __name__ == "__main__":
             shutil.rmtree(package_output)
 
         package_output.mkdir(parents=True, exist_ok=True)
-        
+
         # Copy B34ST source code to package (for source release)
         if kind == "source":
             self.log("Creating source package...")
-            
+
             # Copy B34ST directory
             shutil.copytree(
                 "b34st",
                 package_output / "b34st",
                 ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
             )
-            
+
             # Copy required FBR34KER dependencies for source build
             dependencies = [
                 "host/physical_validation.py",
@@ -412,7 +412,7 @@ if __name__ == "__main__":
                 "host/session_bundle.py",
                 "host/sdk_conformance.py",
             ]
-            
+
             for dep in dependencies:
                 if pathlib.Path(dep).exists():
                     (package_output / "host").mkdir(parents=True, exist_ok=True)
@@ -420,7 +420,7 @@ if __name__ == "__main__":
                         dep,
                         package_output / "host" / pathlib.Path(dep).name,
                     )
-        
+
         else:
             self.log("Creating release artifacts package...")
 
@@ -436,7 +436,7 @@ if __name__ == "__main__":
                 package_output / "lib" / "b34st",
                 ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
             )
-            
+
             # Copy runtime artifacts
             runtime_dest = package_output / "runtime-artifacts" / "b34st"
             if self.runtime_dir.exists():
@@ -445,14 +445,14 @@ if __name__ == "__main__":
                     runtime_dest,
                     dirs_exist_ok=True,
                 )
-            
+
             # Copy documentation
             shutil.copytree(
                 "b34st",
                 package_output / "docs" / "b34st",
                 ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
             )
-            
+
             # Create README for release
             release_readme = package_output / "README.md"
             release_readme.write_text(
@@ -589,9 +589,7 @@ For questions or issues, refer to the FBR34KER documentation or create a GitHub 
         )
 
         # Compile command
-        compile_parser = subparsers.add_parser(
-            "compile", help="Compile B34ST binary"
-        )
+        compile_parser = subparsers.add_parser("compile", help="Compile B34ST binary")
         compile_parser.add_argument(
             "--output",
             type=pathlib.Path,
@@ -622,9 +620,7 @@ For questions or issues, refer to the FBR34KER documentation or create a GitHub 
         )
 
         # Package command
-        package_parser = subparsers.add_parser(
-            "package", help="Create release package"
-        )
+        package_parser = subparsers.add_parser("package", help="Create release package")
         package_parser.add_argument(
             "--kind",
             choices=["source", "artifacts", "all"],
@@ -633,9 +629,7 @@ For questions or issues, refer to the FBR34KER documentation or create a GitHub 
         )
 
         # All-in-one command
-        all_parser = subparsers.add_parser(
-            "all", help="Perform all build steps"
-        )
+        all_parser = subparsers.add_parser("all", help="Perform all build steps")
 
         if argv is None:
             argv = sys.argv[1:]
@@ -678,6 +672,7 @@ For questions or issues, refer to the FBR34KER documentation or create a GitHub 
             print(f"Unexpected error: {e}", file=sys.stderr)
             if self.verbose:
                 import traceback
+
                 traceback.print_exc()
             return 1
 

@@ -986,6 +986,11 @@ class TestFUZZ_TARGETS(unittest.TestCase):
             "imageio-png",
             "coretext-font",
             "coreaudio",
+            "usb-family-device",
+            "usb-family-host",
+            "dfu-mode",
+            "recovery-mode",
+            "diagnostics-mode",
         }
         self.assertEqual(set(FUZZ_TARGETS.keys()), expected)
 
@@ -1011,7 +1016,8 @@ class TestFuzzerFramework(unittest.TestCase):
         targets = self.fw.list_targets()
         self.assertIn("webkit-jscore", targets)
         self.assertIn("kernel-mach", targets)
-        self.assertEqual(len(targets), 7)
+        self.assertIn("recovery-mode", targets)
+        self.assertEqual(len(targets), 12)
 
     def test_list_targets_descriptions(self):
         targets = self.fw.list_targets()

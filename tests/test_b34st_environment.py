@@ -3,6 +3,7 @@ import subprocess
 import sys
 import unittest
 
+from b34st.version import __version__
 from b34st.environment import (
     EnvironmentPlanError,
     build_environment_plan,
@@ -21,7 +22,7 @@ class EnvironmentPlanTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("B34ST 0.4.3b", result.stdout)
+        self.assertIn(f"B34ST {__version__}", result.stdout)
 
     def test_subcommand_help_is_displayed(self) -> None:
         for subcommand in ("validate-session", "physical-validation", "hardware-prepare", "environment-plan", "environment-validate", "research-runtime"):

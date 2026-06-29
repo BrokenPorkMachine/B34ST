@@ -70,17 +70,25 @@ class USBRequestPacket:
     data: Optional[bytes] = None
 
     def serialize(self) -> bytes:
-        packet = struct.pack('<BBHHH', self.bmRequestType, self.bRequest,
-                           self.wValue, self.wIndex, self.wLength)
+        packet = struct.pack(
+            "<BBHHH",
+            self.bmRequestType,
+            self.bRequest,
+            self.wValue,
+            self.wIndex,
+            self.wLength,
+        )
         if self.data:
             packet += self.data
         return packet
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> 'USBRequestPacket':
+    def from_bytes(cls, data: bytes) -> "USBRequestPacket":
         if len(data) < 8:
             raise ValueError(f"Packet too short: {len(data)} < 8")
-        bmRequestType, bRequest, wValue, wIndex, wLength = struct.unpack('<BBHHH', data[:8])
+        bmRequestType, bRequest, wValue, wIndex, wLength = struct.unpack(
+            "<BBHHH", data[:8]
+        )
         packet_data = data[8:] if wLength > 0 else None
         return cls(bmRequestType, bRequest, wValue, wIndex, wLength, packet_data)
 
@@ -98,7 +106,7 @@ class AccessoryProtocolMessage:
         bRequest = 0x30
         data = self.header + self.command + bytes(self.parameters)
         if self.checksum:
-            data += struct.pack('<I', self.checksum)
+            data += struct.pack("<I", self.checksum)
         return USBRequestPacket(bmRequestType, bRequest, 0, 0, len(data), data)
 
 
@@ -111,7 +119,7 @@ class RecoveryDiagnosticMessage:
 
     @property
     def to_usb_packet(self) -> USBRequestPacket:
-        message = struct.pack('<IB', self.message_type, self.sequence_number)
+        message = struct.pack("<IB", self.message_type, self.sequence_number)
         message += self.payload
         bmRequestType = USBTransferType.VENDOR << 5
         bRequest = 0x20
@@ -126,8 +134,8 @@ class DFUPacket:
 
     @property
     def serialize(self) -> bytes:
-        packet = struct.pack('<BBB', 0xFF, 0x00, self.bCommand)
-        packet += struct.pack('<H', self.crc)
+        packet = struct.pack("<BBB", 0xFF, 0x00, self.bCommand)
+        packet += struct.pack("<H", self.crc)
         packet += self.payload
         return packet
 
@@ -138,7 +146,9 @@ class USBFamilyDeviceFuzzer:
     def __init__(self, randomness_seed: int = 0xDEADBEEF):
         self.random = random.Random(randomness_seed)
 
-    def generate_enumeration_packets(self, corruption_mode: int = 0) -> List[USBRequestPacket]:
+    def generate_enumeration_packets(
+        self, corruption_mode: int = 0
+    ) -> List[USBRequestPacket]:
         """Generate fuzzed enumeration packets:
         - Initial enumeration
         - Descriptor requests
@@ -148,14 +158,30 @@ class USBFamilyDeviceFuzzer:
 
         # Standard SETUP packets for device enumeration
         setup_templates = [
-            USBRequestPacket(0x80, USBRequest.GET_DESCRIPTOR, 0x0200, 0, 18),  # Full Device Descriptor
-            USBRequestPacket(0x80, USBRequest.GET_DESCRIPTOR, 0x0201, 0, 256),  # Full Configuration
-            USBRequestPacket(0x80, USBRequest.GET_DESCRIPTOR, 0x0202, 0, 256),  # Full String Descriptor
-            USBRequestPacket(0x80, USBRequest.GET_DESCRIPTOR, 0x0203, 0, 256),  # Full Interface Descriptor
-            USBRequestPacket(0x80, USBRequest.GET_DESCRIPTOR, 0x0204, 0, 256),  # Full Endpoint Descriptor
-            USBRequestPacket(0x80, USBRequest.GET_DESCRIPTOR, 0x0205, 0, 256),  # Full HID Descriptor
-            USBRequestPacket(0x80, USBRequest.GET_DESCRIPTOR, 0x0206, 0, 256),  # Full Report Descriptor
-            USBRequestPacket(0x80, USBRequest.GET_DESCRIPTOR, 0x0207, 0, 256),  # Full Physical Descriptor
+            USBRequestPacket(
+                0x80, USBRequest.GET_DESCRIPTOR, 0x0200, 0, 18
+            ),  # Full Device Descriptor
+            USBRequestPacket(
+                0x80, USBRequest.GET_DESCRIPTOR, 0x0201, 0, 256
+            ),  # Full Configuration
+            USBRequestPacket(
+                0x80, USBRequest.GET_DESCRIPTOR, 0x0202, 0, 256
+            ),  # Full String Descriptor
+            USBRequestPacket(
+                0x80, USBRequest.GET_DESCRIPTOR, 0x0203, 0, 256
+            ),  # Full Interface Descriptor
+            USBRequestPacket(
+                0x80, USBRequest.GET_DESCRIPTOR, 0x0204, 0, 256
+            ),  # Full Endpoint Descriptor
+            USBRequestPacket(
+                0x80, USBRequest.GET_DESCRIPTOR, 0x0205, 0, 256
+            ),  # Full HID Descriptor
+            USBRequestPacket(
+                0x80, USBRequest.GET_DESCRIPTOR, 0x0206, 0, 256
+            ),  # Full Report Descriptor
+            USBRequestPacket(
+                0x80, USBRequest.GET_DESCRIPTOR, 0x0207, 0, 256
+            ),  # Full Physical Descriptor
         ]
 
         for template in setup_templates:
@@ -165,7 +191,9 @@ class USBFamilyDeviceFuzzer:
 
         return packets
 
-    def generate_control_transfer_packets(self, corruption_mode: int = 0) -> List[USBRequestPacket]:
+    def generate_control_transfer_packets(
+        self, corruption_mode: int = 0
+    ) -> List[USBRequestPacket]:
         """Generate fuzzed control transfer packets (vendor-specific requests)."""
         packets = []
 
@@ -189,15 +217,18 @@ class USBFamilyDeviceFuzzer:
 
         return packets
 
-    def generate_custom_class_packets(self, corruption_mode: int = 0) -> List[USBRequestPacket]:
+    def generate_custom_class_packets(
+        self, corruption_mode: int = 0
+    ) -> List[USBRequestPacket]:
         """Generate custom class-specific packets (Accessory protocols)."""
         packets = []
 
         # Mock accessory protocol messages
         for i in range(5):
             cmd = AccessoryProtocolMessage(
-                header=b'\xFA\x00\x00\x00' + struct.pack('<H', i),
-                command=b'\x01' + bytes([self.random.randint(0, 255) for _ in range(10)]),
+                header=b"\xfa\x00\x00\x00" + struct.pack("<H", i),
+                command=b"\x01"
+                + bytes([self.random.randint(0, 255) for _ in range(10)]),
                 parameters=[0x01, 0x02, 0x03, 0x04, 0x05],
                 checksum=0xDEADBEEF,
                 eof=0xDDFE,
@@ -220,7 +251,9 @@ class USBFamilyDeviceFuzzer:
 
         return packets
 
-    def generate_partial_aborted_packets(self, corruption_mode: int = 0) -> List[USBRequestPacket]:
+    def generate_partial_aborted_packets(
+        self, corruption_mode: int = 0
+    ) -> List[USBRequestPacket]:
         """Generate partial and aborted transfer packets."""
         packets = []
 
@@ -248,7 +281,9 @@ class USBFamilyDeviceFuzzer:
 
         return packets
 
-    def _apply_corruption(self, packet: USBRequestPacket, mode: int) -> USBRequestPacket:
+    def _apply_corruption(
+        self, packet: USBRequestPacket, mode: int
+    ) -> USBRequestPacket:
         """Apply various corruption patterns based on mode.
         Modes:
         0: No corruption (baseline)
@@ -266,19 +301,25 @@ class USBFamilyDeviceFuzzer:
                     new_len = max(0, packet.wLength - 1)
                 else:
                     new_len = packet.wLength + self.random.randint(1, 10)
-                packet_bytes = packet_bytes[:4] + struct.pack('<H', new_len)
-                if new_len < len(packet.data if packet.data else b''):
-                    packet_bytes = packet_bytes[:-(len(packet.data if packet.data else b'') - new_len)]
+                packet_bytes = packet_bytes[:4] + struct.pack("<H", new_len)
+                if new_len < len(packet.data if packet.data else b""):
+                    packet_bytes = packet_bytes[
+                        : -(len(packet.data if packet.data else b"") - new_len)
+                    ]
 
         elif mode == 2:  # Field bit flips
             if self.random.random() < 0.3:
                 pos = self.random.randint(0, len(packet_bytes) - 1)
-                packet_bytes = packet_bytes[:pos] + bytes([(packet_bytes[pos] ^ 0xFF)]) + packet_bytes[pos + 1:]
+                packet_bytes = (
+                    packet_bytes[:pos]
+                    + bytes([(packet_bytes[pos] ^ 0xFF)])
+                    + packet_bytes[pos + 1 :]
+                )
 
         elif mode == 3:  # Data truncation
             if packet.data and len(packet.data) > 4:
                 truncation = self.random.randint(0, len(packet.data))
-                packet_bytes = packet_bytes[:-(len(packet.data) - truncation)]
+                packet_bytes = packet_bytes[: -(len(packet.data) - truncation)]
                 if truncation > 0:
                     packet_bytes += packet.data[:truncation]
 
@@ -286,20 +327,32 @@ class USBFamilyDeviceFuzzer:
             if self.random.random() < 0.5:
                 field_pos = self.random.choice([0, 2, 4])
                 if field_pos < len(packet_bytes):
-                    packet_bytes = packet_bytes[:field_pos] + struct.pack('<B', self.random.randint(0, 255)) + packet_bytes[field_pos + 1:]
+                    packet_bytes = (
+                        packet_bytes[:field_pos]
+                        + struct.pack("<B", self.random.randint(0, 255))
+                        + packet_bytes[field_pos + 1 :]
+                    )
 
         elif mode == 5:  # Complete randomization
-            packet_bytes = bytes([self.random.randint(0, 255) for _ in range(len(packet_bytes))])
+            packet_bytes = bytes(
+                [self.random.randint(0, 255) for _ in range(len(packet_bytes))]
+            )
 
         # Reconstruct packet from possibly corrupted bytes
         if len(packet_bytes) >= 8:
-            bmRequestType, bRequest, wValue, wIndex, wLength = struct.unpack('<BBHHH', packet_bytes[:8])
+            bmRequestType, bRequest, wValue, wIndex, wLength = struct.unpack(
+                "<BBHHH", packet_bytes[:8]
+            )
             data = packet_bytes[8:] if wLength > 0 else None
-            return USBRequestPacket(bmRequestType, bRequest, wValue, wIndex, wLength, data)
+            return USBRequestPacket(
+                bmRequestType, bRequest, wValue, wIndex, wLength, data
+            )
         else:
             return packet
 
-    def generate_corpus(self, num_cases: int = 100, corruption_modes: Optional[List[int]] = None) -> List[List[USBRequestPacket]]:
+    def generate_corpus(
+        self, num_cases: int = 100, corruption_modes: Optional[List[int]] = None
+    ) -> List[List[USBRequestPacket]]:
         """Generate a corpus of fuzzing test cases."""
         if corruption_modes is None:
             corruption_modes = [0, 1, 2, 3, 4, 5]
@@ -327,7 +380,9 @@ class USBFamilyDeviceFuzzer:
 
         return corpus
 
-    def save_corpus(self, output_path: Path, corpus: List[List[USBRequestPacket]]) -> None:
+    def save_corpus(
+        self, output_path: Path, corpus: List[List[USBRequestPacket]]
+    ) -> None:
         """Save corpus to a file for fuzzing tools."""
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -336,17 +391,17 @@ class USBFamilyDeviceFuzzer:
             case_data = []
             for packet in case:
                 packet_data = {
-                    'bmRequestType': packet.bmRequestType,
-                    'bRequest': packet.bRequest,
-                    'wValue': packet.wValue,
-                    'wIndex': packet.wIndex,
-                    'wLength': packet.wLength,
-                    'data': packet.data.hex() if packet.data else None,
+                    "bmRequestType": packet.bmRequestType,
+                    "bRequest": packet.bRequest,
+                    "wValue": packet.wValue,
+                    "wIndex": packet.wIndex,
+                    "wLength": packet.wLength,
+                    "data": packet.data.hex() if packet.data else None,
                 }
                 case_data.append(packet_data)
             corpus_data.append(case_data)
 
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(corpus_data, f, indent=2)
 
     def generate_payload_for_honggfuzz(self, output_dir: Path) -> Path:
@@ -354,33 +409,63 @@ class USBFamilyDeviceFuzzer:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Create a corpus directory
-        corpus_dir = output_dir / 'corpus'
+        corpus_dir = output_dir / "corpus"
         corpus_dir.mkdir(exist_ok=True)
 
         # Generate and save corpus
         corpus = self.generate_corpus(num_cases=500)
-        self.save_corpus(corpus_dir / 'corpus.json', corpus)
+        self.save_corpus(corpus_dir / "corpus.json", corpus)
 
         # Create a summary
         summary = {
-            'total_cases': len(corpus),
-            'avg_packets_per_case': sum(len(case) for case in corpus) / len(corpus),
-            'packet_types': {
-                'enumeration': len([p for case in corpus for p in case if p.bRequest == USBRequest.GET_DESCRIPTOR]),
-                'control': len([p for case in corpus for p in case if p.bRequest in [USBRequest.GET_STATUS, USBRequest.CLEAR_FEATURE, USBRequest.SET_FEATURE]]),
-                'accessory': len([p for case in corpus for p in case if p.bRequest == 0x30]),
-                'recovery': len([p for case in corpus for p in case if p.bRequest == 0x20]),
-                'partial_aborted': len([p for case in corpus for p in case if p.wLength == 0 or p.wLength > 1024]),
-            }
+            "total_cases": len(corpus),
+            "avg_packets_per_case": sum(len(case) for case in corpus) / len(corpus),
+            "packet_types": {
+                "enumeration": len(
+                    [
+                        p
+                        for case in corpus
+                        for p in case
+                        if p.bRequest == USBRequest.GET_DESCRIPTOR
+                    ]
+                ),
+                "control": len(
+                    [
+                        p
+                        for case in corpus
+                        for p in case
+                        if p.bRequest
+                        in [
+                            USBRequest.GET_STATUS,
+                            USBRequest.CLEAR_FEATURE,
+                            USBRequest.SET_FEATURE,
+                        ]
+                    ]
+                ),
+                "accessory": len(
+                    [p for case in corpus for p in case if p.bRequest == 0x30]
+                ),
+                "recovery": len(
+                    [p for case in corpus for p in case if p.bRequest == 0x20]
+                ),
+                "partial_aborted": len(
+                    [
+                        p
+                        for case in corpus
+                        for p in case
+                        if p.wLength == 0 or p.wLength > 1024
+                    ]
+                ),
+            },
         }
 
-        with open(output_dir / 'summary.json', 'w') as f:
+        with open(output_dir / "summary.json", "w") as f:
             json.dump(summary, f, indent=2)
 
         # Create a simple harness template (to be used by honggfuzz)
-        harness_template = '''#!/usr/bin/env python3
-import sys
-sys.path.insert(0, '/Users/failbr34k/Downloads/FBR34KER_0.2.3_Physical_Validation_Candidate')
+        harness_template = """#!/usr/bin/env python3
+import pathlib, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent.parent))
 
 from host.usb_family.device_cdcacm_pattern import USBFamilyDeviceFuzzer, USBRequestPacket
 
@@ -406,9 +491,9 @@ if __name__ == "__main__":
         sys.exit(1)
     success = test_payload(sys.argv[1])
     sys.exit(0 if success else 1)
-'''
+"""
 
-        harness_file = output_dir / 'test_harness.py'
+        harness_file = output_dir / "test_harness.py"
         harness_file.write_text(harness_template)
 
         return corpus_dir
@@ -418,10 +503,20 @@ def main() -> None:
     """Command-line interface for USB family device fuzzing."""
     import argparse
 
-    parser = argparse.ArgumentParser(description='Generate USB family device fuzzing campaign payloads')
-    parser.add_argument('--output', default='./usb_family_device_corpus', help='Output directory for corpus')
-    parser.add_argument('--num-cases', type=int, default=500, help='Number of test cases to generate')
-    parser.add_argument('--seed', type=int, default=0xDEADBEEF, help='Random seed for reproducibility')
+    parser = argparse.ArgumentParser(
+        description="Generate USB family device fuzzing campaign payloads"
+    )
+    parser.add_argument(
+        "--output",
+        default="./usb_family_device_corpus",
+        help="Output directory for corpus",
+    )
+    parser.add_argument(
+        "--num-cases", type=int, default=500, help="Number of test cases to generate"
+    )
+    parser.add_argument(
+        "--seed", type=int, default=0xDEADBEEF, help="Random seed for reproducibility"
+    )
 
     args = parser.parse_args()
 
@@ -430,7 +525,9 @@ def main() -> None:
     print(f"[USB Device Fuzzer] Generating {args.num_cases} test cases...")
     output_path = fuzzer.generate_payload_for_honggfuzz(Path(args.output))
     print(f"[USB Device Fuzzer] Corpus generated at: {output_path}")
-    print(f"[USB Device Fuzzer] Run: honggfuzz --input {output_path / 'corpus'} --output {output_path / 'out'} -- test_harness.py")
+    print(
+        f"[USB Device Fuzzer] Run: honggfuzz --input {output_path / 'corpus'} --output {output_path / 'out'} -- test_harness.py"
+    )
 
 
 if __name__ == "__main__":

@@ -166,7 +166,7 @@ B34ST is the unified control panel that wraps all FBR34KER operations. Launch it
 
 After installation, run `B34ST` from anywhere. Direct subcommands remain available through `./fbr34ker` for automation.
 
-### 16 menu categories
+### 14 menu categories
 
 | Category | Description |
 |----------|-------------|
@@ -1339,7 +1339,7 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 | docs/B34ST_DEVICE_WORKFLOW.md | Device dashboard and connected-device workflows |
 | docs/RAMDISK_MAKER_LOADER.md | Exact-profile ramdisk maker/loader and adapter contract |
 | docs/TETHERED_DOWNGRADE.md | Guided tethered downgrade and adapter contract |
-| docs/B34ST_DESIGN.md | B34ST framework design (16-category menu system) |
+| docs/B34ST_DESIGN.md | B34ST framework design (14-category menu system) |
 | docs/B34ST_PLAN.md | B34ST implementation plan |
 | docs/B34ST_REQUIREMENTS.md | B34ST requirements specification |
 | docs/B34ST_TASKS.md | B34ST task tracking |
@@ -1412,7 +1412,7 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 - **Kernel version string scanning** for precise iOS detection
 - **A13 SEP base probe** (0x82E000000) before A12 fallback
 - **Kernel entry passes boot-args pointer in x1** for iOS 17+ compatibility
-- **B34ST unified multi-tool** — 16-category menu system with session logging, evidence JSON, and orchestration
+- **B34ST unified multi-tool** — 14-category menu system with session logging, evidence JSON, and orchestration
 - **Device dashboard** — Connected-device auto-detection with mode, model, firmware, profiles, and available actions
 - **CVE database and exploit chain planner** — 1155 CVEs indexed by iOS version, component, severity; device-aware chain planning and fuzz targets
 - **Evidence-gated research runtime** — 16-stage state machine with strict evidence validation and chain-of-custody

@@ -134,7 +134,7 @@ profile maturity enforcement and deterministic validation.
     print(f"Status: {info['status']}")
 
     if args.full:
-        print(f"\nComplete B34ST Project Information:")
+        print("\nComplete B34ST Project Information:")
         print(f"  Project: {info['project']}")
         print(f"  Version: {info['version']}")
         print(f"  Release Name: {info['release_name']}")

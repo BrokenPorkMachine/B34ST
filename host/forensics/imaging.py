@@ -179,7 +179,7 @@ class ForensicImage:
 
         for block in manifest.get("blocks", []):
             if block.get("sparse"):
-                expected = bytes(block["size"])
+                bytes(block["size"])
             else:
                 block_file = image_dir / block["file"]
                 if not block_file.is_file():

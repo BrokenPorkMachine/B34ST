@@ -15,9 +15,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
-import tempfile
 from datetime import datetime
-from typing import Any
 
 __version__ = "0.5.0b"
 __release_name__ = "B34ST_0.5.0b_Beta"
@@ -102,7 +100,7 @@ class B34STBuilder:
         # In a real implementation, this would compile C/C++ sources
         wrapper_path = self.build_dir / "b34st"
         wrapper_path.write_text(
-            f"""#!/usr/bin/env python3
+            """#!/usr/bin/env python3
 # B34ST (B34KER/STAR) runtime authentication launcher.
 
 import pathlib
@@ -629,7 +627,7 @@ For questions or issues, refer to the FBR34KER documentation or create a GitHub 
         )
 
         # All-in-one command
-        all_parser = subparsers.add_parser("all", help="Perform all build steps")
+        subparsers.add_parser("all", help="Perform all build steps")
 
         if argv is None:
             argv = sys.argv[1:]

@@ -5,7 +5,6 @@ Maps iPhone 4→15, iPad, T2, M1/M2 to their SoC, bootrom state, and iOS ranges.
 
 from __future__ import annotations
 import dataclasses
-from typing import Any
 
 __all__ = [
     "DeviceInfo",

@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """Run a deterministic malformed-FBRI corpus against the strict parser."""
 from __future__ import annotations
-import argparse, hashlib, json, pathlib, random, struct, tempfile, sys
+import argparse
+import hashlib
+import json
+import pathlib
+import random
+import struct
+import tempfile
+import sys
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from host.boot_image import (BootImageError, Component, HEADER, HEADER_SIZE,

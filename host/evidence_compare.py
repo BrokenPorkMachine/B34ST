@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Compare two FBR34KER bring-up evidence summaries."""
 from __future__ import annotations
-import argparse, json, pathlib, sys, zipfile
+import argparse
+import json
+import pathlib
+import sys
+import zipfile
 
 MAX_SIZE=2*1024*1024
 

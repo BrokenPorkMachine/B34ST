@@ -536,7 +536,7 @@ def main(argv: list[str] | None = None) -> int:
                 parser.error(f"operational archive only has {doc_count} docs (expected ≥5)")
             b34st_count = sum(1 for n in names if n.startswith(f"{prefix}b34st/"))
             if b34st_count < 5:
-                parser.error(f"operational archive is missing B34ST")
+                parser.error("operational archive is missing B34ST")
         created.extend((archive, write_checksum(archive)))
 
     for path in created:

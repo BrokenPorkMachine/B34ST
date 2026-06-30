@@ -13,8 +13,7 @@ import re
 import shutil
 import subprocess
 import tempfile
-import time
-from typing import Any, Sequence
+from typing import Sequence
 
 try:
     from .bridge_protocol import BridgeProcessClient, BridgeProtocolError, MAX_CHUNK_SIZE

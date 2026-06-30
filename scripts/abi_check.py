@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Validate FBR34KER public interface versions and compatibility manifests."""
 from __future__ import annotations
-import argparse, json, pathlib, re, sys
+import argparse
+import json
+import pathlib
+import re
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 HEADER = ROOT / "include/fbr34ker/abi.h"

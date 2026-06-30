@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 """Compatibility entry point for the canonical root FBR34KER command line."""
 from __future__ import annotations
-import argparse, contextlib, json, os, pathlib, re, shutil, subprocess, sys
+import argparse
+import contextlib
+import json
+import os
+import pathlib
+import re
+import shutil
+import subprocess
+import sys
 ROOT=pathlib.Path(os.environ.get('FBR34KER_SOURCE_ROOT', pathlib.Path(__file__).resolve().parents[1])).resolve()
 sys.path.insert(0, str(ROOT/'host'))
 try:
@@ -116,7 +124,7 @@ def main(argv=None):
             if args.force: argv2.append('--force')
             return execute(argv2,json_mode=j)
         if cmd=='abi-check':
-            argv2=[sys.executable,'scripts/abi_check.py'];
+            argv2=[sys.executable,'scripts/abi_check.py']
             if args.manifest: argv2.append(args.manifest)
             if args.against: argv2 += ['--against',args.against]
             if j: argv2.append('--json')

@@ -4,7 +4,10 @@ One-shot expansion: add iOS 4.0+ CVEs, checkm8/limera1n/blackbird fixes,
 T2/M1/M2 support, device-aware metadata, and generate all new exploit files.
 """
 from __future__ import annotations
-import json, pathlib, hashlib, sys
+import json
+import pathlib
+import hashlib
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 DB_PATH = ROOT / "host" / "cve" / "data" / "cve_database.json"
@@ -691,7 +694,7 @@ for cve in db["cves"]:
             "no software patch possible. Enables persistent jailbreak with bootchain control."
         )
         cve["goals"] = ["bootrom-exploit", "bootchain-control", "persistent-jailbreak", "pwned-dfu"]
-        print(f"  Fixed CVE-2019-2025: now covers A5-A11 (iOS 5.0-16.7.10)")
+        print("  Fixed CVE-2019-2025: now covers A5-A11 (iOS 5.0-16.7.10)")
         break
 
 # ===================================================================
@@ -923,7 +926,7 @@ for c in db["cves"]:
 if all_ok:
     print(f"All {db['cve_count']} CVEs have valid exploit files ✓")
 else:
-    print(f"Some CVEs have missing files - check above")
+    print("Some CVEs have missing files - check above")
     sys.exit(1)
 
 print("\nDone! Ready for checkm8-powered jailbr34k from iOS 7 to 19.5 across all devices.")

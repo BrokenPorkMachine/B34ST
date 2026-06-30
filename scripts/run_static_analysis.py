@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """Run bounded parallel Clang static analysis over FBR34KER translation units."""
 from __future__ import annotations
-import argparse,concurrent.futures,os,pathlib,subprocess,sys,time
+import argparse
+import concurrent.futures
+import os
+import pathlib
+import subprocess
+import sys
+import time
 from dataclasses import dataclass
 @dataclass(frozen=True)
 class Result: index:int;source:pathlib.Path;return_code:int;diagnostics:str;duration:float;timed_out:bool=False

@@ -11,16 +11,14 @@ iPhone as USB host fuzzing:
 - Rapidly changing descriptors and configurations
 """
 
-import array
 import json
 import pathlib
 import random
 import struct
-import subprocess
 import sys
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 
@@ -99,7 +97,6 @@ class USBMaliciousPeripheral:
 
     def generate_malicious_config(self) -> USBDeviceConfig:
         """Generate a malicious USB device configuration with various attack vectors."""
-        configs = []
 
         # Device Descriptor
         device_desc_data = bytes(
@@ -361,7 +358,7 @@ class USBMaliciousPeripheral:
         for i in range(num_packets):
             if self.random.random() < self.sequence_replay_rate:
                 # Replay previous packet
-                replay_index = self.random.randint(0, min(i, 5))
+                self.random.randint(0, min(i, 5))
                 sequences.append(base_packet)
             else:
                 # New packet with mutations

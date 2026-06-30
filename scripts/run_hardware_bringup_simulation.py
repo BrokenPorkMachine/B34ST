@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """Generate deterministic success, failure, and recovered bring-up evidence."""
 from __future__ import annotations
-import argparse, json, pathlib, shutil, subprocess, sys
+import argparse
+import json
+import pathlib
+import shutil
+import subprocess
+import sys
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'host'))
 from project_version import RELEASE_VERSION  # noqa: E402

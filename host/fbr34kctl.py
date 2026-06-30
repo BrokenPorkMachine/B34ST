@@ -29,8 +29,7 @@ from sdk_conformance import (SDKConformanceError, check as check_sdk_conformance
 from loader_simulator import (LoaderSimulationError, format_report, load_report,
                               simulate_loader)
 from hardware_profile import (HardwareProfileError, check_profile, format_matrix,
-                              import_probe_results, load_profile, validate_profile,
-                              write_profile_template)
+                              import_probe_results, load_profile, write_profile_template)
 
 FBR34KCTL_VERSION = "0.5.0b"
 

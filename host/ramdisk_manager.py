@@ -862,7 +862,7 @@ def emit(value: dict[str, Any], json_mode: bool) -> None:
         print(f"Components: {value['component_count']}")
         print(f"SHA-256: {value['sha256']}")
     elif value["operation"] == "ramdisk-inspect":
-        print(f"FBRD verification: PASS")
+        print("FBRD verification: PASS")
         print(f"Target: {value['manifest']['target']['product']}")
         print(f"OS/build: {value['manifest']['os_version']} / {value['manifest'].get('build') or 'not recorded'}")
         print(f"Components: {value['component_count']}")

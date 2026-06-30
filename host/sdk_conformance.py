@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Formal conformance checks for FBHB handoff blobs and board profiles."""
 from __future__ import annotations
-import json, pathlib
+import json
+import pathlib
 from typing import Any
-from handoff_binary import inspect_blob, HandoffBinaryError
-from hardware_profile import load_profile, HardwareProfileError
+from handoff_binary import inspect_blob
+from hardware_profile import load_profile
 
 VALID={"PASS","PARTIAL","UNSUPPORTED","NOT TESTED","LOCKED","FAIL"}
 class SDKConformanceError(ValueError): pass

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import pathlib
+import runpy
 import subprocess
 import unittest
+from unittest import mock
 
 from b34st.version import __version__
 
@@ -10,6 +12,22 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 class LauncherTests(unittest.TestCase):
+    def test_guided_tool_arguments_cancel_on_empty_input(self) -> None:
+        namespace = runpy.run_path(str(ROOT / "fbr34ker"))
+        with mock.patch("builtins.input", return_value=""):
+            self.assertIsNone(namespace["_tool_arguments"]("module-status"))
+
+    def test_guided_tool_arguments_preserve_quoted_values(self) -> None:
+        namespace = runpy.run_path(str(ROOT / "fbr34ker"))
+        with mock.patch(
+            "builtins.input",
+            return_value='command "hello world"',
+        ):
+            self.assertEqual(
+                namespace["_tool_arguments"]("module-status"),
+                ["command", "hello world"],
+            )
+
     def test_help_and_short_flags_are_documented(self) -> None:
         result = subprocess.run(
             [str(ROOT / "fbr34ker"), "--help"],

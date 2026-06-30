@@ -46,6 +46,7 @@ import json
 import os
 import pathlib
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -616,6 +617,17 @@ def _wait():
     if os.isatty(1):
         _prompt("Press Enter to continue")
 
+def _tool_arguments(example):
+    value = _prompt(f"Arguments (e.g. {example})")
+    if value in ("", "q"):
+        _info("Cancelled.")
+        return None
+    try:
+        return shlex.split(value)
+    except ValueError as exc:
+        _fail(f"Invalid arguments: {exc}")
+        return None
+
 def _run_and_show(args_list, msg=""):
     """Run a command via dispatch, capturing output into a scrollable view."""
     if msg:
@@ -919,29 +931,35 @@ def _menu_tools():
         c = _prompt("Selection", "7")
         _clear(); _title("Tools")
         if c == "1":
-            extra = _prompt("Arguments (e.g. --simulator)")
-            _run_and_show(["deploy"] + (extra.split() if extra else []))
-            _wait()
+            extra = _tool_arguments("--simulator")
+            if extra is not None:
+                _run_and_show(["deploy", *extra])
+                _wait()
         elif c == "2":
-            extra = _prompt("Arguments (e.g. module-status)")
-            _run_and_show(["module"] + (extra.split() if extra else []))
-            _wait()
+            extra = _tool_arguments("module-status")
+            if extra is not None:
+                _run_and_show(["module", *extra])
+                _wait()
         elif c == "3":
-            extra = _prompt("Arguments (e.g. checklist)")
-            _run_and_show(["hardware"] + (extra.split() if extra else []))
-            _wait()
+            extra = _tool_arguments("checklist")
+            if extra is not None:
+                _run_and_show(["hardware", *extra])
+                _wait()
         elif c == "4":
-            extra = _prompt("Arguments (e.g. candidate-report)")
-            _run_and_show(["physical-validation"] + (extra.split() if extra else []))
-            _wait()
+            extra = _tool_arguments("candidate-report")
+            if extra is not None:
+                _run_and_show(["physical-validation", *extra])
+                _wait()
         elif c == "5":
-            extra = _prompt("Arguments (e.g. status)")
-            _run_and_show(["session"] + (extra.split() if extra else []))
-            _wait()
+            extra = _tool_arguments("status")
+            if extra is not None:
+                _run_and_show(["session", *extra])
+                _wait()
         elif c == "6":
-            extra = _prompt("Arguments (e.g. --help)")
-            _run_and_show(["boot-image"] + (extra.split() if extra else []))
-            _wait()
+            extra = _tool_arguments("--help")
+            if extra is not None:
+                _run_and_show(["boot-image", *extra])
+                _wait()
         elif c in ("7", "q", ""):
             return
 

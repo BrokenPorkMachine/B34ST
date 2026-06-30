@@ -18,20 +18,21 @@ import fbr34kctl  # noqa: E402
 QEMU = shutil.which("qemu-system-aarch64")
 REQUIRED = os.environ.get("FBR34KER_QEMU_REQUIRED") == "1"
 SKIP_QEMU = os.environ.get("FBR34KER_SKIP_QEMU_TESTS") == "1"
-EXPECTED_VERSION = os.environ.get("FBR34KER_EXPECTED_VERSION", "0.5.0b")
-LOADER = pathlib.Path(os.environ.get(
-    "FBR34KER_GENERIC_LOADER_IMAGE",
-    str(ROOT / "build-loader" / "fbr34ker-qemu-loader.bin"),
-)).resolve()
-MONITOR = pathlib.Path(os.environ.get(
-    "FBR34KER_GENERIC_MONITOR_IMAGE",
-    str(ROOT / "build-generic" / "fbr34ker-generic.bin"),
-)).resolve()
+EXPECTED_VERSION = os.environ.get("FBR34KER_EXPECTED_VERSION", "0.6.0_beta")
+LOADER = pathlib.Path(
+    os.environ.get(
+        "FBR34KER_GENERIC_LOADER_IMAGE",
+        str(ROOT / "build-loader" / "fbr34ker-qemu-loader.bin"),
+    )
+).resolve()
+MONITOR = pathlib.Path(
+    os.environ.get(
+        "FBR34KER_GENERIC_MONITOR_IMAGE",
+        str(ROOT / "build-generic" / "fbr34ker-generic.bin"),
+    )
+).resolve()
 AVAILABLE = (
-    not SKIP_QEMU
-    and QEMU is not None
-    and LOADER.is_file()
-    and MONITOR.is_file()
+    not SKIP_QEMU and QEMU is not None and LOADER.is_file() and MONITOR.is_file()
 )
 
 
@@ -43,16 +44,24 @@ class GenericQemuSession:
         self.process = subprocess.Popen(
             [
                 QEMU or "qemu-system-aarch64",
-                "-machine", "virt,gic-version=3",
-                "-cpu", "cortex-a72",
-                "-m", "2G",
+                "-machine",
+                "virt,gic-version=3",
+                "-cpu",
+                "cortex-a72",
+                "-m",
+                "2G",
                 "-nographic",
-                "-monitor", "none",
-                "-serial", "stdio",
+                "-monitor",
+                "none",
+                "-serial",
+                "stdio",
                 "-no-reboot",
-                "-semihosting-config", "enable=on,target=native",
-                "-kernel", str(LOADER),
-                "-device", f"loader,file={MONITOR},addr=0x80000000,force-raw=on",
+                "-semihosting-config",
+                "enable=on,target=native",
+                "-kernel",
+                str(LOADER),
+                "-device",
+                f"loader,file={MONITOR},addr=0x80000000,force-raw=on",
             ],
             cwd=ROOT,
             stdin=subprocess.PIPE,
@@ -79,7 +88,9 @@ class GenericQemuSession:
         while marker not in output:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                raise AssertionError(f"timed out waiting for {marker!r}; output={bytes(output)!r}")
+                raise AssertionError(
+                    f"timed out waiting for {marker!r}; output={bytes(output)!r}"
+                )
             chunk = self.recv(4096, min(remaining, 0.25))
             if not chunk:
                 if self.process.poll() is not None:
@@ -172,18 +183,28 @@ class GenericLoaderQemuTests(unittest.TestCase):
             root = pathlib.Path(directory)
             spec = root / "generic.json"
             module = root / "generic.fmod"
-            spec.write_text(json.dumps({
-                "name": "generic-loader-test",
-                "version": "1.0.0",
-                "command": "generic-loader-run",
-                "program": [
-                    {"op": "print", "text": "GENERIC-LOADER-MODULE-OK\\n"},
-                    {"op": "event", "text": "generic loader module completed"},
-                ],
-            }), encoding="utf-8")
+            spec.write_text(
+                json.dumps(
+                    {
+                        "name": "generic-loader-test",
+                        "version": "1.0.0",
+                        "command": "generic-loader-run",
+                        "program": [
+                            {"op": "print", "text": "GENERIC-LOADER-MODULE-OK\\n"},
+                            {"op": "event", "text": "generic loader module completed"},
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
             fbr34kctl.compile_module(spec, module)
-            self.assertIn(b"OK generic-loader-test", self.client.upload(module.read_bytes()))
-            self.assertIn(b"GENERIC-LOADER-MODULE-OK", self.client.module_run("generic-loader-test"))
+            self.assertIn(
+                b"OK generic-loader-test", self.client.upload(module.read_bytes())
+            )
+            self.assertIn(
+                b"GENERIC-LOADER-MODULE-OK",
+                self.client.module_run("generic-loader-test"),
+            )
             self.assertIn(b"generic loader module completed", self.client.events())
             self.assertIn(
                 b"unloaded dynamic module generic-loader-test",

@@ -8,13 +8,13 @@ from __future__ import annotations
 
 import re
 
-__version__ = "0.5.0b"
-__release_name__ = "B34ST_0.5.0b_Beta"
+__version__ = "0.6.0_beta"
+__release_name__ = "B34ST_0.6.0_beta_Beta"
 _VERSION_RE = re.compile(
     r"^(?P<major>0|[1-9][0-9]*)\."
     r"(?P<minor>0|[1-9][0-9]*)\."
     r"(?P<patch>0|[1-9][0-9]*)"
-    r"(?:(?P<stage>a|b|rc)(?P<stage_number>[0-9]+)?)?$"
+    r"(?:(?P<stage>a|b|rc)(?P<stage_number>[0-9]+)?)?(?:_beta)?$"
 )
 _STAGE_ORDER = {"a": 0, "b": 1, "rc": 2, None: 3}
 

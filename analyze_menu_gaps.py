@@ -6,29 +6,28 @@ Identifies features from the original FBR34KER system that are not exposed.
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from b34st.control_panel import _main_menu_options
-from b34st.engine import B34STCLI
-import json
 
 
 def analyze_menu_capabilities():
     """Analyze what menu capabilities are currently exposed vs what's missing."""
     print("Analyzing B34ST menu capabilities...")
     print("=" * 70)
-    
+
     current_menu = _main_menu_options()
     current_keys = {key: label for key, label, _ in current_menu}
-    
+
     print(f"\nCurrent B34ST main menu ({len(current_menu)} categories):")
     for key, label in current_keys.items():
         print(f"  {key}: {label}")
-    
+
     # Load the original FBR34KER menu structure
     print("\n" + "=" * 70)
     print("Original FBR34KER menu capabilities (from fbr34ker.py):")
-    
+
     original_capabilities = [
         ("version", "Show version"),
         ("doctor", "System diagnostics"),
@@ -60,7 +59,7 @@ def analyze_menu_capabilities():
         ("interactive", "Legacy FBR34KER guided console"),
         ("menu", "Interactive goal-driven interface"),
     ]
-    
+
     # Map original categories to current ones
     mapping = {
         "build": "Build, test, and QEMU simulation",
@@ -85,15 +84,14 @@ def analyze_menu_capabilities():
         "package": "Evidence, validation, and release",
         "gate": "Evidence, validation, and release",
         "permissions": "System status and diagnostics",
-        "hardware": "External hardware / USBliter8 / first-stage execution",
     }
-    
+
     print("\nMapping analysis:")
     print("-" * 70)
-    
+
     exposed = set()
     mapped_to_current = {}
-    
+
     for capability, desc in original_capabilities:
         current = mapping.get(capability)
         if current:
@@ -102,36 +100,59 @@ def analyze_menu_capabilities():
             status = "✓"
         else:
             status = "? (might need separate tool)"
-        
+
         print(f"  {status} {capability:20} → {current or 'No direct mapping'}")
-    
+
     print("\n" + "=" * 70)
     print("Analysis Summary:")
     print("-" * 70)
-    
+
     print(f"\nMenu Categories Exposed: {len(current_keys)}")
     print(f"  - Total categories: {len(current_keys)}")
     print(f"  - Categories with mapped features: {len(exposed)}")
-    print(f"  - Categories with multiple mapped features: {sum(1 for v in mapped_to_current.values() if v > 1)}")
-    
+    print(
+        f"  - Categories with multiple mapped features: {sum(1 for v in mapped_to_current.values() if v > 1)}"
+    )
+
     unused = len(current_keys) - len(exposed)
     if unused > 0:
         print(f"  - Categories without mapped features: {unused}")
         print("  (These may represent new B34ST-specific workflows)")
-    
+
     print("\nPotentially Missing Features:")
     print("-" * 70)
-    
+
     # List of key functions/classes that should be exposed
-    expected_exposed = {
-        "run_control_panel", "run", "validate", "physical_validation",
-        "hardware_prepare", "environment_plan", "environment_validate",
-        "forensics", "forensics secrets", "forensics activation", "forensics passcode",
-        "cve", "cve search", "cve query", "cve stats", "cve chain", "cve suggest", "cve goals",
-        "fuzzer", "ramdisk", "tethered-downgrade", "guided_ramdisk",
-        "evidence_compare", "session_tools", "physical_validation", "gate", "package"
+    {
+        "run_control_panel",
+        "run",
+        "validate",
+        "physical_validation",
+        "hardware_prepare",
+        "environment_plan",
+        "environment_validate",
+        "forensics",
+        "forensics secrets",
+        "forensics activation",
+        "forensics passcode",
+        "cve",
+        "cve search",
+        "cve query",
+        "cve stats",
+        "cve chain",
+        "cve suggest",
+        "cve goals",
+        "fuzzer",
+        "ramdisk",
+        "tethered-downgrade",
+        "guided_ramdisk",
+        "evidence_compare",
+        "session_tools",
+        "physical_validation",
+        "gate",
+        "package",
     }
-    
+
     print("\nRecommendations:")
     print("-" * 70)
     print("1. Add 'System status and diagnostics' category if missing")
@@ -146,22 +167,40 @@ def check_engine_capabilities():
     print("\n" + "=" * 70)
     print("B34ST Engine Capabilities Analysis:")
     print("=" * 70)
-    
-    cli = B34STCLI()
-    
+
     # Get available commands from engine
     print("\nAvailable B34ST commands from engine.py:")
     engine_commands = [
-        "control-panel", "menu", "research-runtime", "validate-session",
-        "physical-validation", "hardware-prepare", "environment-plan",
-        "environment-validate", "forensics", "forensics secrets",
-        "forensics activation", "forensics passcode", "cve", "cve search",
-        "cve query", "cve stats", "cve chain", "cve suggest", "cve goals",
-        "fuzzer", "ramdisk", "tethered-downgrade", "guided_ramdisk",
-        "evidence-compare", "session", "physical-validation",
-        "gate", "package"
+        "control-panel",
+        "menu",
+        "research-runtime",
+        "validate-session",
+        "physical-validation",
+        "hardware-prepare",
+        "environment-plan",
+        "environment-validate",
+        "forensics",
+        "forensics secrets",
+        "forensics activation",
+        "forensics passcode",
+        "cve",
+        "cve search",
+        "cve query",
+        "cve stats",
+        "cve chain",
+        "cve suggest",
+        "cve goals",
+        "fuzzer",
+        "ramdisk",
+        "tethered-downgrade",
+        "guided_ramdisk",
+        "evidence-compare",
+        "session",
+        "physical-validation",
+        "gate",
+        "package",
     ]
-    
+
     for cmd in engine_commands:
         print(f"  ✓ {cmd}")
 

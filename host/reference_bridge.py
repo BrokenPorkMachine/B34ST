@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Reference persistent first-stage bridge backed by the deterministic simulator."""
+
 from __future__ import annotations
 
 import argparse
@@ -10,9 +11,14 @@ import pathlib
 import sys
 from typing import Any
 
-from bridge_protocol import (BRIDGE_SCHEMA_VERSION, MAX_BRIDGE_LINE,
-                             MAX_CHUNK_SIZE, BridgeProtocolError,
-                             decode_message, encode_message)
+from bridge_protocol import (
+    BRIDGE_SCHEMA_VERSION,
+    MAX_BRIDGE_LINE,
+    MAX_CHUNK_SIZE,
+    BridgeProtocolError,
+    decode_message,
+    encode_message,
+)
 from first_stage_adapter import AdapterError, SimulatorFirstStageAdapter
 from irecovery_boot import load_device_info
 
@@ -27,7 +33,9 @@ class BridgeServer:
             value = json.loads(args.memory_map.read_text(encoding="utf-8"))
             regions = value.get("memory_regions") if isinstance(value, dict) else value
         self.adapter = SimulatorFirstStageAdapter(
-            args.state_dir, device.public_dict(), regions=regions,
+            args.state_dir,
+            device.public_dict(),
+            regions=regions,
             inject_failure=args.inject_failure,
         )
         self.incoming = args.state_dir / "bridge-incoming.tmp"
@@ -83,17 +91,28 @@ class BridgeServer:
         return result
 
     def dispatch(self, operation: str, arguments: dict[str, Any]) -> dict[str, object]:
-        if operation == "identify": return self.adapter.identify().public_dict()
-        if operation == "authorize": return self.adapter.authorize(str(arguments.get("authorization_id", "")))
-        if operation == "upload-begin": return self._upload_begin(arguments)
-        if operation == "upload-chunk": return self._upload_chunk(arguments)
-        if operation == "upload-commit": return self._upload_commit()
-        if operation == "start": return self.adapter.start()
-        if operation == "probe-stage": return self.adapter.probe_stage(str(arguments.get("stage", "")))
-        if operation == "console-read": return self.adapter.read_console(int(arguments.get("cursor", 0)))
-        if operation == "collect": return self.adapter.collect()
-        if operation == "reset": return self.adapter.reset(str(arguments.get("authorization_id", "")))
-        if operation == "close": return {"closed": True}
+        if operation == "identify":
+            return self.adapter.identify().public_dict()
+        if operation == "authorize":
+            return self.adapter.authorize(str(arguments.get("authorization_id", "")))
+        if operation == "upload-begin":
+            return self._upload_begin(arguments)
+        if operation == "upload-chunk":
+            return self._upload_chunk(arguments)
+        if operation == "upload-commit":
+            return self._upload_commit()
+        if operation == "start":
+            return self.adapter.start()
+        if operation == "probe-stage":
+            return self.adapter.probe_stage(str(arguments.get("stage", "")))
+        if operation == "console-read":
+            return self.adapter.read_console(int(arguments.get("cursor", 0)))
+        if operation == "collect":
+            return self.adapter.collect()
+        if operation == "reset":
+            return self.adapter.reset(str(arguments.get("authorization_id", "")))
+        if operation == "close":
+            return {"closed": True}
         raise AdapterError(f"unsupported bridge operation: {operation}")
 
 
@@ -112,14 +131,30 @@ def main(argv: list[str] | None = None) -> int:
         try:
             request = decode_message(raw)
             result = server.dispatch(request["operation"], request["arguments"])
-            response = {"schema_version": BRIDGE_SCHEMA_VERSION,
-                        "sequence": request["sequence"], "ok": True,
-                        "result": result}
-        except (BridgeProtocolError, AdapterError, OSError, ValueError,
-                json.JSONDecodeError) as exc:
-            sequence = request.get("sequence", 1) if isinstance(locals().get("request"), dict) else 1
-            response = {"schema_version": BRIDGE_SCHEMA_VERSION,
-                        "sequence": sequence, "ok": False, "error": str(exc)}
+            response = {
+                "schema_version": BRIDGE_SCHEMA_VERSION,
+                "sequence": request["sequence"],
+                "ok": True,
+                "result": result,
+            }
+        except (
+            BridgeProtocolError,
+            AdapterError,
+            OSError,
+            ValueError,
+            json.JSONDecodeError,
+        ) as exc:
+            sequence = (
+                request.get("sequence", 1)
+                if isinstance(locals().get("request"), dict)
+                else 1
+            )
+            response = {
+                "schema_version": BRIDGE_SCHEMA_VERSION,
+                "sequence": sequence,
+                "ok": False,
+                "error": str(exc),
+            }
         sys.stdout.buffer.write(encode_message(response))
         sys.stdout.buffer.flush()
         if request.get("operation") == "close":

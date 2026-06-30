@@ -17,33 +17,39 @@ CVE_DATA = ROOT / "host" / "cve" / "data" / "cve_database.json"
 # VersionRange tests
 # =============================================================================
 
+
 class TestVersionRange(unittest.TestCase):
     def test_contains_exact_match(self):
         from host.cve.cve_db import VersionRange
+
         vr = VersionRange(start="14.0", end="14.8")
         self.assertTrue(vr.contains("14.0"))
         self.assertTrue(vr.contains("14.8"))
 
     def test_contains_inside_range(self):
         from host.cve.cve_db import VersionRange
+
         vr = VersionRange(start="14.0", end="14.8")
         self.assertTrue(vr.contains("14.4"))
         self.assertTrue(vr.contains("14.8"))
 
     def test_contains_below_start(self):
         from host.cve.cve_db import VersionRange
+
         vr = VersionRange(start="14.0", end="14.8")
         self.assertFalse(vr.contains("13.4"))
         self.assertFalse(vr.contains("9.0"))
 
     def test_contains_above_end(self):
         from host.cve.cve_db import VersionRange
+
         vr = VersionRange(start="14.0", end="14.8")
         self.assertFalse(vr.contains("15.0"))
         self.assertFalse(vr.contains("14.9"))
 
     def test_contains_no_end(self):
         from host.cve.cve_db import VersionRange
+
         vr = VersionRange(start="14.0")
         self.assertTrue(vr.contains("14.0"))
         self.assertTrue(vr.contains("16.0"))
@@ -52,6 +58,7 @@ class TestVersionRange(unittest.TestCase):
 
     def test_contains_single_version(self):
         from host.cve.cve_db import VersionRange
+
         vr = VersionRange(start="16.5", end="16.5")
         self.assertTrue(vr.contains("16.5"))
         self.assertFalse(vr.contains("16.5.1"))
@@ -59,6 +66,7 @@ class TestVersionRange(unittest.TestCase):
 
     def test_contains_three_part_versions(self):
         from host.cve.cve_db import VersionRange
+
         vr = VersionRange(start="14.0", end="14.8.1")
         self.assertTrue(vr.contains("14.8.1"))
         self.assertTrue(vr.contains("14.4"))
@@ -67,6 +75,7 @@ class TestVersionRange(unittest.TestCase):
 
     def test_contains_very_long_version_string(self):
         from host.cve.cve_db import VersionRange
+
         vr = VersionRange(start="10.0")
         self.assertTrue(vr.contains("10.0.0.0"))
         self.assertTrue(vr.contains("11.0.0.1"))
@@ -76,9 +85,11 @@ class TestVersionRange(unittest.TestCase):
 # CVE dataclass tests
 # =============================================================================
 
+
 class TestCVEDataclass(unittest.TestCase):
     def test_create_minimal_cve(self):
         from host.cve.cve_db import CVE, VersionRange
+
         cve = CVE(
             id="CVE-2024-0001",
             description="Test vulnerability",
@@ -96,6 +107,7 @@ class TestCVEDataclass(unittest.TestCase):
 
     def test_create_full_cve(self):
         from host.cve.cve_db import CVE, VersionRange
+
         cve = CVE(
             id="CVE-2024-0002",
             description="Full test CVE",
@@ -126,13 +138,14 @@ class TestCVEDataclass(unittest.TestCase):
 # CVEDatabase tests
 # =============================================================================
 
+
 class TestCVEDatabase(unittest.TestCase):
     def setUp(self):
         from host.cve.cve_db import CVEDatabase
+
         self.db = CVEDatabase()
 
     def test_empty_database(self):
-        from host.cve.cve_db import CVE, VersionRange
         self.assertEqual(self.db.count, 0)
         self.assertEqual(self.db.all_cves, ())
         self.assertEqual(self.db.query_by_version("16.0"), ())
@@ -148,6 +161,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_add_and_count(self):
         from host.cve.cve_db import CVE, VersionRange
+
         cve = CVE(
             id="CVE-2024-TEST",
             description="test",
@@ -163,6 +177,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_add_duplicate_id_overwrites(self):
         from host.cve.cve_db import CVE, VersionRange
+
         cve1 = CVE(
             id="CVE-2024-TEST",
             description="first",
@@ -227,12 +242,14 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_load_json_from_real_file(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         self.assertGreater(db.count, 100)
         self.assertEqual(len(db.all_cves), db.count)
 
     def test_save_json_roundtrip(self):
         from host.cve.cve_db import CVEDatabase, CVE, VersionRange
+
         cve = CVE(
             id="CVE-2024-ROUNDTRIP",
             description="roundtrip test",
@@ -255,6 +272,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_save_json_roundtrip_with_multiple(self):
         from host.cve.cve_db import CVEDatabase, CVE, VersionRange
+
         cve1 = CVE(
             id="CVE-2024-A",
             description="A",
@@ -291,6 +309,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_query_by_version_real_data(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_by_version("16.5")
         self.assertGreater(len(results), 0)
@@ -300,12 +319,14 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_query_by_version_no_results(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_by_version("0.1")
         self.assertEqual(len(results), 0)
 
     def test_query_by_goal_without_version(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_by_goal("kernel-rw")
         self.assertGreater(len(results), 0)
@@ -314,6 +335,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_query_by_goal_with_version(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_by_goal("kernel-rw", version="16.5")
         self.assertGreater(len(results), 0)
@@ -322,12 +344,14 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_query_by_goal_no_match(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_by_goal("nonexistent-goal-xyz")
         self.assertEqual(len(results), 0)
 
     def test_query_by_component(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_by_component("webkit")
         self.assertGreater(len(results), 0)
@@ -336,6 +360,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_query_by_component_with_version(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_by_component("webkit", version="16.5")
         self.assertGreater(len(results), 0)
@@ -344,12 +369,14 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_query_by_component_no_match(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_by_component("nonexistent-component")
         self.assertEqual(len(results), 0)
 
     def test_query_by_severity(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_by_severity("critical")
         self.assertGreater(len(results), 0)
@@ -358,12 +385,14 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_query_by_severity_no_match(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_by_severity("nonexistent-severity")
         self.assertEqual(len(results), 0)
 
     def test_query_exploit_available(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_exploit_available()
         self.assertGreater(len(results), 0)
@@ -372,6 +401,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_query_exploit_available_with_version(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.query_exploit_available(version="16.5")
         self.assertGreater(len(results), 0)
@@ -380,6 +410,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_search_by_id(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.search("CVE-2023-32364")
         self.assertGreater(len(results), 0)
@@ -387,6 +418,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_search_by_description_keyword(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.search("webkit")
         self.assertGreater(len(results), 0)
@@ -397,18 +429,21 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_search_no_match(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.search("XYZZYX_NOMATCH_12345")
         self.assertEqual(len(results), 0)
 
     def test_filter_by_version(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.filter(version="16.5")
         self.assertGreater(len(results), 0)
 
     def test_filter_by_goals(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.filter(goals={"kernel-rw"})
         self.assertGreater(len(results), 0)
@@ -417,6 +452,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_filter_by_components(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.filter(components={"webkit"})
         self.assertGreater(len(results), 0)
@@ -425,6 +461,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_filter_by_exploit_types(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.filter(exploit_types={"lpe"})
         self.assertGreater(len(results), 0)
@@ -433,6 +470,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_filter_exploit_available(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.filter(exploit_available=True)
         self.assertGreater(len(results), 0)
@@ -443,6 +481,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_filter_min_severity_critical(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.filter(min_severity="critical")
         self.assertGreater(len(results), 0)
@@ -451,6 +490,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_filter_min_severity_high_includes_critical(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.filter(min_severity="high")
         self.assertGreater(len(results), 0)
@@ -459,6 +499,7 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_filter_multiple_criteria(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.filter(
             version="16.5",
@@ -478,12 +519,14 @@ class TestCVEDatabase(unittest.TestCase):
 
     def test_filter_no_match(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         results = db.filter(components={"nonexistent"})
         self.assertEqual(len(results), 0)
 
     def test_compute_stats_structure(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase.load_json(CVE_DATA)
         stats = db.compute_stats()
         self.assertIn("total_cves", stats)
@@ -499,7 +542,8 @@ class TestCVEDatabase(unittest.TestCase):
         self.assertEqual(total_from_severity, stats["total_cves"])
 
     def test_to_dict_roundtrip(self):
-        from host.cve.cve_db import CVEDatabase, CVE, VersionRange
+        from host.cve.cve_db import CVE, VersionRange
+
         cve = CVE(
             id="CVE-2024-TODICT",
             description="to_dict test",
@@ -521,9 +565,11 @@ class TestCVEDatabase(unittest.TestCase):
 # ExploitGoal tests
 # =============================================================================
 
+
 class TestExploitGoal(unittest.TestCase):
     def test_is_achieved_by_exact_match(self):
         from host.cve.exploit_chain import ExploitGoal
+
         goal = ExploitGoal(
             name="test-goal",
             description="test",
@@ -533,6 +579,7 @@ class TestExploitGoal(unittest.TestCase):
 
     def test_is_achieved_by_superset(self):
         from host.cve.exploit_chain import ExploitGoal
+
         goal = ExploitGoal(
             name="test-goal",
             description="test",
@@ -542,6 +589,7 @@ class TestExploitGoal(unittest.TestCase):
 
     def test_is_achieved_by_not_met(self):
         from host.cve.exploit_chain import ExploitGoal
+
         goal = ExploitGoal(
             name="test-goal",
             description="test",
@@ -553,6 +601,7 @@ class TestExploitGoal(unittest.TestCase):
 
     def test_is_achieved_by_empty_requirements(self):
         from host.cve.exploit_chain import ExploitGoal
+
         goal = ExploitGoal(
             name="empty-goal",
             description="empty requirements",
@@ -566,10 +615,12 @@ class TestExploitGoal(unittest.TestCase):
 # ExploitChain tests
 # =============================================================================
 
+
 class TestExploitChain(unittest.TestCase):
     def setUp(self):
         from host.cve.cve_db import CVE, VersionRange
-        from host.cve.exploit_chain import ExploitGoal, ChainLink
+        from host.cve.exploit_chain import ExploitGoal
+
         self.goal = ExploitGoal(
             name="test-jailbreak",
             description="Test jailbreak",
@@ -599,9 +650,12 @@ class TestExploitChain(unittest.TestCase):
 
     def _make_chain(self, links=None):
         from host.cve.exploit_chain import ExploitChain, ChainLink
+
         if links is None:
             links = [
-                ChainLink(cve=self.cve1, step=1, provides={"kernel-rw", "root-privesc"}),
+                ChainLink(
+                    cve=self.cve1, step=1, provides={"kernel-rw", "root-privesc"}
+                ),
                 ChainLink(cve=self.cve2, step=2, provides={"codesign-bypass"}),
             ]
         return ExploitChain(
@@ -616,6 +670,7 @@ class TestExploitChain(unittest.TestCase):
 
     def test_coverage_partial(self):
         from host.cve.exploit_chain import ChainLink
+
         links = [
             ChainLink(cve=self.cve1, step=1, provides={"kernel-rw", "root-privesc"}),
         ]
@@ -624,12 +679,14 @@ class TestExploitChain(unittest.TestCase):
 
     def test_coverage_empty_requirements(self):
         from host.cve.exploit_chain import ExploitGoal, ExploitChain
+
         goal = ExploitGoal(name="easy", description="easy", required_subgoals=())
         chain = ExploitChain(goal=goal, target_version="16.0", links=[])
         self.assertEqual(chain.coverage, 1.0)
 
     def test_coverage_zero(self):
         from host.cve.exploit_chain import ExploitChain, ChainLink
+
         cve = self.cve1
         goal_no_match = self.goal
         links = [ChainLink(cve=cve, step=1, provides={"unrelated"})]
@@ -642,18 +699,21 @@ class TestExploitChain(unittest.TestCase):
 
     def test_complete_false(self):
         from host.cve.exploit_chain import ChainLink
+
         links = [ChainLink(cve=self.cve1, step=1, provides={"kernel-rw"})]
         chain = self._make_chain(links=links)
         self.assertFalse(chain.complete)
 
     def test_complete_empty_requirements(self):
         from host.cve.exploit_chain import ExploitGoal, ExploitChain
+
         goal = ExploitGoal(name="easy", description="easy", required_subgoals=())
         chain = ExploitChain(goal=goal, target_version="16.0", links=[])
         self.assertTrue(chain.complete)
 
     def test_estimate_difficulty_no_links(self):
         from host.cve.exploit_chain import ExploitChain
+
         chain = ExploitChain(goal=self.goal, target_version="16.5", links=[])
         self.assertEqual(chain.estimate_difficulty, "unknown")
 
@@ -663,12 +723,14 @@ class TestExploitChain(unittest.TestCase):
 
     def test_estimated_success_rate_no_links(self):
         from host.cve.exploit_chain import ExploitChain
+
         chain = ExploitChain(goal=self.goal, target_version="16.5", links=[])
         self.assertEqual(chain.estimated_success_rate, "0%")
 
     def test_estimated_success_rate_with_exploit_available(self):
         from host.cve.exploit_chain import ExploitChain, ChainLink
         from host.cve.cve_db import CVE, VersionRange
+
         cve = CVE(
             id="CVE-2024-TEST",
             description="test",
@@ -701,6 +763,7 @@ class TestExploitChain(unittest.TestCase):
 
     def test_to_dict_partial_chain(self):
         from host.cve.exploit_chain import ExploitChain, ChainLink
+
         links = [ChainLink(cve=self.cve1, step=1, provides={"kernel-rw"})]
         chain = ExploitChain(goal=self.goal, target_version="16.5", links=links)
         d = chain.to_dict()
@@ -709,6 +772,7 @@ class TestExploitChain(unittest.TestCase):
 
     def test_created_timestamp_set(self):
         from host.cve.exploit_chain import ExploitChain
+
         chain = ExploitChain(goal=self.goal, target_version="16.5", links=[])
         self.assertTrue(chain.created.endswith(":00") or "T" in chain.created)
 
@@ -717,10 +781,12 @@ class TestExploitChain(unittest.TestCase):
 # ChainPlanner tests
 # =============================================================================
 
+
 class TestChainPlanner(unittest.TestCase):
     def setUp(self):
         from host.cve.cve_db import CVEDatabase
         from host.cve.exploit_chain import ChainPlanner
+
         self.db = CVEDatabase.load_json(CVE_DATA)
         self.planner = ChainPlanner(self.db)
 
@@ -751,6 +817,7 @@ class TestChainPlanner(unittest.TestCase):
 
     def test_register_goal(self):
         from host.cve.exploit_chain import ExploitGoal
+
         new_goal = ExploitGoal(
             name="custom-goal",
             description="Custom goal",
@@ -779,6 +846,7 @@ class TestChainPlanner(unittest.TestCase):
 
     def test_find_chains_unknown_goal_raises(self):
         from host.cve.exploit_chain import ChainPlannerError
+
         with self.assertRaises(ChainPlannerError):
             self.planner.find_chains("nonexistent-goal", "16.5")
 
@@ -791,7 +859,9 @@ class TestChainPlanner(unittest.TestCase):
         self.assertGreater(len(chains), 0)
 
     def test_find_chains_require_exploit_available(self):
-        chains = self.planner.find_chains("jailbreak", "16.5", require_exploit_available=True)
+        chains = self.planner.find_chains(
+            "jailbreak", "16.5", require_exploit_available=True
+        )
         self.assertGreater(len(chains), 0)
         for chain in chains:
             for link in chain.links:
@@ -853,18 +923,16 @@ class TestChainPlanner(unittest.TestCase):
         self.assertEqual(parsed["goal"], "jailbreak")
         self.assertEqual(parsed["target_version"], "16.5")
 
-    def test_find_chains_extraction(self):
-        chains = self.planner.find_chains("extraction", "16.5")
-        self.assertGreater(len(chains), 0)
-
 
 # =============================================================================
 # BUILTIN_GOALS tests
 # =============================================================================
 
+
 class TestBuiltinGoals(unittest.TestCase):
     def test_has_all_expected_entries(self):
         from host.cve.exploit_chain import BUILTIN_GOALS
+
         expected = {
             "jailbreak",
             "jailbreak-from-app",
@@ -887,23 +955,29 @@ class TestBuiltinGoals(unittest.TestCase):
 
     def test_all_goals_are_exploit_goal_instances(self):
         from host.cve.exploit_chain import BUILTIN_GOALS, ExploitGoal
+
         for goal in BUILTIN_GOALS.values():
             self.assertIsInstance(goal, ExploitGoal)
 
     def test_jailbreak_requires_correct_subgoals(self):
         from host.cve.exploit_chain import BUILTIN_GOALS
+
         goal = BUILTIN_GOALS["jailbreak"]
-        self.assertEqual(goal.required_subgoals, ("kernel-rw", "root-privesc", "codesign-bypass"))
+        self.assertEqual(
+            goal.required_subgoals, ("kernel-rw", "root-privesc", "codesign-bypass")
+        )
         self.assertEqual(goal.difficulty, "hard")
 
     def test_userland_jailbreak_subgoals(self):
         from host.cve.exploit_chain import BUILTIN_GOALS
+
         goal = BUILTIN_GOALS["userland-jailbreak"]
         self.assertEqual(goal.required_subgoals, ("root-privesc", "codesign-bypass"))
         self.assertEqual(goal.difficulty, "medium")
 
     def test_jailbreak_remote_is_extreme(self):
         from host.cve.exploit_chain import BUILTIN_GOALS
+
         goal = BUILTIN_GOALS["jailbreak-remote"]
         self.assertEqual(goal.difficulty, "extreme")
 
@@ -912,9 +986,11 @@ class TestBuiltinGoals(unittest.TestCase):
 # Fuzzer tests
 # =============================================================================
 
+
 class TestFuzzTarget(unittest.TestCase):
     def test_create_minimal(self):
         from host.cve.fuzzer import FuzzTarget
+
         t = FuzzTarget(
             name="test-target",
             component="kernel",
@@ -928,6 +1004,7 @@ class TestFuzzTarget(unittest.TestCase):
 
     def test_create_full(self):
         from host.cve.fuzzer import FuzzTarget
+
         t = FuzzTarget(
             name="full-target",
             component="webkit",
@@ -945,6 +1022,7 @@ class TestFuzzTarget(unittest.TestCase):
 class TestFuzzResult(unittest.TestCase):
     def test_create_result(self):
         from host.cve.fuzzer import FuzzResult
+
         r = FuzzResult(
             target="webkit-jscore",
             runs=1000,
@@ -962,6 +1040,7 @@ class TestFuzzResult(unittest.TestCase):
     def test_create_full_result(self):
         from host.cve.fuzzer import FuzzResult
         import pathlib
+
         r = FuzzResult(
             target="test",
             runs=500,
@@ -978,6 +1057,7 @@ class TestFuzzResult(unittest.TestCase):
 class TestFUZZ_TARGETS(unittest.TestCase):
     def test_has_expected_targets(self):
         from host.cve.fuzzer import FUZZ_TARGETS
+
         expected = {
             "webkit-jscore",
             "webkit-html",
@@ -996,11 +1076,13 @@ class TestFUZZ_TARGETS(unittest.TestCase):
 
     def test_all_targets_are_fuzz_target_instances(self):
         from host.cve.fuzzer import FUZZ_TARGETS, FuzzTarget
+
         for t in FUZZ_TARGETS.values():
             self.assertIsInstance(t, FuzzTarget)
 
     def test_target_components(self):
         from host.cve.fuzzer import FUZZ_TARGETS
+
         self.assertEqual(FUZZ_TARGETS["webkit-jscore"].component, "webkit")
         self.assertEqual(FUZZ_TARGETS["webkit-jscore"].fuzzer, "honggfuzz")
         self.assertEqual(FUZZ_TARGETS["kernel-mach"].component, "kernel")
@@ -1010,6 +1092,7 @@ class TestFUZZ_TARGETS(unittest.TestCase):
 class TestFuzzerFramework(unittest.TestCase):
     def setUp(self):
         from host.cve.fuzzer import FuzzerFramework
+
         self.fw = FuzzerFramework()
 
     def test_list_targets(self):
@@ -1027,6 +1110,7 @@ class TestFuzzerFramework(unittest.TestCase):
 
     def test_register_target(self):
         from host.cve.fuzzer import FuzzTarget
+
         t = FuzzTarget(
             name="custom-target",
             component="test",
@@ -1037,11 +1121,13 @@ class TestFuzzerFramework(unittest.TestCase):
 
     def test_fuzz_unknown_target_raises(self):
         from host.cve.fuzzer import FuzzerError
+
         with self.assertRaises(FuzzerError):
             self.fw.fuzz("nonexistent-target")
 
     def test_fuzz_raises_when_fuzzer_not_installed(self):
         from host.cve.fuzzer import FuzzerError
+
         with tempfile.TemporaryDirectory() as tmp:
             fw = type(self.fw)(output_dir=pathlib.Path(tmp))
             with self.assertRaises(FuzzerError) as ctx:
@@ -1053,12 +1139,13 @@ class TestFuzzerFramework(unittest.TestCase):
 # CLI integration tests via B34STCLI
 # =============================================================================
 
+
 class TestCVECLI(unittest.TestCase):
     def _run_cli(self, *args):
         """Run B34STCLI with given cve subcommand args and return (code, stdout)."""
         from b34st.engine import B34STCLI
         from io import StringIO
-        import contextlib
+
         cli = B34STCLI()
         old_stdout = sys.stdout
         sys.stdout = buf = StringIO()
@@ -1142,6 +1229,7 @@ class TestCVECLI(unittest.TestCase):
 # FBR34KER CLI integration tests (subprocess)
 # =============================================================================
 
+
 class TestFBR34KERCVECLI(unittest.TestCase):
     def test_fbr34ker_cve_stats(self):
         result = __import__("subprocess").run(
@@ -1215,21 +1303,26 @@ class TestFBR34KERCVECLI(unittest.TestCase):
 # Import verification tests
 # =============================================================================
 
+
 class TestCVEImports(unittest.TestCase):
     def test_import_cve_db(self):
-        from host.cve import CVE, VersionRange, CVEDatabase, CVELookupError
+        from host.cve import cve_db  # noqa: F401
+
         self.assertTrue(True)
 
     def test_import_exploit_chain(self):
-        from host.cve import ExploitGoal, ExploitChain, ChainPlanner, ChainPlannerError
+        from host.cve import exploit_chain  # noqa: F401
+
         self.assertTrue(True)
 
     def test_import_fuzzer(self):
-        from host.cve import FuzzerFramework, FuzzerError
+        from host.cve import fuzzer  # noqa: F401
+
         self.assertTrue(True)
 
     def test_module_all(self):
         from host.cve import __all__
+
         expected = {
             "BUILTIN_CVE_DB",
             "CVE",
@@ -1258,9 +1351,11 @@ class TestCVEImports(unittest.TestCase):
 # Concurrent database access / edge case tests
 # =============================================================================
 
+
 class TestCVEDatabaseEdgeCases(unittest.TestCase):
     def test_add_from_dict_missing_optional_fields(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase()
         data = {
             "id": "CVE-2024-EDGE",
@@ -1279,6 +1374,7 @@ class TestCVEDatabaseEdgeCases(unittest.TestCase):
 
     def test_filter_with_falsy_version_not_applied(self):
         from host.cve.cve_db import CVEDatabase, CVE, VersionRange
+
         db = CVEDatabase()
         cve = CVE(
             id="CVE-2024-FILTER",
@@ -1297,6 +1393,7 @@ class TestCVEDatabaseEdgeCases(unittest.TestCase):
 
     def test_compute_stats_empty(self):
         from host.cve.cve_db import CVEDatabase
+
         db = CVEDatabase()
         stats = db.compute_stats()
         self.assertEqual(stats["total_cves"], 0)

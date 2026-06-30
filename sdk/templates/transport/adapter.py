@@ -6,7 +6,6 @@ then implement the exchange() method using the actual transport mechanism.
 
 from __future__ import annotations
 
-import pathlib
 from host.deployment_transport import DeploymentTransport, TransportError
 
 

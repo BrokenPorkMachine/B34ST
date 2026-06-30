@@ -17,7 +17,7 @@ from dataclasses import asdict, dataclass
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from host.tls_support import tls_ca_status
+from host.tls_support import tls_ca_status  # noqa: E402
 
 MINIMUM_PYTHON = (3, 10)
 
@@ -103,22 +103,26 @@ def run_checks(require_qemu: bool) -> tuple[list[Check], dict[str, object]]:
     checks: list[Check] = []
 
     python_ok = sys.version_info >= MINIMUM_PYTHON
-    checks.append(Check(
-        "python",
-        True,
-        python_ok,
-        sys.executable,
-        f"Python {platform.python_version()} (requires >= 3.10)",
-    ))
+    checks.append(
+        Check(
+            "python",
+            True,
+            python_ok,
+            sys.executable,
+            f"Python {platform.python_version()} (requires >= 3.10)",
+        )
+    )
 
     tls_ok, tls_path, tls_detail = tls_ca_status()
-    checks.append(Check(
-        "tls-ca-certificates",
-        True,
-        tls_ok,
-        tls_path,
-        tls_detail,
-    ))
+    checks.append(
+        Check(
+            "tls-ca-certificates",
+            True,
+            tls_ok,
+            tls_path,
+            tls_detail,
+        )
+    )
 
     specifications = (
         ("make", True, ("--version",)),
@@ -139,20 +143,29 @@ def run_checks(require_qemu: bool) -> tuple[list[Check], dict[str, object]]:
     for name, required, arguments in specifications:
         executable = _which(name, path)
         if executable is None:
-            checks.append(Check(name, required, not required, None,
-                                "not installed" if required else "optional; not installed"))
+            checks.append(
+                Check(
+                    name,
+                    required,
+                    not required,
+                    None,
+                    "not installed" if required else "optional; not installed",
+                )
+            )
             continue
         found[name] = executable
-        checks.append(Check(name, required, True, executable,
-                            _version(executable, *arguments)))
+        checks.append(
+            Check(name, required, True, executable, _version(executable, *arguments))
+        )
 
     clang = found.get("clang")
     if clang is not None:
         ok, detail = _clang_target_check(clang, path)
         checks.append(Check("clang-aarch64-target", True, ok, clang, detail))
     else:
-        checks.append(Check("clang-aarch64-target", True, False, None,
-                            "clang is unavailable"))
+        checks.append(
+            Check("clang-aarch64-target", True, False, None, "clang is unavailable")
+        )
 
     metadata: dict[str, object] = {
         "schema_version": 1,
@@ -168,26 +181,38 @@ def run_checks(require_qemu: bool) -> tuple[list[Check], dict[str, object]]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--require-qemu", action="store_true",
-                        help="treat qemu-system-aarch64 as required")
-    parser.add_argument("--json", action="store_true",
-                        help="emit machine-readable JSON")
+    parser.add_argument(
+        "--require-qemu",
+        action="store_true",
+        help="treat qemu-system-aarch64 as required",
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     arguments = parser.parse_args(argv)
 
     checks, metadata = run_checks(arguments.require_qemu)
     passed = all(check.ok for check in checks if check.required)
     if arguments.json:
-        print(json.dumps({
-            **metadata,
-            "passed": passed,
-            "checks": [
+        print(
+            json.dumps(
                 {
-                    **asdict(check),
-                    "path": pathlib.Path(check.path).name if check.path else None,
-                }
-                for check in checks
-            ],
-        }, indent=2, sort_keys=True))
+                    **metadata,
+                    "passed": passed,
+                    "checks": [
+                        {
+                            **asdict(check),
+                            "path": pathlib.Path(check.path).name
+                            if check.path
+                            else None,
+                        }
+                        for check in checks
+                    ],
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
     else:
         print("FBR34KER host readiness")
         for check in checks:
@@ -197,7 +222,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"       {check.detail}")
         print("Host readiness:", "passed" if passed else "failed")
         if not passed:
-            print("On macOS, install missing runtime tools with: brew install llvm qemu")
+            print(
+                "On macOS, install missing runtime tools with: brew install llvm qemu"
+            )
         if not any(check.name == "irecovery" and check.ok for check in checks):
             print("Optional A12/A13 recovery transport: brew install libirecovery")
     return 0 if passed else 1

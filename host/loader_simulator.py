@@ -14,7 +14,7 @@ import json
 import pathlib
 import struct
 from dataclasses import dataclass, asdict
-from typing import Iterable
+from typing import Any, Iterable
 
 try:
     from .handoff_schema import load_and_validate

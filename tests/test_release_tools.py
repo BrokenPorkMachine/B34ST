@@ -50,12 +50,18 @@ class ReleaseToolTests(unittest.TestCase):
             artifact.write_bytes(b"deterministic-monitor")
             command = (
                 "scripts/release_manifest.py",
-                "--version", "0.2.0",
-                "--release-name", "FBR34KER_test",
-                "--channel", "public-preview",
-                "--source-id", "0.2.0-public-preview",
-                "--output", "manifest.json",
-                "--checksums", "checksums.sha256",
+                "--version",
+                "0.2.0",
+                "--release-name",
+                "FBR34KER_test",
+                "--channel",
+                "public-preview",
+                "--source-id",
+                "0.2.0-public-preview",
+                "--output",
+                "manifest.json",
+                "--checksums",
+                "checksums.sha256",
                 "monitor.bin",
             )
             first = self.run_python(*command, cwd=root)
@@ -72,15 +78,17 @@ class ReleaseToolTests(unittest.TestCase):
             root = pathlib.Path(directory)
             smoke = root / "smoke"
             smoke.mkdir()
-            (smoke / "summary.json").write_text(
-                '{"passed": true}\n', encoding="utf-8"
-            )
+            (smoke / "summary.json").write_text('{"passed": true}\n', encoding="utf-8")
             output = root / "diagnostics"
-            completed = collect_diagnostics.main([
-                "--output", str(output),
-                "--smoke-dir", str(smoke),
-                "--skip-tool-probes",
-            ])
+            completed = collect_diagnostics.main(
+                [
+                    "--output",
+                    str(output),
+                    "--smoke-dir",
+                    str(smoke),
+                    "--skip-tool-probes",
+                ]
+            )
             self.assertEqual(completed, 0)
             self.assertEqual(
                 (output / "smoke" / "summary.json").read_text(encoding="utf-8"),
@@ -88,8 +96,12 @@ class ReleaseToolTests(unittest.TestCase):
             )
             archive = output.with_suffix(".zip")
             self.assertTrue(archive.is_file())
-            tools = json.loads((output / "tool-commands.json").read_text(encoding="utf-8"))
-            self.assertEqual(tools["doctor"]["command"][0], pathlib.Path(sys.executable).name)
+            tools = json.loads(
+                (output / "tool-commands.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(
+                tools["doctor"]["command"][0], pathlib.Path(sys.executable).name
+            )
             self.assertNotIn(str(ROOT), json.dumps(tools))
             with zipfile.ZipFile(archive) as bundle:
                 self.assertIn("diagnostics/smoke/summary.json", bundle.namelist())
@@ -98,7 +110,11 @@ class ReleaseToolTests(unittest.TestCase):
         environment = {**os.environ, "TARGET": "poisoned-output"}
         completed = subprocess.run(
             [
-                "make", "--no-print-directory", "-s", "-f", "Makefile",
+                "make",
+                "--no-print-directory",
+                "-s",
+                "-f",
+                "Makefile",
                 "print-target",
             ],
             cwd=ROOT,
@@ -115,8 +131,13 @@ class ReleaseToolTests(unittest.TestCase):
     def test_command_line_target_override_is_supported(self) -> None:
         completed = subprocess.run(
             [
-                "make", "--no-print-directory", "-s", "-f", "Makefile",
-                "TARGET=custom/image", "print-target",
+                "make",
+                "--no-print-directory",
+                "-s",
+                "-f",
+                "Makefile",
+                "TARGET=custom/image",
+                "print-target",
             ],
             cwd=ROOT,
             text=True,
@@ -130,7 +151,7 @@ class ReleaseToolTests(unittest.TestCase):
 
     def test_version_consistency_accepts_beta_suffix(self) -> None:
         completed = self.run_python(
-            "scripts/check_version_consistency.py", "--expected", "0.5.0b"
+            "scripts/check_version_consistency.py", "--expected", "0.6.0_beta"
         )
         self.assertNotEqual(completed.returncode, 2, completed.stdout)
         self.assertNotIn("must be a release version", completed.stdout)
@@ -150,8 +171,6 @@ class ReleaseToolTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             outside = pathlib.Path(directory) / "private-monitor.bin"
             self.assertEqual(qemu_smoke.display_path(outside), "private-monitor.bin")
-
-
 
     def test_gate_stage_logs_and_commands_are_sanitized(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -182,11 +201,21 @@ class ReleaseToolTests(unittest.TestCase):
                 launcher = bundle.getinfo("FBR34KER_test/fbr34ker")
                 self.assertEqual((launcher.external_attr >> 16) & 0o777, 0o755)
                 self.assertFalse(any("/build/" in name for name in bundle.namelist()))
-                self.assertFalse(any("/validation-logs/" in name for name in bundle.namelist()))
-                self.assertFalse(any("/.pytest_cache/" in name for name in bundle.namelist()))
-                self.assertFalse(any("/.ruff_cache/" in name for name in bundle.namelist()))
-                self.assertFalse(any(name.endswith(".tmp") for name in bundle.namelist()))
-                self.assertFalse(any(name.endswith(".tar.gz") for name in bundle.namelist()))
+                self.assertFalse(
+                    any("/validation-logs/" in name for name in bundle.namelist())
+                )
+                self.assertFalse(
+                    any("/.pytest_cache/" in name for name in bundle.namelist())
+                )
+                self.assertFalse(
+                    any("/.ruff_cache/" in name for name in bundle.namelist())
+                )
+                self.assertFalse(
+                    any(name.endswith(".tmp") for name in bundle.namelist())
+                )
+                self.assertFalse(
+                    any(name.endswith(".tar.gz") for name in bundle.namelist())
+                )
 
             extracted = root / "extracted"
             with zipfile.ZipFile(first) as bundle:
@@ -204,8 +233,11 @@ class ReleaseToolTests(unittest.TestCase):
                 interpreter = shutil.which("sh") or "sh"
             completed = subprocess.run(
                 [interpreter, str(launcher), "--permissions"],
-                cwd=project, text=True, stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT, check=False,
+                cwd=project,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
             )
             self.assertEqual(completed.returncode, 0, completed.stdout)
             self.assertTrue(os.access(launcher, os.X_OK))
@@ -224,7 +256,9 @@ class ReleaseToolTests(unittest.TestCase):
         self.assertIn(pathlib.Path("host/process_support.py"), paths)
         self.assertIn(pathlib.Path("host/tls_support.py"), paths)
         self.assertIn(pathlib.Path("host/ipsw_manager.py"), paths)
-        self.assertIn(pathlib.Path("examples/tether_adapter_contract_example.py"), paths)
+        self.assertIn(
+            pathlib.Path("examples/tether_adapter_contract_example.py"), paths
+        )
         self.assertNotIn(pathlib.Path("kernel/main.c"), paths)
         self.assertNotIn(pathlib.Path("arch/arm64/start.S"), paths)
         self.assertNotIn(pathlib.Path("platform/qemu_virt/platform.c"), paths)
@@ -244,12 +278,18 @@ class ReleaseToolTests(unittest.TestCase):
             artifact.write_bytes(b"signed release artifact")
             generated = self.run_python(
                 "scripts/release_manifest.py",
-                "--version", "0.5.0b",
-                "--release-name", "B34ST_0.5.0b_Beta",
-                "--channel", "beta",
-                "--source-id", "0.5.0b-beta",
-                "--output", "manifest.json",
-                "--checksums", "checksums.sha256",
+                "--version",
+                "0.6.0_beta",
+                "--release-name",
+                "B34ST_0.6.0_Beta",
+                "--channel",
+                "beta",
+                "--source-id",
+                "0.6.0-beta",
+                "--output",
+                "manifest.json",
+                "--checksums",
+                "checksums.sha256",
                 "monitor.bin",
                 cwd=root,
             )
@@ -258,16 +298,32 @@ class ReleaseToolTests(unittest.TestCase):
             public_key = root / "public.pem"
             for command in (
                 [
-                    "openssl", "genpkey", "-algorithm", "RSA",
-                    "-pkeyopt", "rsa_keygen_bits:2048", "-out", str(private_key),
+                    "openssl",
+                    "genpkey",
+                    "-algorithm",
+                    "RSA",
+                    "-pkeyopt",
+                    "rsa_keygen_bits:2048",
+                    "-out",
+                    str(private_key),
                 ],
                 [
-                    "openssl", "pkey", "-in", str(private_key),
-                    "-pubout", "-out", str(public_key),
+                    "openssl",
+                    "pkey",
+                    "-in",
+                    str(private_key),
+                    "-pubout",
+                    "-out",
+                    str(public_key),
                 ],
                 [
-                    "openssl", "dgst", "-sha256", "-sign", str(private_key),
-                    "-out", str(root / "manifest.json.sig"),
+                    "openssl",
+                    "dgst",
+                    "-sha256",
+                    "-sign",
+                    str(private_key),
+                    "-out",
+                    str(root / "manifest.json.sig"),
                     str(root / "manifest.json"),
                 ],
             ):
@@ -283,9 +339,12 @@ class ReleaseToolTests(unittest.TestCase):
             verified = self.run_python(
                 "scripts/release_verify.py",
                 "manifest.json",
-                "--root", ".",
-                "--signature", "manifest.json.sig",
-                "--public-key", "public.pem",
+                "--root",
+                ".",
+                "--signature",
+                "manifest.json.sig",
+                "--public-key",
+                "public.pem",
                 "--json",
                 cwd=root,
             )
@@ -312,12 +371,22 @@ class ReleaseToolTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             output = pathlib.Path(directory)
             stages = [
-                release_gate.StageResult("host-readiness", "passed", 0, 1, [], None, "ok"),
+                release_gate.StageResult(
+                    "host-readiness", "passed", 0, 1, [], None, "ok"
+                ),
                 release_gate.StageResult("verify", "passed", 0, 1, [], None, "ok"),
-                release_gate.StageResult("integration", "blocked", None, 0, [], None, "no qemu"),
-                release_gate.StageResult("smoke", "blocked", None, 0, [], None, "no qemu"),
-                release_gate.StageResult("generic-smoke", "blocked", None, 0, [], None, "no qemu"),
-                release_gate.StageResult("probe-smoke", "blocked", None, 0, [], None, "no qemu"),
+                release_gate.StageResult(
+                    "integration", "blocked", None, 0, [], None, "no qemu"
+                ),
+                release_gate.StageResult(
+                    "smoke", "blocked", None, 0, [], None, "no qemu"
+                ),
+                release_gate.StageResult(
+                    "generic-smoke", "blocked", None, 0, [], None, "no qemu"
+                ),
+                release_gate.StageResult(
+                    "probe-smoke", "blocked", None, 0, [], None, "no qemu"
+                ),
                 release_gate.StageResult("diagnostics", "passed", 0, 1, [], None, "ok"),
             ]
             path = release_gate.write_summary(
@@ -347,11 +416,16 @@ class ReleaseToolTests(unittest.TestCase):
             module.write_bytes(b"module")
             completed = self.run_python(
                 "scripts/qemu_smoke.py",
-                "--qemu", "definitely-not-a-qemu-binary",
-                "--image", str(image),
-                "--module", str(module),
-                "--output", str(root / "output"),
-                "--expected-version", "0.2.0",
+                "--qemu",
+                "definitely-not-a-qemu-binary",
+                "--image",
+                str(image),
+                "--module",
+                str(module),
+                "--output",
+                str(root / "output"),
+                "--expected-version",
+                "0.2.0",
             )
             self.assertNotEqual(completed.returncode, 0)
             self.assertIn("QEMU executable was not found", completed.stdout)

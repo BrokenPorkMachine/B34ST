@@ -19,10 +19,10 @@ import fbr34kctl  # noqa: E402
 QEMU = shutil.which("qemu-system-aarch64")
 REQUIRED = os.environ.get("FBR34KER_QEMU_REQUIRED") == "1"
 SKIP_QEMU = os.environ.get("FBR34KER_SKIP_QEMU_TESTS") == "1"
-EXPECTED_VERSION = os.environ.get("FBR34KER_EXPECTED_VERSION", "0.5.0b")
-IMAGE = pathlib.Path(os.environ.get(
-    "FBR34KER_QEMU_IMAGE", str(ROOT / "build" / "fbr34ker.bin")
-)).resolve()
+EXPECTED_VERSION = os.environ.get("FBR34KER_EXPECTED_VERSION", "0.6.0_beta")
+IMAGE = pathlib.Path(
+    os.environ.get("FBR34KER_QEMU_IMAGE", str(ROOT / "build" / "fbr34ker.bin"))
+).resolve()
 CRASH_TEST_ENABLED = os.environ.get("FBR34KER_ENABLE_CRASH_TEST") == "1"
 AVAILABLE = not SKIP_QEMU and QEMU is not None and IMAGE.is_file()
 
@@ -35,14 +35,20 @@ class QemuSession:
         self.process = subprocess.Popen(
             [
                 QEMU or "qemu-system-aarch64",
-                "-machine", "virt,gic-version=3",
-                "-cpu", "cortex-a72",
-                "-m", "256M",
+                "-machine",
+                "virt,gic-version=3",
+                "-cpu",
+                "cortex-a72",
+                "-m",
+                "256M",
                 "-nographic",
-                "-monitor", "none",
-                "-serial", "stdio",
+                "-monitor",
+                "none",
+                "-serial",
+                "stdio",
                 "-no-reboot",
-                "-kernel", str(image),
+                "-kernel",
+                str(image),
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
@@ -69,11 +75,15 @@ class QemuSession:
         while marker not in output:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                raise AssertionError(f"timed out waiting for {marker!r}; output={bytes(output)!r}")
+                raise AssertionError(
+                    f"timed out waiting for {marker!r}; output={bytes(output)!r}"
+                )
             chunk = self.recv(4096, min(remaining, 0.2))
             if not chunk:
                 if self.process.poll() is not None:
-                    raise AssertionError(f"QEMU exited with {self.process.returncode}; output={bytes(output)!r}")
+                    raise AssertionError(
+                        f"QEMU exited with {self.process.returncode}; output={bytes(output)!r}"
+                    )
                 continue
             output += chunk
         return bytes(output)
@@ -131,23 +141,28 @@ class QemuBootTests(unittest.TestCase):
             root = pathlib.Path(directory)
             specification = root / "integration.json"
             container = root / "integration.fmod"
-            specification.write_text(json.dumps({
-                "name": "integration",
-                "version": "1.0.0",
-                "command": "integration-run",
-                "state_slots": 2,
-                "program": [
-                    {"op": "state_get", "key": "runs"},
-                    {"op": "push", "value": 1},
-                    {"op": "add"},
-                    {"op": "dup"},
-                    {"op": "state_set", "key": "runs"},
-                    {"op": "print", "text": "QEMU-MODULE-OK run="},
-                    {"op": "print_u64"},
-                    {"op": "print", "text": "\n"},
-                    {"op": "event", "text": "integration completed"},
-                ],
-            }), encoding="utf-8")
+            specification.write_text(
+                json.dumps(
+                    {
+                        "name": "integration",
+                        "version": "1.0.0",
+                        "command": "integration-run",
+                        "state_slots": 2,
+                        "program": [
+                            {"op": "state_get", "key": "runs"},
+                            {"op": "push", "value": 1},
+                            {"op": "add"},
+                            {"op": "dup"},
+                            {"op": "state_set", "key": "runs"},
+                            {"op": "print", "text": "QEMU-MODULE-OK run="},
+                            {"op": "print_u64"},
+                            {"op": "print", "text": "\n"},
+                            {"op": "event", "text": "integration completed"},
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
             fbr34kctl.compile_module(specification, container)
             payload = container.read_bytes()
 
@@ -169,14 +184,13 @@ class QemuBootTests(unittest.TestCase):
             unloaded = self.client.module_unload("integration")
             self.assertIn(b"unloaded dynamic module integration", unloaded)
 
-
     def test_transactional_rollback_fault_injection_and_recovery(self) -> None:
         status = self.client.command("fault-status")
         if b"available" not in status:
-            self.skipTest("integration image does not expose deterministic fault injection")
-        armed = self.client.command(
-            "fault-arm component-start 0 1 platform-catalog"
-        )
+            self.skipTest(
+                "integration image does not expose deterministic fault injection"
+            )
+        armed = self.client.command("fault-arm component-start 0 1 platform-catalog")
         self.assertIn(b"armed component-start", armed)
         with self.assertRaises(fbr34kctl.FBR34KCtlError) as context:
             self.client.command("architecture-restart")

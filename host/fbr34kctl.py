@@ -22,16 +22,29 @@ import zipfile
 from dataclasses import asdict, dataclass
 from typing import BinaryIO, Protocol
 
-from handoff_schema import (HandoffSchemaError, load_and_validate, write_template)
-from handoff_binary import (HandoffBinaryError, inspect_blob, roundtrip_blob, write_blob)
-from sdk_conformance import (SDKConformanceError, check as check_sdk_conformance,
-                             format_report as format_sdk_conformance)
-from loader_simulator import (LoaderSimulationError, format_report, load_report,
-                              simulate_loader)
-from hardware_profile import (HardwareProfileError, check_profile, format_matrix,
-                              import_probe_results, load_profile, write_profile_template)
+from handoff_schema import HandoffSchemaError, load_and_validate, write_template
+from handoff_binary import HandoffBinaryError, inspect_blob, roundtrip_blob, write_blob
+from sdk_conformance import (
+    SDKConformanceError,
+    check as check_sdk_conformance,
+    format_report as format_sdk_conformance,
+)
+from loader_simulator import (
+    LoaderSimulationError,
+    format_report,
+    load_report,
+    simulate_loader,
+)
+from hardware_profile import (
+    HardwareProfileError,
+    check_profile,
+    format_matrix,
+    import_probe_results,
+    load_profile,
+    write_profile_template,
+)
 
-FBR34KCTL_VERSION = "0.5.0b"
+FBR34KCTL_VERSION = "0.6.0_beta"
 
 FMOD_MAGIC = b"FMOD"
 FMOD_FORMAT_VERSION = 1
@@ -194,9 +207,7 @@ class SocketEndpoint:
 
 class SerialEndpoint:
     def __init__(self, path: pathlib.Path, baud: int):
-        self.file_descriptor = os.open(
-            path, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK
-        )
+        self.file_descriptor = os.open(path, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
         try:
             attributes = termios.tcgetattr(self.file_descriptor)
             attributes[0] = 0
@@ -330,7 +341,9 @@ def _parse_capabilities(value: object) -> int | None:
     return result
 
 
-def _encode_inline(opcode: int, value: object, field: str, *, key: bool = False) -> bytes:
+def _encode_inline(
+    opcode: int, value: object, field: str, *, key: bool = False
+) -> bytes:
     if not isinstance(value, str):
         raise FBR34KCtlError(f"{field} must be a string")
     try:
@@ -345,8 +358,7 @@ def _encode_inline(opcode: int, value: object, field: str, *, key: bool = False)
         if any(character not in allowed for character in encoded):
             raise FBR34KCtlError(f"{field} contains invalid key characters")
     elif any(
-        character == 0
-        or (character < 0x20 and character not in (0x09, 0x0A, 0x0D))
+        character == 0 or (character < 0x20 and character not in (0x09, 0x0A, 0x0D))
         for character in encoded
     ):
         raise FBR34KCtlError(f"{field} contains a disallowed control character")
@@ -408,10 +420,17 @@ def compile_bytecode(specification: dict[str, object]) -> tuple[bytes, int]:
         elif op in {"add", "sub", "mul", "and", "or", "xor", "eq"}:
             require_stack(2, index)
             stack_depth -= 1
-            output.append({
-                "add": OP_ADD, "sub": OP_SUB, "mul": OP_MUL,
-                "and": OP_AND, "or": OP_OR, "xor": OP_XOR, "eq": OP_EQ,
-            }[op])
+            output.append(
+                {
+                    "add": OP_ADD,
+                    "sub": OP_SUB,
+                    "mul": OP_MUL,
+                    "and": OP_AND,
+                    "or": OP_OR,
+                    "xor": OP_XOR,
+                    "eq": OP_EQ,
+                }[op]
+            )
         elif op == "print_u64":
             require_stack(1, index)
             stack_depth -= 1
@@ -451,9 +470,7 @@ def compile_bytecode(specification: dict[str, object]) -> tuple[bytes, int]:
             inferred |= CAP_DT
         elif op == "dt_get_u32":
             push_stack(index)
-            output += _encode_inline(
-                OP_DT_GET_U32, item.get("path"), "dt_get_u32.path"
-            )
+            output += _encode_inline(OP_DT_GET_U32, item.get("path"), "dt_get_u32.path")
             output += _encode_inline(
                 0, item.get("property"), "dt_get_u32.property", key=True
             )[1:]
@@ -478,18 +495,22 @@ def compile_bytecode(specification: dict[str, object]) -> tuple[bytes, int]:
     command_value = specification.get("command", "")
     if not isinstance(command_value, str):
         raise FBR34KCtlError("command must be a string")
-    command = _identifier_bytes(
-        command_value, 31, "command", allow_empty=True
-    )
+    command = _identifier_bytes(command_value, 31, "command", allow_empty=True)
     state_slots_value = specification.get("state_slots", 4 if uses_state else 0)
-    if not isinstance(state_slots_value, int) or not 0 <= state_slots_value <= BYTECODE_MAX_STATE_SLOTS:
+    if (
+        not isinstance(state_slots_value, int)
+        or not 0 <= state_slots_value <= BYTECODE_MAX_STATE_SLOTS
+    ):
         raise FBR34KCtlError("state_slots must be between 0 and 8")
     if uses_state and state_slots_value == 0:
         raise FBR34KCtlError("state operations require at least one state slot")
     if capabilities & CAP_STATE and state_slots_value == 0:
         raise FBR34KCtlError("the state capability requires at least one state slot")
     budget = specification.get("instruction_budget", BYTECODE_MAX_INSTRUCTION_BUDGET)
-    if not isinstance(budget, int) or not 1 <= budget <= BYTECODE_MAX_INSTRUCTION_BUDGET:
+    if (
+        not isinstance(budget, int)
+        or not 1 <= budget <= BYTECODE_MAX_INSTRUCTION_BUDGET
+    ):
         raise FBR34KCtlError("instruction_budget must be between 1 and 4096")
     instruction_count = len(program) + (0 if halted else 1)
     if instruction_count > budget:
@@ -552,7 +573,9 @@ def pack_module(
     return pack_module_bytes(input_path.read_bytes(), output_path, name, version, flags)
 
 
-def compile_module(specification_path: pathlib.Path, output_path: pathlib.Path) -> ModuleInfo:
+def compile_module(
+    specification_path: pathlib.Path, output_path: pathlib.Path
+) -> ModuleInfo:
     try:
         specification = json.loads(specification_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -583,8 +606,14 @@ def inspect_module(path: pathlib.Path) -> ModuleInfo:
     if len(data) < FMOD_HEADER.size:
         raise FBR34KCtlError("file is smaller than an FMOD header")
     (
-        magic, format_version, header_size, image_size, flags,
-        name_raw, version_raw, expected_digest,
+        magic,
+        format_version,
+        header_size,
+        image_size,
+        flags,
+        name_raw,
+        version_raw,
+        expected_digest,
     ) = FMOD_HEADER.unpack_from(data)
     if magic != FMOD_MAGIC or format_version != FMOD_FORMAT_VERSION:
         raise FBR34KCtlError("unsupported FMOD container")
@@ -603,8 +632,14 @@ def inspect_module(path: pathlib.Path) -> ModuleInfo:
     if len(payload) >= BYTECODE_HEADER_V1.size and payload[:4] == BYTECODE_MAGIC:
         version = struct.unpack_from("<H", payload, 4)[0]
         if version == BYTECODE_VERSION_V1:
-            magic2, version2, size2, code2, caps2, reserved = BYTECODE_HEADER_V1.unpack_from(payload)
-            if size2 == BYTECODE_HEADER_V1.size and reserved == 0 and code2 == len(payload) - size2:
+            magic2, version2, size2, code2, caps2, reserved = (
+                BYTECODE_HEADER_V1.unpack_from(payload)
+            )
+            if (
+                size2 == BYTECODE_HEADER_V1.size
+                and reserved == 0
+                and code2 == len(payload) - size2
+            ):
                 payload_kind = "FMBC-v1"
                 capabilities = _capability_names(caps2)
                 code_size = code2
@@ -613,8 +648,15 @@ def inspect_module(path: pathlib.Path) -> ModuleInfo:
                 payload_kind = "malformed-FMBC"
         elif version == BYTECODE_VERSION_V2 and len(payload) >= BYTECODE_HEADER_V2.size:
             (
-                magic2, version2, size2, code2, caps2, state_slots,
-                reserved, command_raw, instruction_budget,
+                magic2,
+                version2,
+                size2,
+                code2,
+                caps2,
+                state_slots,
+                reserved,
+                command_raw,
+                instruction_budget,
             ) = BYTECODE_HEADER_V2.unpack_from(payload)
             if (
                 size2 == BYTECODE_HEADER_V2.size
@@ -626,7 +668,9 @@ def inspect_module(path: pathlib.Path) -> ModuleInfo:
                 payload_kind = "FMBC-v2"
                 capabilities = _capability_names(caps2)
                 code_size = code2
-                command = _decode_identifier(command_raw, "command", allow_empty=True) or None
+                command = (
+                    _decode_identifier(command_raw, "command", allow_empty=True) or None
+                )
             else:
                 payload_kind = "malformed-FMBC"
         else:
@@ -649,7 +693,11 @@ def inspect_module(path: pathlib.Path) -> ModuleInfo:
 
 def file_manifest(path: pathlib.Path) -> dict[str, object]:
     payload = path.read_bytes()
-    return {"file": path.name, "size": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+    return {
+        "file": path.name,
+        "size": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+    }
 
 
 def encode_frame(message_type: int, sequence: int, payload: bytes = b"") -> bytes:
@@ -658,8 +706,13 @@ def encode_frame(message_type: int, sequence: int, payload: bytes = b"") -> byte
     if len(payload) > PROTOCOL_MAX_PAYLOAD:
         raise FBR34KCtlError("protocol payload exceeds monitor limit")
     prefix = PROTOCOL_HEADER.pack(
-        PROTOCOL_MAGIC, PROTOCOL_VERSION, message_type, 0,
-        sequence & 0xFFFFFFFF, len(payload), 0,
+        PROTOCOL_MAGIC,
+        PROTOCOL_VERSION,
+        message_type,
+        0,
+        sequence & 0xFFFFFFFF,
+        len(payload),
+        0,
     )
     checksum = zlib.crc32(prefix[:16] + payload) & 0xFFFFFFFF
     return prefix[:16] + struct.pack("<I", checksum) + payload
@@ -668,12 +721,14 @@ def encode_frame(message_type: int, sequence: int, payload: bytes = b"") -> byte
 def decode_frame(data: bytes) -> ProtocolFrame:
     if len(data) < PROTOCOL_HEADER.size:
         raise FBR34KCtlError("truncated protocol frame")
-    magic, version, message_type, flags, sequence, length, checksum = PROTOCOL_HEADER.unpack_from(data)
+    magic, version, message_type, flags, sequence, length, checksum = (
+        PROTOCOL_HEADER.unpack_from(data)
+    )
     if magic != PROTOCOL_MAGIC or version != PROTOCOL_VERSION:
         raise FBR34KCtlError("invalid protocol header")
     if length > PROTOCOL_MAX_PAYLOAD or len(data) != PROTOCOL_HEADER.size + length:
         raise FBR34KCtlError("invalid protocol payload length")
-    payload = data[PROTOCOL_HEADER.size:]
+    payload = data[PROTOCOL_HEADER.size :]
     actual = zlib.crc32(data[:16] + payload) & 0xFFFFFFFF
     if actual != checksum:
         raise FBR34KCtlError("protocol CRC-32 mismatch")
@@ -692,7 +747,9 @@ class FramedClient:
         self.sequence = (self.sequence + 1) & 0xFFFFFFFF
         return self.sequence
 
-    def _receive(self, expected_type: int, sequence: int, timeout: float) -> ProtocolFrame:
+    def _receive(
+        self, expected_type: int, sequence: int, timeout: float
+    ) -> ProtocolFrame:
         deadline = time.monotonic() + timeout
         while True:
             marker = self.buffer.find(PROTOCOL_MAGIC_BYTES)
@@ -700,7 +757,9 @@ class FramedClient:
                 if marker:
                     del self.buffer[:marker]
                 if len(self.buffer) >= PROTOCOL_HEADER.size:
-                    _, version, message_type, _, frame_sequence, length, _ = PROTOCOL_HEADER.unpack_from(self.buffer)
+                    _, version, message_type, _, frame_sequence, length, _ = (
+                        PROTOCOL_HEADER.unpack_from(self.buffer)
+                    )
                     if version != PROTOCOL_VERSION or length > PROTOCOL_MAX_RESPONSE:
                         del self.buffer[0]
                         continue
@@ -709,7 +768,9 @@ class FramedClient:
                         raw = bytes(self.buffer[:total])
                         del self.buffer[:total]
                         frame = decode_frame(raw)
-                        if frame.sequence != sequence or frame.message_type != (expected_type | 0x80):
+                        if frame.sequence != sequence or frame.message_type != (
+                            expected_type | 0x80
+                        ):
                             continue
                         return frame
             elif len(self.buffer) > 3:
@@ -753,7 +814,9 @@ class FramedClient:
         return self.request(MSG_MODULE_RUN, _ascii_wire_text(name, "module name", 31))
 
     def module_unload(self, name: str) -> bytes:
-        return self.request(MSG_MODULE_UNLOAD, _ascii_wire_text(name, "module name", 31))
+        return self.request(
+            MSG_MODULE_UNLOAD, _ascii_wire_text(name, "module name", 31)
+        )
 
     def logs(self) -> bytes:
         return self.request(MSG_LOG_GET)
@@ -771,7 +834,9 @@ class FramedClient:
         return self.request(MSG_HALT)
 
 
-def read_until(endpoint: Endpoint, marker: bytes, timeout: float, *, limit: int = 1024 * 1024) -> bytes:
+def read_until(
+    endpoint: Endpoint, marker: bytes, timeout: float, *, limit: int = 1024 * 1024
+) -> bytes:
     deadline = time.monotonic() + timeout
     buffer = bytearray()
     while marker not in buffer:
@@ -789,7 +854,9 @@ def read_until(endpoint: Endpoint, marker: bytes, timeout: float, *, limit: int 
 MONITOR_PROMPTS = (b"fbr34ker> ", b"fbr34ker(bringup)> ", b"fbr34ker(probe)> ")
 
 
-def read_until_prompt(endpoint: Endpoint, timeout: float, *, limit: int = 1024 * 1024) -> bytes:
+def read_until_prompt(
+    endpoint: Endpoint, timeout: float, *, limit: int = 1024 * 1024
+) -> bytes:
     deadline = time.monotonic() + timeout
     buffer = bytearray()
     while not any(prompt in buffer for prompt in MONITOR_PROMPTS):
@@ -834,7 +901,9 @@ def upload_module(
             raise FBR34KCtlError(result.decode("utf-8", errors="replace").strip())
         transcript = ready + result
         if run:
-            transcript += send_command(endpoint, f"module-run {information.name}", timeout)
+            transcript += send_command(
+                endpoint, f"module-run {information.name}", timeout
+            )
         return transcript
     client = FramedClient(endpoint, timeout=timeout)
     transcript = client.upload(data)
@@ -853,7 +922,9 @@ def _open_endpoint(arguments: argparse.Namespace) -> Endpoint:
     raise FBR34KCtlError("an endpoint is required")
 
 
-def _add_endpoint_arguments(parser: argparse.ArgumentParser, *, legacy: bool = False) -> None:
+def _add_endpoint_arguments(
+    parser: argparse.ArgumentParser, *, legacy: bool = False
+) -> None:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--unix", type=pathlib.Path, help="QEMU UNIX serial socket")
     group.add_argument("--tcp", help="TCP serial endpoint as HOST:PORT")
@@ -861,7 +932,9 @@ def _add_endpoint_arguments(parser: argparse.ArgumentParser, *, legacy: bool = F
     parser.add_argument("--baud", type=_positive_int, default=115200)
     parser.add_argument("--timeout", type=_positive_float, default=10.0)
     if legacy:
-        parser.add_argument("--legacy", action="store_true", help="use the v0.2 line protocol")
+        parser.add_argument(
+            "--legacy", action="store_true", help="use the v0.2 line protocol"
+        )
 
 
 def interactive_console(endpoint: Endpoint) -> None:
@@ -911,8 +984,9 @@ def _print_json(value: object, output: BinaryIO = sys.stdout) -> None:
 def _archive_directory(output: pathlib.Path) -> pathlib.Path:
     archive = output.with_suffix(".zip")
     temporary = archive.with_suffix(archive.suffix + ".tmp")
-    with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED,
-                         compresslevel=9) as bundle:
+    with zipfile.ZipFile(
+        temporary, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
+    ) as bundle:
         for path in sorted(output.iterdir(), key=lambda item: item.name):
             if not path.is_file():
                 continue
@@ -920,8 +994,12 @@ def _archive_directory(output: pathlib.Path) -> pathlib.Path:
             info.create_system = 3
             info.external_attr = 0o100644 << 16
             info.compress_type = zipfile.ZIP_DEFLATED
-            bundle.writestr(info, path.read_bytes(), compress_type=zipfile.ZIP_DEFLATED,
-                            compresslevel=9)
+            bundle.writestr(
+                info,
+                path.read_bytes(),
+                compress_type=zipfile.ZIP_DEFLATED,
+                compresslevel=9,
+            )
     temporary.replace(archive)
     return archive
 
@@ -975,12 +1053,14 @@ def collect_hardware_diagnostics(
             payload = (f"{exc}\n").encode("utf-8", errors="replace")
         path = output / f"{name}.txt"
         path.write_bytes(payload)
-        records.append({
-            "name": name,
-            "status": status,
-            "size": len(payload),
-            "sha256": hashlib.sha256(payload).hexdigest(),
-        })
+        records.append(
+            {
+                "name": name,
+                "status": status,
+                "size": len(payload),
+                "sha256": hashlib.sha256(payload).hexdigest(),
+            }
+        )
     summary = {
         "schema_version": 1,
         "project": "FBR34KER",
@@ -990,8 +1070,9 @@ def collect_hardware_diagnostics(
         "records": records,
     }
     summary_path = output / "summary.json"
-    summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n",
-                            encoding="utf-8")
+    summary_path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     archive = _archive_directory(output) if create_archive else None
     result: dict[str, object] = {"output": str(output), **summary}
     if archive is not None:
@@ -1032,7 +1113,8 @@ def record_probe_session(
         compatibility_json = output / "compatibility-profile.json"
         compatibility_text = output / "compatibility-profile.txt"
         compatibility_json.write_text(
-            json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
         compatibility_text.write_text(format_matrix(report), encoding="utf-8")
         result["profile"] = profile["name"]
         result["profile_result"] = report["result"]
@@ -1049,7 +1131,8 @@ def record_probe_session(
         "profile_result": result.get("profile_result"),
     }
     (output / "probe-session.json").write_text(
-        json.dumps(session, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        json.dumps(session, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     archive = _archive_directory(output)
     result["archive"] = str(archive)
     return result
@@ -1057,11 +1140,14 @@ def record_probe_session(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="fbr34kctl")
-    parser.add_argument("--version", action="version",
-                        version=f"%(prog)s {FBR34KCTL_VERSION}")
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {FBR34KCTL_VERSION}"
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    compile_parser = subparsers.add_parser("compile-module", help="compile JSON FMBC v2 into FMOD")
+    compile_parser = subparsers.add_parser(
+        "compile-module", help="compile JSON FMBC v2 into FMOD"
+    )
     compile_parser.add_argument("specification", type=pathlib.Path)
     compile_parser.add_argument("output", type=pathlib.Path)
 
@@ -1078,89 +1164,124 @@ def build_parser() -> argparse.ArgumentParser:
     manifest.add_argument("input", type=pathlib.Path)
 
     handoff_template = subparsers.add_parser(
-        "handoff-template", help="write a hardware-neutral handoff-v4 JSON template")
+        "handoff-template", help="write a hardware-neutral handoff-v4 JSON template"
+    )
     handoff_template.add_argument("output", type=pathlib.Path)
     handoff_validate = subparsers.add_parser(
-        "handoff-validate", help="validate and normalize a handoff-v4 JSON document")
+        "handoff-validate", help="validate and normalize a handoff-v4 JSON document"
+    )
     handoff_validate.add_argument("input", type=pathlib.Path)
     handoff_validate.add_argument("--output", type=pathlib.Path)
     handoff_build = subparsers.add_parser(
-        "handoff-build", help="compile handoff JSON into a relocatable FBHB binary")
+        "handoff-build", help="compile handoff JSON into a relocatable FBHB binary"
+    )
     handoff_build.add_argument("input", type=pathlib.Path)
     handoff_build.add_argument("output", type=pathlib.Path)
     handoff_inspect = subparsers.add_parser(
-        "handoff-inspect", help="validate and inspect a relocatable FBHB binary")
+        "handoff-inspect", help="validate and inspect a relocatable FBHB binary"
+    )
     handoff_inspect.add_argument("input", type=pathlib.Path)
     handoff_roundtrip = subparsers.add_parser(
-        "handoff-roundtrip", help="rebuild an FBHB binary and verify deterministic equality")
+        "handoff-roundtrip",
+        help="rebuild an FBHB binary and verify deterministic equality",
+    )
     handoff_roundtrip.add_argument("input", type=pathlib.Path)
 
     loader_conformance = subparsers.add_parser(
-        "loader-conformance", help="certify an FBHB design against memory and board contracts")
+        "loader-conformance",
+        help="certify an FBHB design against memory and board contracts",
+    )
     loader_conformance.add_argument("--handoff", type=pathlib.Path, required=True)
     loader_conformance.add_argument("--memory-map", type=pathlib.Path)
     loader_conformance.add_argument("--profile", type=pathlib.Path)
     loader_conformance.add_argument("--report", type=pathlib.Path)
 
     loader_simulate = subparsers.add_parser(
-        "loader-simulate", help="construct an offline sparse-memory handoff-v4 loader plan")
+        "loader-simulate",
+        help="construct an offline sparse-memory handoff-v4 loader plan",
+    )
     loader_simulate.add_argument("handoff", type=pathlib.Path)
-    loader_simulate.add_argument("--image", type=pathlib.Path,
-                                 default=pathlib.Path("build-generic/fbr34ker-generic.elf"))
-    loader_simulate.add_argument("--output", type=pathlib.Path,
-                                 default=pathlib.Path("loader-simulation"))
+    loader_simulate.add_argument(
+        "--image",
+        type=pathlib.Path,
+        default=pathlib.Path("build-generic/fbr34ker-generic.elf"),
+    )
+    loader_simulate.add_argument(
+        "--output", type=pathlib.Path, default=pathlib.Path("loader-simulation")
+    )
     loader_simulate.add_argument("--dtb", type=pathlib.Path)
-    loader_simulate.add_argument("--module", type=pathlib.Path, action="append", default=[])
+    loader_simulate.add_argument(
+        "--module", type=pathlib.Path, action="append", default=[]
+    )
 
     loader_check = subparsers.add_parser(
-        "loader-check", help="run the handoff conformance suite and print its status")
+        "loader-check", help="run the handoff conformance suite and print its status"
+    )
     loader_check.add_argument("handoff", type=pathlib.Path)
-    loader_check.add_argument("--image", type=pathlib.Path,
-                              default=pathlib.Path("build-generic/fbr34ker-generic.elf"))
-    loader_check.add_argument("--output", type=pathlib.Path,
-                              default=pathlib.Path("loader-conformance"))
+    loader_check.add_argument(
+        "--image",
+        type=pathlib.Path,
+        default=pathlib.Path("build-generic/fbr34ker-generic.elf"),
+    )
+    loader_check.add_argument(
+        "--output", type=pathlib.Path, default=pathlib.Path("loader-conformance")
+    )
     loader_check.add_argument("--dtb", type=pathlib.Path)
-    loader_check.add_argument("--module", type=pathlib.Path, action="append", default=[])
+    loader_check.add_argument(
+        "--module", type=pathlib.Path, action="append", default=[]
+    )
 
     loader_report = subparsers.add_parser(
-        "loader-report", help="format a machine-readable loader conformance report")
+        "loader-report", help="format a machine-readable loader conformance report"
+    )
     loader_report.add_argument("input", type=pathlib.Path)
 
     hardware_diagnostics = subparsers.add_parser(
-        "hardware-diagnostics", help="collect a safe loader/platform diagnostics bundle")
+        "hardware-diagnostics", help="collect a safe loader/platform diagnostics bundle"
+    )
     _add_endpoint_arguments(hardware_diagnostics)
-    hardware_diagnostics.add_argument("--output", type=pathlib.Path,
-                                      default=pathlib.Path("hardware-diagnostics"))
+    hardware_diagnostics.add_argument(
+        "--output", type=pathlib.Path, default=pathlib.Path("hardware-diagnostics")
+    )
 
     profile_template = subparsers.add_parser(
-        "profile-template", help="write an ARM64 physical-hardware profile template")
+        "profile-template", help="write an ARM64 physical-hardware profile template"
+    )
     profile_template.add_argument("output", type=pathlib.Path)
 
     profile_validate = subparsers.add_parser(
-        "profile-validate", help="validate and normalize a hardware profile")
+        "profile-validate", help="validate and normalize a hardware profile"
+    )
     profile_validate.add_argument("input", type=pathlib.Path)
     profile_validate.add_argument("--output", type=pathlib.Path)
 
     profile_check = subparsers.add_parser(
-        "profile-check", help="compare a profile with a hardware diagnostics directory")
+        "profile-check", help="compare a profile with a hardware diagnostics directory"
+    )
     profile_check.add_argument("profile", type=pathlib.Path)
     profile_check.add_argument("diagnostics", type=pathlib.Path)
     profile_check.add_argument("--output", type=pathlib.Path)
 
     profile_report = subparsers.add_parser(
-        "profile-report", help="format a machine-readable compatibility matrix")
+        "profile-report", help="format a machine-readable compatibility matrix"
+    )
     profile_report.add_argument("input", type=pathlib.Path)
     profile_import = subparsers.add_parser(
-        "profile-import", help="attach conservative probe observations to a board profile")
+        "profile-import",
+        help="attach conservative probe observations to a board profile",
+    )
     profile_import.add_argument("profile", type=pathlib.Path)
     profile_import.add_argument("diagnostics", type=pathlib.Path)
     profile_import.add_argument("--output", type=pathlib.Path, required=True)
 
     probe_record = subparsers.add_parser(
-        "probe-record", help="capture bounded boot output and read-only probe diagnostics")
+        "probe-record",
+        help="capture bounded boot output and read-only probe diagnostics",
+    )
     _add_endpoint_arguments(probe_record)
-    probe_record.add_argument("--output", type=pathlib.Path,
-                              default=pathlib.Path("hardware-probe-session"))
+    probe_record.add_argument(
+        "--output", type=pathlib.Path, default=pathlib.Path("hardware-probe-session")
+    )
     probe_record.add_argument("--duration", type=_positive_float, default=30.0)
     probe_record.add_argument("--profile", type=pathlib.Path)
 
@@ -1201,7 +1322,15 @@ def main(argv: list[str] | None = None) -> int:
         if arguments.command == "compile-module":
             _print_json(compile_module(arguments.specification, arguments.output))
         elif arguments.command == "pack-module":
-            _print_json(pack_module(arguments.input, arguments.output, arguments.name, arguments.version, arguments.flags))
+            _print_json(
+                pack_module(
+                    arguments.input,
+                    arguments.output,
+                    arguments.name,
+                    arguments.version,
+                    arguments.flags,
+                )
+            )
         elif arguments.command == "inspect-module":
             _print_json(inspect_module(arguments.input))
         elif arguments.command == "manifest":
@@ -1228,17 +1357,25 @@ def main(argv: list[str] | None = None) -> int:
             if not result.get("roundtrip_equal"):
                 return 2
         elif arguments.command == "loader-conformance":
-            report = check_sdk_conformance(arguments.handoff, arguments.memory_map, arguments.profile)
+            report = check_sdk_conformance(
+                arguments.handoff, arguments.memory_map, arguments.profile
+            )
             if arguments.report is not None:
                 arguments.report.parent.mkdir(parents=True, exist_ok=True)
-                arguments.report.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+                arguments.report.write_text(
+                    json.dumps(report, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
             sys.stdout.write(format_sdk_conformance(report))
             if report.get("result") == "fail":
                 return 2
         elif arguments.command in {"loader-simulate", "loader-check"}:
             report = simulate_loader(
-                arguments.handoff, arguments.image, arguments.output,
-                dtb_path=arguments.dtb, module_paths=arguments.module,
+                arguments.handoff,
+                arguments.image,
+                arguments.output,
+                dtb_path=arguments.dtb,
+                module_paths=arguments.module,
             )
             if arguments.command == "loader-check":
                 sys.stdout.write(format_report(report))
@@ -1261,7 +1398,9 @@ def main(argv: list[str] | None = None) -> int:
                 )
             _print_json(normalized)
         elif arguments.command == "profile-check":
-            report = check_profile(load_profile(arguments.profile), arguments.diagnostics)
+            report = check_profile(
+                load_profile(arguments.profile), arguments.diagnostics
+            )
             if arguments.output is not None:
                 arguments.output.parent.mkdir(parents=True, exist_ok=True)
                 arguments.output.write_text(
@@ -1273,14 +1412,22 @@ def main(argv: list[str] | None = None) -> int:
                 return 2
         elif arguments.command == "profile-report":
             try:
-                report_document = json.loads(arguments.input.read_text(encoding="utf-8"))
+                report_document = json.loads(
+                    arguments.input.read_text(encoding="utf-8")
+                )
             except (OSError, json.JSONDecodeError) as exc:
-                raise HardwareProfileError(f"unable to read compatibility report: {exc}") from exc
+                raise HardwareProfileError(
+                    f"unable to read compatibility report: {exc}"
+                ) from exc
             sys.stdout.write(format_matrix(report_document))
         elif arguments.command == "profile-import":
-            reviewed = import_probe_results(load_profile(arguments.profile), arguments.diagnostics)
+            reviewed = import_probe_results(
+                load_profile(arguments.profile), arguments.diagnostics
+            )
             arguments.output.parent.mkdir(parents=True, exist_ok=True)
-            arguments.output.write_text(json.dumps(reviewed, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            arguments.output.write_text(
+                json.dumps(reviewed, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
             _print_json(reviewed)
         elif arguments.command == "hardware-diagnostics":
             endpoint = _open_endpoint(arguments)
@@ -1288,23 +1435,40 @@ def main(argv: list[str] | None = None) -> int:
             _print_json(collect_hardware_diagnostics(client, arguments.output))
         elif arguments.command == "probe-record":
             endpoint = _open_endpoint(arguments)
-            _print_json(record_probe_session(
-                endpoint, arguments.output, duration=arguments.duration,
-                timeout=arguments.timeout, profile_path=arguments.profile,
-            ))
+            _print_json(
+                record_probe_session(
+                    endpoint,
+                    arguments.output,
+                    duration=arguments.duration,
+                    timeout=arguments.timeout,
+                    profile_path=arguments.profile,
+                )
+            )
         elif arguments.command == "console":
             endpoint = _open_endpoint(arguments)
             print("Connected. Press Ctrl-] to exit.")
             interactive_console(endpoint)
         elif arguments.command == "upload":
             endpoint = _open_endpoint(arguments)
-            sys.stdout.buffer.write(upload_module(endpoint, arguments.input, run=arguments.run, timeout=arguments.timeout, legacy=arguments.legacy))
+            sys.stdout.buffer.write(
+                upload_module(
+                    endpoint,
+                    arguments.input,
+                    run=arguments.run,
+                    timeout=arguments.timeout,
+                    legacy=arguments.legacy,
+                )
+            )
         else:
             endpoint = _open_endpoint(arguments)
             if arguments.command == "command" and arguments.legacy:
                 if not arguments.monitor_command:
                     raise FBR34KCtlError("monitor command cannot be empty")
-                sys.stdout.buffer.write(send_command(endpoint, " ".join(arguments.monitor_command), arguments.timeout))
+                sys.stdout.buffer.write(
+                    send_command(
+                        endpoint, " ".join(arguments.monitor_command), arguments.timeout
+                    )
+                )
             else:
                 client = FramedClient(endpoint, timeout=arguments.timeout)
                 if arguments.command == "hello":
@@ -1330,7 +1494,15 @@ def main(argv: list[str] | None = None) -> int:
                 else:
                     raise FBR34KCtlError(f"unknown command {arguments.command}")
                 sys.stdout.buffer.write(output)
-    except (OSError, FBR34KCtlError, HandoffSchemaError, HandoffBinaryError, LoaderSimulationError, SDKConformanceError, HardwareProfileError) as exc:
+    except (
+        OSError,
+        FBR34KCtlError,
+        HandoffSchemaError,
+        HandoffBinaryError,
+        LoaderSimulationError,
+        SDKConformanceError,
+        HardwareProfileError,
+    ) as exc:
         print(f"fbr34kctl: {exc}", file=sys.stderr)
         return 1
     finally:

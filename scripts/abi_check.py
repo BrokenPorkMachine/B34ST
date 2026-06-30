@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Validate FBR34KER public interface versions and compatibility manifests."""
+
 from __future__ import annotations
 import argparse
 import json
@@ -29,19 +30,25 @@ MACROS = {
     "physical_validation": "FBR34KER_PHYSICAL_VALIDATION_SCHEMA_VERSION",
 }
 
-class AbiError(ValueError): pass
+
+class AbiError(ValueError):
+    pass
+
 
 def header_versions(path: pathlib.Path = HEADER) -> dict[str, int]:
     text = path.read_text(encoding="utf-8")
     result = {}
     for name, macro in MACROS.items():
         match = re.search(rf"^#define\s+{re.escape(macro)}\s+(\d+)U?\s*$", text, re.M)
-        if not match: raise AbiError(f"missing ABI macro {macro}")
+        if not match:
+            raise AbiError(f"missing ABI macro {macro}")
         result[name] = int(match.group(1))
     return result
 
+
 def load_manifest(path: pathlib.Path) -> dict[str, object]:
-    if path.stat().st_size > 64 * 1024: raise AbiError("ABI manifest exceeds 64 KiB")
+    if path.stat().st_size > 64 * 1024:
+        raise AbiError("ABI manifest exceeds 64 KiB")
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict) or value.get("schema_version") != 1:
         raise AbiError("unsupported ABI manifest schema")
@@ -52,8 +59,9 @@ def load_manifest(path: pathlib.Path) -> dict[str, object]:
         raise AbiError("interface versions must be integers in 1..65535")
     return value
 
+
 def compare(expected: dict[str, int], actual: dict[str, int], exact: bool) -> list[str]:
-    errors=[]
+    errors = []
     for name in sorted(expected):
         if exact and actual[name] != expected[name]:
             errors.append(f"{name}: expected {expected[name]}, got {actual[name]}")
@@ -61,27 +69,43 @@ def compare(expected: dict[str, int], actual: dict[str, int], exact: bool) -> li
             errors.append(f"{name}: requires >= {expected[name]}, got {actual[name]}")
     return errors
 
+
 def main(argv=None) -> int:
-    parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("manifest", nargs="?", type=pathlib.Path, default=DEFAULT_MANIFEST)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "manifest", nargs="?", type=pathlib.Path, default=DEFAULT_MANIFEST
+    )
     parser.add_argument("--against", type=pathlib.Path)
     parser.add_argument("--json", action="store_true")
-    args=parser.parse_args(argv)
+    args = parser.parse_args(argv)
     try:
-        declared=load_manifest(args.manifest)["interfaces"]
-        compiled=header_versions()
-        errors=compare(declared, compiled, True)
+        declared = load_manifest(args.manifest)["interfaces"]
+        compiled = header_versions()
+        errors = compare(declared, compiled, True)
         if args.against:
-            required=load_manifest(args.against)["interfaces"]
+            required = load_manifest(args.against)["interfaces"]
             errors += compare(required, declared, False)
-        payload={"passed": not errors, "interfaces": declared, "compiled": compiled, "errors": errors}
-        if args.json: print(json.dumps(payload, sort_keys=True))
+        payload = {
+            "passed": not errors,
+            "interfaces": declared,
+            "compiled": compiled,
+            "errors": errors,
+        }
+        if args.json:
+            print(json.dumps(payload, sort_keys=True))
         elif errors:
-            for error in errors: print(f"ABI ERROR: {error}", file=sys.stderr)
-        else: print("public ABI compatibility check passed")
+            for error in errors:
+                print(f"ABI ERROR: {error}", file=sys.stderr)
+        else:
+            print("public ABI compatibility check passed")
         return 0 if not errors else 1
     except (OSError, ValueError, json.JSONDecodeError) as exc:
-        if args.json: print(json.dumps({"passed":False,"errors":[str(exc)]}, sort_keys=True))
-        else: print(f"ABI ERROR: {exc}", file=sys.stderr)
+        if args.json:
+            print(json.dumps({"passed": False, "errors": [str(exc)]}, sort_keys=True))
+        else:
+            print(f"ABI ERROR: {exc}", file=sys.stderr)
         return 2
-if __name__ == "__main__": raise SystemExit(main())
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

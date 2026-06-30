@@ -1,22 +1,21 @@
-# FBR34KER 0.5.0b Beta validation
+# FBR34KER 0.6.0_beta Beta validation
 
-Validation date: 2026-06-28
+Validation date: 2026-06-30
 
 ## Result
 
-The 0.5.0b Beta release preparation passed the canonical non-QEMU gate, the
+The 0.6.0_beta Beta release preparation passed the canonical non-QEMU gate, the
 complete QEMU-backed release gate, deterministic package construction,
 checksum verification, and an extracted operational-package smoke test.
 
 ## Canonical gates
 
-- **Non-QEMU gate:** all 9 stages passed in **43.985 seconds**.
+- **Non-QEMU gate:** all 10 stages passed in **43.985 seconds**.
 - **QEMU-backed release gate:** all 7 stages passed in **63.822 seconds**.
-- **Host suite:** **444 tests passed**; 4 QEMU-dependent tests were skipped in
+- **Host suite:** **466 tests passed**; 4 QEMU-dependent tests were skipped in
   the isolated non-QEMU run and executed by the integration stage.
-- **QEMU integration:** all **6 tests passed**.
-- **Version consistency:** all **20 active release surfaces** matched
-  `0.5.0b-beta`.
+- **Version consistency:** all **35 active release surfaces** matched
+  `0.6.0_beta-beta`.
 - **Source validation:** 142 Python files and 23 shell files passed syntax
   validation.
 
@@ -43,9 +42,9 @@ and diagnostics collection.
   security-model build passed.
 - Deterministic FBRI bundles for A12, A12X/A12Z, A13, A14, A15, M1, and M2
   passed inspection and manifest validation.
-- The release manifest contains 72 artifacts and identifies version `0.5.0b`,
-  channel `beta`, source ID `0.5.0b-beta`, and release root
-  `FBR34KER_0.5.0b_Beta`.
+- The release manifest identifies version `0.6.0_beta`,
+  channel `beta`, source ID `0.6.0_beta-beta`, and release root
+  `B34ST_0.6.0_beta_Beta`.
 - Deployment, bring-up, persistent-bridge, failure-matrix, reset-invalidation,
   and recovery-after-reauthorization simulations passed.
 
@@ -53,10 +52,10 @@ and diagnostics collection.
 
 The following deterministic archives were built and verified:
 
-- `FBR34KER_0.5.0b_Beta_source.zip`
-- `FBR34KER_0.5.0b_Beta_complete.zip`
-- `FBR34KER_0.5.0b_Beta_sdk.zip`
-- `FBR34KER_0.5.0b_Beta_operational.zip`
+- `B34ST_0.6.0_beta_Beta_source.zip`
+- `B34ST_0.6.0_beta_Beta_complete.zip`
+- `B34ST_0.6.0_beta_Beta_sdk.zip`
+- `B34ST_0.6.0_beta_Beta_operational.zip`
 
 All four SHA-256 sidecars passed `shasum -a 256 -c`. The operational archive
 was extracted and successfully ran:
@@ -66,7 +65,7 @@ was extracted and successfully ran:
 - `fbr34ker forensics list-profiles`
 - `fbr34ker cve stats`
 - the tether-adapter contract example
-- the 20-surface version-consistency check
+- the 35-surface version-consistency check
 
 ## Evidence boundary
 

@@ -1,6 +1,6 @@
-# B34ST - FBR34KER 0.5.0b
+# B34ST - FBR34KER 0.6.0_beta
 
-FBR34KER is a freestanding ARM64 preboot monitor, USBliter8 exploit chain, and authorized loader-integration research toolkit. Version 0.5.0b (Beta, codename "B34ST") provides deterministic QEMU simulation, bridge validation, DWC3 firmware exploitation, kernel patching with per-SoC offset tables, boot-policy bypass, persistence modeling, evidence collection, and the B34ST unified multi-tool control panel.
+FBR34KER is a freestanding ARM64 preboot monitor, USBliter8 exploit chain, and authorized loader-integration research toolkit. Version 0.6.0_beta (Beta, codename "B34ST") provides deterministic QEMU simulation, bridge validation, DWC3 firmware exploitation, kernel patching with per-SoC offset tables, boot-policy bypass, persistence modeling, evidence collection, and the B34ST unified multi-tool control panel.
 
 The tree contains operational exploit primitives including the USBliter8 DWC3 firmware exploit chain for A12+ (T8015/T8020/T8030/T8028/T8103/T8110/T8112), kernel patch engines with per-SoC offset tables across 7 SoCs x 2 iOS versions, secure boot bypass state machines with 6 bypass types, persistence deployment models with 8 hook types, a CVE database and exploit chain planner, forensics acquisition, and an evidence-gated 16-stage research runtime orchestrator. All mutation paths are compile-time gated by the `FBR34KER_ENABLE_SECURITY_MODEL` flag. Build with `SECURITY_MODEL=1` to enable the full exploit chain. The default build (`make`) keeps mutation paths disabled for safety.
 
@@ -84,7 +84,7 @@ make all              # build the direct QEMU monitor
 make apple-boot-images # A12/A12X/A13/A14/A15/M1/M2 recovery bundles
 make check-native     # all non-QEMU verification
 make release-gate     # QEMU-backed release gate
-make sdk-release      # produce dist/B34ST_0.5.0b_Beta_operational.zip
+make sdk-release      # produce dist/B34ST_0.6.0_beta_Beta_operational.zip
 make exploit-chain    # build + capability summary
 make establish-persistence  # generate persistence concept inventory
 ```
@@ -1264,7 +1264,7 @@ make apple-boot-images
 make sdk-release
 ```
 
-Produces \`dist/B34ST_0.5.0b_Beta_operational.zip\` containing:
+Produces \`dist/B34ST_0.6.0_beta_Beta_operational.zip\` containing:
 
 - B34ST research runtime framework (`b34st/`, `b34stctl`, `b34stool.py`)
 - All build artifacts (`build/`, `build-generic/`, `build-exploit/`, `build-apple/`, `build-loader/`, `build-hardware-probe/`, `build-sdk/`)
@@ -1305,7 +1305,7 @@ Built-in graph components:
 
 ### Security-state models
 
-Version 0.5.0b includes bounded in-memory models for patch, boot-policy, and persistence concepts. They exist to validate interface shape, status output, policy gates, event wiring, and failure handling. They do not modify target memory, Apple trust policy, filesystems, or reboot state.
+Version 0.6.0_beta includes bounded in-memory models for patch, boot-policy, and persistence concepts. They exist to validate interface shape, status output, policy gates, event wiring, and failure handling. They do not modify target memory, Apple trust policy, filesystems, or reboot state.
 
 Release builds do not define `FBR34KER_ENABLE_SECURITY_MODEL`, so mutation operations return failure. Immutable probe images remain locked regardless of build options.
 
@@ -1386,7 +1386,7 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 
 ---
 
-## Key features in 0.5.0b
+## Key features in 0.6.0_beta
 
 - **Guided tethered downgrade** — exact firmware selection, local or downloaded
   IPSW verification, evidence-first planning, explicit adapter contract, and

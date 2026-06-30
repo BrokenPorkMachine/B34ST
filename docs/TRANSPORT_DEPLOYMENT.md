@@ -1,6 +1,6 @@
 # Transport and deployment architecture
 
-FBR34KER 0.5.0b separates deployment into four boundaries:
+FBR34KER 0.6.0_beta separates deployment into four boundaries:
 
 1. **Framing** — `host/wire_protocol.py` encodes and validates FBDP frames.
 2. **Transport** — `host/deployment_transport.py` carries complete frames over a

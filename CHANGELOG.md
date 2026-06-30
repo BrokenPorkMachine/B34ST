@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0_beta -- Beta
+
+- **Fix**: CLI now supplies DWC3 exploit payload in usb_serial.py for USBliter8 exploitation
+- **Fix**: Unknown Apple devices no longer default to A12 in detect_device_chipset; proper error handling added
+- **Fix**: Execution reporting now correctly reports failure after transfer errors in run_exploit.py
+- **Fix**: Non-empty result dict no longer marks legacy chain success despite all failures
+- **Feature**: Added SEP exploitation pipeline to B34ST menus (b34stool.py)
+- **Audit**: Completed fuzzing code correctness and completeness audit
+
 ## 0.5.0b -- Beta
 
 - Added USB family fuzzing framework (`host/usb_family/`) with device and host

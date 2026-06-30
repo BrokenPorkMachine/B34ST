@@ -26,6 +26,13 @@ try:
 except ImportError:
     HAS_PYUSB = False
 
+try:
+    from host.usbliter8_payload import get_exploit_payload_tuples, is_cpid_supported
+
+    HAS_PAYLOAD = True
+except ImportError:
+    HAS_PAYLOAD = False
+
 
 FBR34KER_VID = 0x05AC
 FBR34KER_PID = 0x1227
@@ -469,17 +476,26 @@ class USBDevice:
     def enter_pwndfu(self) -> bool:
         """Send the DWC3 firmware exploit (USBliter8) over USB control transfers.
 
-        The exploit_payload attribute must be a list of USB control transfer
-        tuples: [(bmRequestType, bRequest, wValue, wIndex, data), ...].
-        After all transfers are sent, vendor request capability is verified.
+        Automatically selects the correct exploit payload based on the
+        detected device's CPID. Falls back to generic A12 payload if CPID
+        is not in the supported database.
         """
         if self.device is None:
             return False
-        payload = getattr(self, "exploit_payload", None)
-        if payload is None:
+        if self.chipset is None:
+            raise TransportError("chipset not detected; cannot select exploit payload")
+        cpid = self.chipset.get("cpid")
+        if cpid is None:
+            raise TransportError("CPID not available in chipset info")
+        if not HAS_PAYLOAD:
+            raise TransportError("usbliter8_payload module not available")
+        if not is_cpid_supported(cpid):
             raise TransportError(
-                "exploit_payload not set; a DWC3 USBliter8 exploit payload is required"
+                f"CPID 0x{cpid:04x} not supported by USBliter8 exploit database"
             )
+        payload = get_exploit_payload_tuples(cpid)
+        if payload is None:
+            raise TransportError(f"no exploit payload available for CPID 0x{cpid:04x}")
         self._claim()
         try:
             for xfer in payload:
@@ -602,4 +618,4 @@ def detect_device_chipset(device: usb.core.Device) -> ChipsetInfo | None:
             for ps in ci.get("_product_strings", []):
                 if ps.lower() in prod.lower():
                     return ci
-    return chipset_for_cpid(0x8015)
+    return None

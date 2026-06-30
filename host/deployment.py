@@ -6,7 +6,6 @@ import dataclasses
 import hashlib
 import json
 import pathlib
-import struct
 import threading
 import time
 import zipfile

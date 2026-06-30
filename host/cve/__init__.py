@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from host.cve.cve_db import (
     BUILTIN_CVE_DB,
     CVE,

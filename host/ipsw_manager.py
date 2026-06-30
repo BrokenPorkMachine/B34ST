@@ -14,7 +14,6 @@ import shlex
 import shutil
 import subprocess
 import sys
-import tempfile
 import urllib.parse
 import urllib.request
 import zipfile

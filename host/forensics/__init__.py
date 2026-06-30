@@ -8,8 +8,6 @@ with the B34ST validation framework.
 
 from __future__ import annotations
 
-from typing import Any
-
 from host.forensics.chain_of_custody import (
     CustodyEntry,
     CustodyError,

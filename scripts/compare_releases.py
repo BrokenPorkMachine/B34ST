@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Compare two deterministic FBR34KER archives without extracting them."""
 from __future__ import annotations
-import argparse, hashlib, json, zipfile
+import argparse
+import hashlib
+import json
+import zipfile
 
 def members(path):
     out={}

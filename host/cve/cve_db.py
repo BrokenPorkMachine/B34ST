@@ -1,5 +1,7 @@
 from __future__ import annotations
-import dataclasses, json, pathlib, re, hashlib
+import dataclasses
+import json
+import pathlib
 from typing import Any
 
 GoalType = str  # type alias for goal identifiers

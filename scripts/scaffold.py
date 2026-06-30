@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Create bounded FBR34KER board, driver, module, or transport templates."""
 from __future__ import annotations
-import argparse, pathlib, re, shutil, sys
+import argparse
+import pathlib
+import re
+import sys
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 TEMPLATES=ROOT/"sdk/templates"
 KINDS={"board","driver","module","transport"}

@@ -9,14 +9,10 @@ receiving output. Uses pyusb (libusb) for USB device communication.
 from __future__ import annotations
 
 import dataclasses
-import enum
-import json
-import os
 import struct
 import sys
 import threading
 import time
-from typing import Callable
 
 try:
     import usb.core

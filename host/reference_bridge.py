@@ -8,7 +8,6 @@ import hashlib
 import json
 import pathlib
 import sys
-import tempfile
 from typing import Any
 
 from bridge_protocol import (BRIDGE_SCHEMA_VERSION, MAX_BRIDGE_LINE,

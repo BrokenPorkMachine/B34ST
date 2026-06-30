@@ -13,11 +13,10 @@ iPhone as USB device fuzzing:
 import json
 import random
 import struct
-import sys
 from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 

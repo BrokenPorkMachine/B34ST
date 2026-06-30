@@ -6,9 +6,12 @@ embedded handoff are file-relative offsets. Callback declarations are stored
 in the header and must be resolved by the authorized loader before launch.
 """
 from __future__ import annotations
-import hashlib, json, pathlib, struct
+import hashlib
+import json
+import pathlib
+import struct
 from typing import Any
-from handoff_schema import load_and_validate, HandoffSchemaError
+from handoff_schema import load_and_validate
 
 MAGIC=b"FBHB"; FORMAT_VERSION=1; ABI_VERSION=4
 HEADER=struct.Struct("<4sHH" + "I"*10 + "32s")

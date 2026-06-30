@@ -22,7 +22,9 @@ SECURITY_MODEL_CONFIG_PATH = pathlib.Path(
 ).expanduser()
 
 ROOT = pathlib.Path(
-    os.environ.get("FBR34KER_SOURCE_ROOT", pathlib.Path(__file__).resolve().parent.parent)
+    os.environ.get(
+        "FBR34KER_SOURCE_ROOT", pathlib.Path(__file__).resolve().parent.parent
+    )
 ).resolve()
 ARTIFACT_ROOT = ROOT / "runtime-artifacts" / "b34st" / "control-panel"
 AUTHORIZATION_TEXT = "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE"
@@ -1668,10 +1670,10 @@ def _usbliter8_prepare_hardware(session: Session) -> int:
         skip = _prompt(f"  [{i}/{len(items)}] {item} ({desc}) — done? (Y/skip)", "Y")
         if skip.lower() in ("s", "skip"):
             statuses[item] = "skipped"
-            print(f"    -> Skipped")
+            print("    -> Skipped")
         else:
             statuses[item] = "done"
-            print(f"    -> Done")
+            print("    -> Done")
 
     prep_record = session.directory / "hardware-prep.json"
     import json
@@ -1692,7 +1694,7 @@ def _usbliter8_prepare_hardware(session: Session) -> int:
     session.record(f"Hardware preparation record: {prep_record}")
 
     build_skip = _prompt("Build operational image? (Y/skip)", "Y")
-    if not build_skip.lower() in ("s", "skip"):
+    if build_skip.lower() not in ("s", "skip"):
         session.run_command(
             ["make", "build-operational"], label="Build operational image"
         )
@@ -1715,7 +1717,7 @@ def _usbliter8_jailbreak(session: Session) -> int:
     print()
     print("Step 1 — Hardware preparation")
     prep_skip = _prompt("Run hardware preparation checklist? (Y/skip)", "Y")
-    if not prep_skip.lower() in ("s", "skip"):
+    if prep_skip.lower() not in ("s", "skip"):
         _usbliter8_prepare_hardware(session)
     else:
         session.record("USBliter8 jailbreak: hardware prep skipped by user")
@@ -1737,7 +1739,7 @@ def _usbliter8_jailbreak(session: Session) -> int:
             print("Using existing operational image.")
     else:
         build = _prompt("No operational image found. Build now? (Y/n)", "Y")
-        if not build.lower() in ("n", "no"):
+        if build.lower() not in ("n", "no"):
             session.run_command(
                 ["make", "build-operational"], label="Build operational image"
             )
@@ -1873,7 +1875,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
         return 1
 
     try:
-        from scripts.run_exploit import ExploitError
+        from scripts.run_exploit import ExploitError  # noqa: F401
     except ImportError:
         print("run_exploit.py not found in scripts/", file=sys.stderr)
         session.record("USBliter8 pwn-and-inspect aborted: run_exploit.py missing")
@@ -1958,13 +1960,13 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
 
     console = None
     try:
-        from usb_serial import USBConsole, TransportError
+        from usb_serial import USBConsole, TransportError  # noqa: F401
 
-        print(f"\n[*] Connecting to FBR34KER console for inspection...")
+        print("\n[*] Connecting to FBR34KER console for inspection...")
         console = USBConsole()
         console.open()
-        banner = console.read_until_prompt(timeout=10.0)
-        print(f"[+] Console connected")
+        console.read_until_prompt(timeout=10.0)
+        print("[+] Console connected")
         session.record("Console connected for inspection")
 
         inspection_commands = [
@@ -2004,7 +2006,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
                 pass
 
     try:
-        from host.chipset_db import all_chipsets, chipset_summary
+        from host.chipset_db import all_chipsets
 
         all_socs = {c["cpid"]: c for c in all_chipsets()}
     except ImportError:
@@ -2117,7 +2119,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
     for p in known_protections:
         print(f"    - {p}")
 
-    print(f"\n  Exploit chain steps:")
+    print("\n  Exploit chain steps:")
     for step, result in chain_results.items():
         ok = isinstance(result, bool) and result
         mark = (

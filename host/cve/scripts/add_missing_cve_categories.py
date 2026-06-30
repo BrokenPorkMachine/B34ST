@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Add missing CVE categories: FairPlay, IOReg, Keychain, SEP Keystore, DTrace, info leaks."""
 from __future__ import annotations
-import json, pathlib
+import json
+import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 DB_PATH = ROOT / "host" / "cve" / "data" / "cve_database.json"

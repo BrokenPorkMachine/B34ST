@@ -8,8 +8,6 @@ fixes version ranges, and writes back the expanded database.
 
 import json
 import pathlib
-import sys
-from copy import deepcopy
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
@@ -115,7 +113,7 @@ def make_webkit_cve(cve_id: str, start: str, end: str, patch_version: str, desc_
 def make_iokit_cve(cve_id: str, start: str, end: str, patch_version: str, exploit_available: bool = False) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Memory corruption in IOKit component allowing arbitrary code execution with kernel privileges.",
+        description="Memory corruption in IOKit component allowing arbitrary code execution with kernel privileges.",
         start=start, end=end, patch_version=patch_version,
         components=["iokit", "kernel"],
         exploit_type=["local", "lpe"],
@@ -129,7 +127,7 @@ def make_iokit_cve(cve_id: str, start: str, end: str, patch_version: str, exploi
 def make_sandbox_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Sandbox escape vulnerability allowing an app to bypass sandbox restrictions and access sensitive user data.",
+        description="Sandbox escape vulnerability allowing an app to bypass sandbox restrictions and access sensitive user data.",
         start=start, end=end, patch_version=patch_version,
         components=["sandbox"],
         exploit_type=["local", "lpe"],
@@ -141,7 +139,7 @@ def make_sandbox_cve(cve_id: str, start: str, end: str, patch_version: str) -> d
 def make_sep_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Secure Enclave Processor vulnerability allowing bypass of SEP protections.",
+        description="Secure Enclave Processor vulnerability allowing bypass of SEP protections.",
         start=start, end=end, patch_version=patch_version,
         components=["sep"],
         exploit_type=["local", "lpe"],
@@ -153,7 +151,7 @@ def make_sep_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
 def make_accounts_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Accounts framework vulnerability allowing bypass of privacy preferences.",
+        description="Accounts framework vulnerability allowing bypass of privacy preferences.",
         start=start, end=end, patch_version=patch_version,
         components=["accounts"],
         exploit_type=["local", "bypass"],
@@ -165,7 +163,7 @@ def make_accounts_cve(cve_id: str, start: str, end: str, patch_version: str) -> 
 def make_foundation_cve(cve_id: str, start: str, end: str, patch_version: str, severity: str = "high") -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Foundation framework memory corruption vulnerability allowing arbitrary code execution.",
+        description="Foundation framework memory corruption vulnerability allowing arbitrary code execution.",
         start=start, end=end, patch_version=patch_version,
         components=["foundation"],
         exploit_type=["local", "rce"],
@@ -177,7 +175,7 @@ def make_foundation_cve(cve_id: str, start: str, end: str, patch_version: str, s
 def make_imageio_cve(cve_id: str, start: str, end: str, patch_version: str, exploit_available: bool = False) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"ImageIO buffer overflow vulnerability allowing arbitrary code execution via maliciously crafted image.",
+        description="ImageIO buffer overflow vulnerability allowing arbitrary code execution via maliciously crafted image.",
         start=start, end=end, patch_version=patch_version,
         components=["imageio"],
         exploit_type=["remote", "rce"],
@@ -190,7 +188,7 @@ def make_imageio_cve(cve_id: str, start: str, end: str, patch_version: str, expl
 def make_network_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Kernel networking use-after-free vulnerability allowing arbitrary code execution with kernel privileges.",
+        description="Kernel networking use-after-free vulnerability allowing arbitrary code execution with kernel privileges.",
         start=start, end=end, patch_version=patch_version,
         components=["kernel"],
         exploit_type=["local", "lpe"],
@@ -203,7 +201,7 @@ def make_network_cve(cve_id: str, start: str, end: str, patch_version: str) -> d
 def make_corelocation_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Core Location information disclosure vulnerability allowing an app to access location data without user consent.",
+        description="Core Location information disclosure vulnerability allowing an app to access location data without user consent.",
         start=start, end=end, patch_version=patch_version,
         components=["corelocation"],
         exploit_type=["local"],
@@ -215,7 +213,7 @@ def make_corelocation_cve(cve_id: str, start: str, end: str, patch_version: str)
 def make_accessibility_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Accessibility framework vulnerability allowing an app to access sensitive user data.",
+        description="Accessibility framework vulnerability allowing an app to access sensitive user data.",
         start=start, end=end, patch_version=patch_version,
         components=["accessibility"],
         exploit_type=["local"],
@@ -227,7 +225,7 @@ def make_accessibility_cve(cve_id: str, start: str, end: str, patch_version: str
 def make_bluetooth_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Bluetooth stack vulnerability allowing information disclosure to a nearby device.",
+        description="Bluetooth stack vulnerability allowing information disclosure to a nearby device.",
         start=start, end=end, patch_version=patch_version,
         components=["bluetooth"],
         exploit_type=["network-adjacent"],
@@ -239,7 +237,7 @@ def make_bluetooth_cve(cve_id: str, start: str, end: str, patch_version: str) ->
 def make_wifi_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"WiFi driver memory corruption allowing remote code execution on the Wi-Fi controller.",
+        description="WiFi driver memory corruption allowing remote code execution on the Wi-Fi controller.",
         start=start, end=end, patch_version=patch_version,
         components=["wifi"],
         exploit_type=["network-adjacent", "rce"],
@@ -251,7 +249,7 @@ def make_wifi_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict
 def make_wallet_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Wallet framework vulnerability allowing bypass of Apple Pay authorization.",
+        description="Wallet framework vulnerability allowing bypass of Apple Pay authorization.",
         start=start, end=end, patch_version=patch_version,
         components=["wallet"],
         exploit_type=["local", "bypass"],
@@ -263,7 +261,7 @@ def make_wallet_cve(cve_id: str, start: str, end: str, patch_version: str) -> di
 def make_notifications_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Notifications framework vulnerability allowing sensitive data disclosure from notification content.",
+        description="Notifications framework vulnerability allowing sensitive data disclosure from notification content.",
         start=start, end=end, patch_version=patch_version,
         components=["notifications"],
         exploit_type=["local"],
@@ -275,7 +273,7 @@ def make_notifications_cve(cve_id: str, start: str, end: str, patch_version: str
 def make_siri_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Siri framework vulnerability allowing unintended data exposure.",
+        description="Siri framework vulnerability allowing unintended data exposure.",
         start=start, end=end, patch_version=patch_version,
         components=["siri"],
         exploit_type=["local"],
@@ -287,7 +285,7 @@ def make_siri_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict
 def make_reminders_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Reminders framework vulnerability allowing arbitrary code execution via crafted reminders data.",
+        description="Reminders framework vulnerability allowing arbitrary code execution via crafted reminders data.",
         start=start, end=end, patch_version=patch_version,
         components=["reminders"],
         exploit_type=["local", "rce"],
@@ -299,7 +297,7 @@ def make_reminders_cve(cve_id: str, start: str, end: str, patch_version: str) ->
 def make_weather_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Weather framework vulnerability allowing arbitrary code execution via crafted weather data.",
+        description="Weather framework vulnerability allowing arbitrary code execution via crafted weather data.",
         start=start, end=end, patch_version=patch_version,
         components=["weather"],
         exploit_type=["local", "rce"],
@@ -311,7 +309,7 @@ def make_weather_cve(cve_id: str, start: str, end: str, patch_version: str) -> d
 def make_baseband_cve(cve_id: str, start: str, end: str, patch_version: str) -> dict:
     return make_cve(
         cve_id=cve_id,
-        description=f"Baseband firmware memory corruption allowing remote code execution on the baseband processor.",
+        description="Baseband firmware memory corruption allowing remote code execution on the baseband processor.",
         start=start, end=end, patch_version=patch_version,
         components=["baseband"],
         exploit_type=["remote", "rce"],
@@ -707,7 +705,7 @@ def add_chainable_relationships(db: dict) -> None:
 
     kernel_cves = [c["id"] for c in db["cves"] if "kernel" in c["affected_components"]]
     webkit_cves = [c["id"] for c in db["cves"] if "webkit" in c["affected_components"]]
-    sep_cves = [c["id"] for c in db["cves"] if "sep" in c["affected_components"]]
+    [c["id"] for c in db["cves"] if "sep" in c["affected_components"]]
     sandbox_cves = [c["id"] for c in db["cves"] if "sandbox" in c["affected_components"]]
 
     # WebKit CVEs chain with kernel CVEs in similar version ranges
@@ -768,7 +766,7 @@ def fix_version_ranges(db: dict) -> None:
     for cve in cves:
         vr = cve["affected_versions"][0]
         patch = cve.get("patch_version", "")
-        start = vr.get("start", "12.0")
+        vr.get("start", "12.0")
 
         # If a CVE was patched in 16.x and it's a kernel/WebKit CVE,
         # it also affects 17.0 (Apple backports)

@@ -571,6 +571,45 @@ CATEGORIES: tuple[Category, ...] = (
                 "List profiles",
                 fbr34ker("b34st", "forensics", "list-profiles"),
             ),
+            Action(
+                "forensics.sep-fuzz-run",
+                "SEP Key Fuzzer — Run campaign",
+                fbr34ker("b34st", "sep-fuzz", "run"),
+                "Device model, OS build, chipset",
+            ),
+            Action(
+                "forensics.sep-fuzz-list-categories",
+                "SEP Fuzzer — List categories",
+                fbr34ker("b34st", "sep-fuzz", "list-categories"),
+            ),
+            Action(
+                "forensics.sep-fuzz-list-variations",
+                "SEP Fuzzer — List variations",
+                fbr34ker("b34st", "sep-fuzz", "list-variations"),
+                "Optional category filter",
+            ),
+            Action(
+                "forensics.sep-fuzz-harness",
+                "SEP Fuzzer — Generate harness",
+                fbr34ker("b34st", "sep-fuzz", "generate-harness"),
+                "Output directory",
+            ),
+            Action(
+                "forensics.sep-research-run",
+                "SEP Research Pipeline — Full run",
+                fbr34ker("b34st", "sep-research", "run"),
+                "Output directory",
+            ),
+            Action(
+                "forensics.sep-research-stages",
+                "SEP Research — List stages",
+                fbr34ker("b34st", "sep-research", "list-stages"),
+            ),
+            Action(
+                "forensics.sep-research-info",
+                "SEP Research — Show info",
+                fbr34ker("b34st", "sep-research", "info"),
+            ),
         ),
     ),
 )

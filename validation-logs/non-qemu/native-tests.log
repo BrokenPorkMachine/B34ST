@@ -101,6 +101,6 @@ clang -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
 		kernel/string.c kernel/mmio.c tests/security_model_harness.c \
 		-o build/tests/security_model_harness
 build/tests/security_model_harness
-clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"qemu_virt\" -DFBR34KER_SOURCE_ID=\"0.4.1-beta\"  -Wall -Wextra -Werror -Iinclude -Iexamples/generic_loader -c \
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"qemu_virt\" -DFBR34KER_SOURCE_ID=\"0.5.0b-beta\"  -Wall -Wextra -Werror -Iinclude -Iexamples/generic_loader -c \
 		examples/generic_loader/loader_adapter.c \
 		-o build/examples/loader_adapter.o

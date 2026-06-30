@@ -473,8 +473,7 @@ class USBDevice:
         """Send the DWC3 firmware exploit (USBliter8) over USB control transfers.
 
         Automatically selects the correct exploit payload based on the
-        detected device's CPID. Falls back to generic A12 payload if CPID
-        is not in the supported database.
+        detected device's CPID. Raises an error if CPID is not supported.
         """
         if self.device is None:
             return False
@@ -517,7 +516,9 @@ class USBDevice:
         if not self.pwned or self.device is None:
             return False
         if load_addr is None:
-            load_addr = (self.chipset or {}).get("load_addr", 0x800000000)
+            if self.chipset is None:
+                raise TransportError("chipset not available; load_addr required")
+            load_addr = self.chipset.get("load_addr", 0x800000000)
         payload = _read_binary(payload_path)
         self._claim()
         try:
@@ -546,12 +547,15 @@ class USBDevice:
         if not self.pwned:
             return False
         if entry is None:
-            entry = (self.chipset or {}).get("load_addr", 0x800000000)
+            if self.chipset is None:
+                raise TransportError("chipset not available; entry address required")
+            entry = self.chipset["load_addr"]
         try:
             self.vendor_set_addr(entry)
             self._ctrl_xfer(self.VENDOR_OUT, self.VENDOR_REQ_EXECUTE, 0, 0, b"")
         except Exception as exc:
             print(f"[!] EXECUTE vendor request failed: {exc}", file=sys.stderr)
+            return False
         deadline = time.monotonic() + 15.0
         while time.monotonic() < deadline:
             try:

@@ -9,7 +9,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from b34st.research_runtime import main
+from b34st.research_runtime import main  # noqa: E402
 
 
 if __name__ == "__main__":

@@ -1,60 +1,61 @@
 python3 scripts/run_static_analysis.py --clang clang --timeout 45 \
-		--jobs 4 --include-dir include --source-id 0.5.0b-analysis arch/arm64/cpu.c arch/arm64/mmu.c kernel/allocator.c kernel/architecture.c kernel/board.c kernel/boot_evidence.c kernel/bringup_report.c kernel/build_info.c kernel/bringup.c kernel/command.c kernel/console.c kernel/crash.c kernel/crc32.c kernel/device_tree.c kernel/driver.c kernel/event.c kernel/exception.c kernel/fault.c kernel/framebuffer_console.c kernel/format.c kernel/handoff.c kernel/hardware_probe.c kernel/kernel_patches.c kernel/secure_boot_bypass.c kernel/persistence.c kernel/hal_sim.c kernel/interrupt.c kernel/lifecycle.c kernel/log.c kernel/main.c kernel/module.c kernel/mmio.c kernel/physical_memory.c kernel/protocol.c kernel/sha256.c kernel/service_guard.c kernel/service_registry.c kernel/stack_guard.c kernel/string.c kernel/trace.c kernel/watchdog.c kernel/apple_platform.c kernel/usb.c kernel/usbliter8_exploit.c kernel/trust_cache.c kernel/jailbreak.c modules/hello/hello.c platform/gic.c platform/qemu_virt/platform.c platform/qemu_virt/timer.c platform/qemu_virt/uart.c platform/qemu_virt/semihosting.c platform/generic_arm64/platform.c platform/generic_arm64/timer.c examples/generic_loader/loader_adapter.c loader/qemu_handoff/loader.c
+		--jobs 4 --include-dir include --source-id 0.6.0_beta-analysis arch/arm64/cpu.c arch/arm64/mmu.c kernel/allocator.c kernel/architecture.c kernel/board.c kernel/boot_evidence.c kernel/bringup_report.c kernel/build_info.c kernel/bringup.c kernel/command.c kernel/console.c kernel/crash.c kernel/crc32.c kernel/device_tree.c kernel/driver.c kernel/event.c kernel/exception.c kernel/fault.c kernel/framebuffer_console.c kernel/format.c kernel/handoff.c kernel/hardware_probe.c kernel/kernel_patches.c kernel/secure_boot_bypass.c kernel/persistence.c kernel/hal_sim.c kernel/interrupt.c kernel/lifecycle.c kernel/log.c kernel/main.c kernel/module.c kernel/mmio.c kernel/physical_memory.c kernel/protocol.c kernel/sha256.c kernel/service_guard.c kernel/service_registry.c kernel/stack_guard.c kernel/string.c kernel/trace.c kernel/watchdog.c kernel/apple_platform.c kernel/usb.c kernel/usbliter8_exploit.c kernel/trust_cache.c kernel/jailbreak.c modules/hello/hello.c platform/gic.c platform/qemu_virt/platform.c platform/qemu_virt/timer.c platform/qemu_virt/uart.c platform/qemu_virt/semihosting.c platform/generic_arm64/platform.c platform/generic_arm64/timer.c examples/generic_loader/loader_adapter.c loader/qemu_handoff/loader.c
 starting bounded static analysis (56 files, 4 workers)
-[analyze 01/56] arch/arm64/cpu.c: ok (0.35s)
-[analyze 03/56] kernel/allocator.c: ok (0.44s)
-[analyze 06/56] kernel/boot_evidence.c: ok (0.07s)
-[analyze 05/56] kernel/board.c: ok (0.16s)
-[analyze 08/56] kernel/build_info.c: ok (0.04s)
-[analyze 09/56] kernel/bringup.c: ok (0.05s)
-[analyze 07/56] kernel/bringup_report.c: ok (0.16s)
-[analyze 04/56] kernel/architecture.c: ok (1.17s)
-[analyze 12/56] kernel/crash.c: ok (0.05s)
-[analyze 13/56] kernel/crc32.c: ok (0.04s)
-[analyze 14/56] kernel/device_tree.c: ok (0.62s)
-[analyze 11/56] kernel/console.c: ok (1.33s)
-[analyze 16/56] kernel/event.c: ok (0.05s)
-[analyze 17/56] kernel/exception.c: ok (0.04s)
-[analyze 18/56] kernel/fault.c: ok (0.04s)
-[analyze 02/56] arch/arm64/mmu.c: ok (2.18s)
-[analyze 19/56] kernel/framebuffer_console.c: ok (0.46s)
-[analyze 15/56] kernel/driver.c: ok (0.94s)
-[analyze 22/56] kernel/hardware_probe.c: ok (0.04s)
-[analyze 10/56] kernel/command.c: ok (2.46s)
-[analyze 24/56] kernel/secure_boot_bypass.c: ok (0.10s)
-[analyze 25/56] kernel/persistence.c: ok (0.10s)
-[analyze 26/56] kernel/hal_sim.c: ok (0.04s)
-[analyze 27/56] kernel/interrupt.c: ok (0.04s)
-[analyze 20/56] kernel/format.c: ok (1.17s)
-[analyze 29/56] kernel/log.c: ok (0.06s)
-[analyze 21/56] kernel/handoff.c: ok (1.03s)
-[analyze 23/56] kernel/kernel_patches.c: ok (1.00s)
-[analyze 28/56] kernel/lifecycle.c: ok (0.61s)
-[analyze 30/56] kernel/main.c: ok (0.97s)
-[analyze 32/56] kernel/mmio.c: ok (1.25s)
-[analyze 35/56] kernel/sha256.c: ok (0.12s)
-[analyze 36/56] kernel/service_guard.c: ok (0.04s)
-[analyze 37/56] kernel/service_registry.c: ok (0.05s)
-[analyze 38/56] kernel/stack_guard.c: ok (0.04s)
-[analyze 39/56] kernel/string.c: ok (0.05s)
-[analyze 34/56] kernel/protocol.c: ok (1.07s)
-[analyze 40/56] kernel/trace.c: ok (0.05s)
-[analyze 41/56] kernel/watchdog.c: ok (0.03s)
-[analyze 42/56] kernel/apple_platform.c: ok (0.05s)
-[analyze 44/56] kernel/usbliter8_exploit.c: ok (0.10s)
-[analyze 45/56] kernel/trust_cache.c: ok (0.10s)
-[analyze 31/56] kernel/module.c: ok (2.13s)
-[analyze 47/56] modules/hello/hello.c: ok (0.04s)
-[analyze 48/56] platform/gic.c: ok (0.05s)
-[analyze 49/56] platform/qemu_virt/platform.c: ok (0.04s)
-[analyze 50/56] platform/qemu_virt/timer.c: ok (0.03s)
-[analyze 46/56] kernel/jailbreak.c: ok (0.23s)
-[analyze 51/56] platform/qemu_virt/uart.c: ok (0.03s)
-[analyze 52/56] platform/qemu_virt/semihosting.c: ok (0.03s)
-[analyze 54/56] platform/generic_arm64/timer.c: ok (0.03s)
-[analyze 43/56] kernel/usb.c: ok (0.89s)
-[analyze 56/56] loader/qemu_handoff/loader.c: ok (0.04s)
-[analyze 33/56] kernel/physical_memory.c: ok (2.74s)
-[analyze 53/56] platform/generic_arm64/platform.c: ok (0.98s)
-[analyze 55/56] examples/generic_loader/loader_adapter.c: ok (0.97s)
-clang static analysis passed without findings (56 files, 6.97s, 4 workers)
+  [0/56] cpu.c: OK
+  [2/56] allocator.c: OK
+  [4/56] board.c: OK
+  [5/56] boot_evidence.c: OK
+  [7/56] build_info.c: OK
+  [8/56] bringup.c: OK
+  [6/56] bringup_report.c: OK
+  [3/56] architecture.c: OK
+  [11/56] crash.c: OK
+  [12/56] crc32.c: OK
+  [13/56] device_tree.c: OK
+  [10/56] console.c: OK
+  [15/56] event.c: OK
+  [16/56] exception.c: OK
+  [1/56] mmu.c: OK
+  [17/56] fault.c: OK
+  [18/56] framebuffer_console.c: OK
+  [14/56] driver.c: OK
+  [21/56] hardware_probe.c: OK
+  [9/56] command.c: OK
+  [23/56] secure_boot_bypass.c: OK
+  [24/56] persistence.c: OK
+  [19/56] format.c: OK
+  [25/56] hal_sim.c: OK
+  [26/56] interrupt.c: OK
+  [28/56] log.c: OK
+  [20/56] handoff.c: OK
+  [27/56] lifecycle.c: OK
+  [22/56] kernel_patches.c: OK
+  [29/56] main.c: OK
+  [31/56] mmio.c: OK
+  [34/56] sha256.c: OK
+  [35/56] service_guard.c: OK
+  [36/56] service_registry.c: OK
+  [33/56] protocol.c: OK
+  [37/56] stack_guard.c: OK
+  [38/56] string.c: OK
+  [39/56] trace.c: OK
+  [40/56] watchdog.c: OK
+  [41/56] apple_platform.c: OK
+  [43/56] usbliter8_exploit.c: OK
+  [44/56] trust_cache.c: OK
+  [45/56] jailbreak.c: OK
+  [46/56] hello.c: OK
+  [47/56] gic.c: OK
+  [48/56] platform.c: OK
+  [49/56] timer.c: OK
+  [50/56] uart.c: OK
+  [51/56] semihosting.c: OK
+  [30/56] module.c: OK
+  [53/56] timer.c: OK
+  [42/56] usb.c: OK
+  [55/56] loader.c: OK
+  [32/56] physical_memory.c: OK
+  [52/56] platform.c: OK
+  [54/56] loader_adapter.c: OK
+
+OK: all 56 translation units passed

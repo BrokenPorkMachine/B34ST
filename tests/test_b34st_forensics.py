@@ -63,8 +63,7 @@ class B34STForensicsTests(unittest.TestCase):
             self.assertEqual(summary["profile"]["name"], "quick")
 
     def test_template_creates_valid_output(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            output = pathlib.Path(tmpdir) / "template.json"
+        with tempfile.TemporaryDirectory():
             result = subprocess.run(
                 [
                     sys.executable,

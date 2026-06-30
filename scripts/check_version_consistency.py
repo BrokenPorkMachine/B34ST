@@ -22,10 +22,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--expected", required=True)
     args = parser.parse_args(argv)
     version = args.expected
-    if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:[ab]|rc[0-9]+)?", version) is None:
-        parser.error(
-            "--expected must be a release version such as 0.4.3 or 0.4.3b"
-        )
+    if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:[ab]|rc[0-9]+|_beta)?", version) is None:
+        parser.error("--expected must be a release version such as 0.4.3 or 0.4.3b")
 
     escaped = re.escape(version)
     release_name = re.escape(f"B34ST_{version}_Beta")
@@ -52,13 +50,21 @@ def main(argv: list[str] | None = None) -> int:
             r'^#define FBR34KER_MONITOR_BUILD "beta"$',
             "monitor build channel is not beta",
         ),
-        ("b34st/version.py", rf'^__version__ = "{escaped}"$', "B34ST version does not match"),
+        (
+            "b34st/version.py",
+            rf'^__version__ = "{escaped}"$',
+            "B34ST version does not match",
+        ),
         (
             "b34st/version.py",
             rf'^__release_name__ = "{release_name}"$',
             "B34ST release name does not match",
         ),
-        ("b34st/build.py", rf'^__version__ = "{escaped}"$', "B34ST build version does not match"),
+        (
+            "b34st/build.py",
+            rf'^__version__ = "{escaped}"$',
+            "B34ST build version does not match",
+        ),
         (
             "b34st/build.py",
             rf'^__release_name__ = "{release_name}"$',
@@ -69,7 +75,11 @@ def main(argv: list[str] | None = None) -> int:
             rf'^FBR34KCTL_VERSION = "{escaped}"$',
             "fbr34kctl version does not match",
         ),
-        ("host/fbr34kdeploy.py", rf'^VERSION = "{escaped}"$', "deployment version does not match"),
+        (
+            "host/fbr34kdeploy.py",
+            rf'^VERSION = "{escaped}"$',
+            "deployment version does not match",
+        ),
         (
             "host/hardware_bringup.py",
             rf'^RELEASE_VERSION = "{escaped}"$',
@@ -175,7 +185,11 @@ def main(argv: list[str] | None = None) -> int:
             rf"dist/{release_name}_\*\.zip",
             "CI artifact pattern does not match",
         ),
-        ("BRANDING.md", rf"Release: \*\*{escaped} Beta\*\*", "branding version does not match"),
+        (
+            "BRANDING.md",
+            rf"Release: \*\*{escaped} Beta\*\*",
+            "branding version does not match",
+        ),
         (
             "BRANDING.md",
             rf"Release root: `{release_name}`",
@@ -193,7 +207,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[FAIL] {failure}")
         return 1
 
-    print(f"version consistency passed ({version}-beta, {len(checks)} release surfaces)")
+    print(
+        f"version consistency passed ({version}-beta, {len(checks)} release surfaces)"
+    )
     return 0
 
 

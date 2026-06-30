@@ -608,8 +608,8 @@ def test_payload(payload_path):
         # Process payload as USB descriptor/endpoint data
         # TODO: Submit to device via USB transport
         return True
-    except Exception as e:
-        print(f"Error: {e}")
+    except Exception:
+        print("Error: <exception in generated template>")
         return False
 
 if __name__ == "__main__":

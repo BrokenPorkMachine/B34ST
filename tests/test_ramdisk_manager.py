@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import pathlib
 import tempfile
 import unittest
@@ -49,16 +48,16 @@ class RamdiskManagerTests(unittest.TestCase):
             force=False,
         )
 
-    def test_target_catalog_covers_iphone_ipad_and_mac_without_physical_claim(self) -> None:
+    def test_target_catalog_covers_iphone_ipad_and_mac_without_physical_claim(
+        self,
+    ) -> None:
         targets = ramdisk_manager.target_records()
         self.assertGreater(len(targets), 50)
         self.assertEqual(
             {target["device_class"] for target in targets},
             {"iphone", "ipad", "mac"},
         )
-        self.assertIn(
-            "MacBookAir10,1", {target["product"] for target in targets}
-        )
+        self.assertIn("MacBookAir10,1", {target["product"] for target in targets})
         self.assertTrue(
             all(not target["physical_execution_verified"] for target in targets)
         )
@@ -79,9 +78,7 @@ class RamdiskManagerTests(unittest.TestCase):
                 product="iPhone12,1",
                 os_version="18.5",
                 build=None,
-                profile_path=pathlib.Path(
-                    "profiles/apple-a12-iphone-recovery.json"
-                ),
+                profile_path=pathlib.Path("profiles/apple-a12-iphone-recovery.json"),
             )
 
     def test_bundle_is_deterministic_and_inspection_verifies_components(self) -> None:
@@ -96,12 +93,8 @@ class RamdiskManagerTests(unittest.TestCase):
             inspected = ramdisk_manager.inspect_bundle(root / "first.fbrd")
             self.assertTrue(inspected["ok"])
             self.assertEqual(inspected["component_count"], 4)
-            self.assertEqual(
-                inspected["manifest"]["target"]["product"], "iPhone12,1"
-            )
-            self.assertFalse(
-                inspected["manifest"]["physical_execution_verified"]
-            )
+            self.assertEqual(inspected["manifest"]["target"]["product"], "iPhone12,1")
+            self.assertFalse(inspected["manifest"]["physical_execution_verified"])
 
     def test_inspection_rejects_archive_tampering(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -115,7 +108,9 @@ class RamdiskManagerTests(unittest.TestCase):
             with self.assertRaisesRegex(ramdisk_manager.RamdiskError, "duplicate"):
                 ramdisk_manager.inspect_bundle(output)
 
-    def test_load_is_plan_only_by_default_and_adapter_execution_is_evidenced(self) -> None:
+    def test_load_is_plan_only_by_default_and_adapter_execution_is_evidenced(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)
             output = root / "bundle.fbrd"
@@ -157,9 +152,7 @@ class RamdiskManagerTests(unittest.TestCase):
             )
             result = ramdisk_manager.load_bundle(execute_args)
             self.assertTrue(result["executed"])
-            self.assertEqual(
-                result["adapter_response"]["status"], "ramdisk-started"
-            )
+            self.assertEqual(result["adapter_response"]["status"], "ramdisk-started")
             self.assertTrue((root / "result.json").is_file())
 
     def test_execution_requires_exact_authorization(self) -> None:

@@ -1,6 +1,6 @@
-# FBR34KER 0.5.0b Beta
+# FBR34KER 0.6.0_beta Beta
 
-Version 0.5.0b is an evidence-gated beta. It does not promote an
+Version 0.6.0_beta is an evidence-gated beta. It does not promote an
 A12/A13 profile merely because an upload or simulator run succeeded. Every claim
 is classified as simulator, QEMU, persistent-bridge, console, boot-evidence, or
 physical-runtime proof.

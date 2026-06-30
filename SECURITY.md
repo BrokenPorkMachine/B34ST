@@ -3,7 +3,7 @@
 FBR34KER is a generic ARM64 research monitor, loader-contract testbed, bounded
 deployment simulator, and optional authorized recovery-image sender.
 
-## Exploit subsystem boundary (0.5.0b)
+## Exploit subsystem boundary (0.6.0_beta)
 
 The tree contains exploit chain subsystems for kernel patching, secure boot
 bypass, and persistence. These are compile-time gated by the
@@ -53,7 +53,7 @@ The B34ST environment planner creates and validates manifests for simulation
 or an already-authorized research runtime. It requires explicit owner
 authorization.
 
-## First-stage adapter boundary (0.5.0b)
+## First-stage adapter boundary (0.6.0_beta)
 
 The first-stage adapter is trusted code supplied by the operator. FBR34KER
 validates its ABI version, output size, device identity, memory-map shape,
@@ -66,7 +66,7 @@ increments the generation and invalidates authorization. The simulator stores
 only a hash of the authorization identifier. External adapters must provide
 equivalent or stronger handling.
 
-## Persistent bridge boundary (0.5.0b)
+## Persistent bridge boundary (0.6.0_beta)
 
 The persistent bridge is a local operator-controlled integration contract. It
 uses bounded JSON-lines messages, strictly increasing sequence numbers, a 1 MiB

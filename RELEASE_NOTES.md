@@ -1,28 +1,16 @@
-# FBR34KER 0.5.0b Beta release notes
+# FBR34KER 0.6.0_beta Beta release notes
 
-FBR34KER 0.5.0b Beta is a patch release based on the merged 0.4.0 Beta tree. It
-packages the latest Apple-platform, boot-image, build-dependency, and
-operational-archive fixes under one consistent release identity.
+FBR34KER 0.6.0_beta Beta is a patch release based on the merged 0.4.0 Beta tree. It
+packages the latest fixes and updates under one consistent release identity.
 
 ## Patch-release highlights
 
-- Adds a guided exact-profile ramdisk maker/loader for A12–A15/M1–M2 iPhone,
-  iPad, and Apple silicon Mac products. It creates deterministic
-  hash-verified FBRD bundles and remains plan-only until a reviewed
-  target/build-specific external adapter is explicitly authorized.
-- Preserves explicit A12X/T8027 matching alongside A12Z/T8028.
-- Preserves M1/T8103 and M2/T8112 platform identifiers and bounded
-  MMIO-footprint SoC discrimination.
-- Correctly validates A12X and A12Z FBRI manifests even though those families
-  share a numeric header identifier.
-- Tracks generated C header dependencies so metadata changes rebuild direct,
-  generic, probe, SDK, and reference-loader objects instead of reusing stale
-  binaries.
-- Includes required public host runtime modules in the operational archive so
-  extracted `fbr34ker`, forensics, CVE, IPSW, TLS, and adapter workflows remain
-  functional.
-- Requires the complete archive to contain A14, A15, M1, and M2 recovery
-  artifacts in addition to A12, A12X/A12Z, and A13.
+- **Fix**: CLI now supplies DWC3 exploit payload in usb_serial.py for USBliter8 exploitation
+- **Fix**: Unknown Apple devices no longer default to A12 in detect_device_chipset; proper error handling added
+- **Fix**: Execution reporting now correctly reports failure after transfer errors in run_exploit.py
+- **Fix**: Non-empty result dict no longer marks legacy chain success despite all failures
+- **Feature**: Added SEP exploitation pipeline to B34ST menus (b34stool.py)
+- **Audit**: Completed fuzzing code correctness and completeness audit
 
 ## Inherited 0.4 functionality
 
@@ -38,7 +26,7 @@ operational-archive fixes under one consistent release identity.
 
 ## Compatibility
 
-0.5.0b does not change the public binary interfaces:
+0.6.0_beta does not change the public binary interfaces:
 
 - protocol: 1
 - handoff ABI: 4
@@ -66,7 +54,7 @@ Loaders and modules that conform to the 0.4.0 interfaces require no migration.
 
 ## Validation
 
-The 0.5.0b source is gated by release-version consistency checks, isolated host
+The 0.6.0_beta source is gated by release-version consistency checks, isolated host
 tests, native harnesses, Clang analysis, deterministic build and conformance
 stages, QEMU integration/smoke tests, archive verification, checksum
 verification, and an extracted operational-package smoke test. Measured

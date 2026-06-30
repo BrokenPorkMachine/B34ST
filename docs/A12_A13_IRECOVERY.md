@@ -1,6 +1,6 @@
 # A12/A13 iRecovery workflow
 
-FBR34KER 0.5.0b adds an optional host workflow for sending a validated recovery boot image through the `irecovery` utility from libirecovery. The workflow targets devices or development boards that the operator owns or is authorized to test.
+FBR34KER 0.6.0_beta adds an optional host workflow for sending a validated recovery boot image through the `irecovery` utility from libirecovery. The workflow targets devices or development boards that the operator owns or is authorized to test.
 
 ## Security boundary
 

@@ -1427,4 +1427,4 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 - **License**: See [LICENSE](LICENSE)
 - **Security policy**: See [SECURITY.md](SECURITY.md) for security boundary, responsible disclosure, and policy
 - **Changelog**: See [CHANGELOG.md](CHANGELOG.md) for version history
-- **Release notes**: See [RELEASE_NOTES.md](RELEASE_NOTES.md) for 0.4.1 Beta release notes
+- **Release notes**: See [RELEASE_NOTES.md](RELEASE_NOTES.md) for 0.6.0 Beta release notes

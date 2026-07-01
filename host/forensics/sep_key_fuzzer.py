@@ -41,9 +41,7 @@ BOUNTY_SIGNIFICANCE: dict[str, dict[str, Any]] = {
         "label": "Expected behavior",
         "bounty_eligible": False,
         "score": 0,
-        "detail": (
-            "Operation completed as documented. No security boundary crossed."
-        ),
+        "detail": ("Operation completed as documented. No security boundary crossed."),
     },
     "research_info": {
         "label": "Research information",
@@ -185,12 +183,14 @@ def scan_for_canaries(data: bytes) -> list[dict[str, Any]]:
     for kind, val in CANARY_LIBRARY.items():
         pos = data.find(val)
         if pos >= 0:
-            hits.append({
-                "kind": kind,
-                "value": val.hex(),
-                "position": pos,
-                "length": len(val),
-            })
+            hits.append(
+                {
+                    "kind": kind,
+                    "value": val.hex(),
+                    "position": pos,
+                    "length": len(val),
+                }
+            )
     return hits
 
 
@@ -218,8 +218,8 @@ class SEPKeyWrapper:
 
     def __post_init__(self) -> None:
         if not self.created_at:
-            self.created_at = dt.datetime.now().astimezone().isoformat(
-                timespec="seconds"
+            self.created_at = (
+                dt.datetime.now().astimezone().isoformat(timespec="seconds")
             )
 
     @property
@@ -327,7 +327,10 @@ FUZZ_VARIATIONS: dict[str, list[dict[str, Any]]] = {
         {"name": "after_keychain_delete", "desc": "After deleting keychain record"},
         {"name": "after_os_update", "desc": "After applying an OS update"},
         {"name": "after_erase_restore", "desc": "After erase and restore from backup"},
-        {"name": "same_model_second_device", "desc": "Test on second device same model"},
+        {
+            "name": "same_model_second_device",
+            "desc": "Test on second device same model",
+        },
         {"name": "different_soc", "desc": "Test on a different SoC generation"},
     ],
     "access_control": [
@@ -335,12 +338,30 @@ FUZZ_VARIATIONS: dict[str, list[dict[str, Any]]] = {
         {"name": "acl_user_presence", "desc": "ACL: .userPresence"},
         {"name": "acl_biometry_current_set", "desc": "ACL: .biometryCurrentSet"},
         {"name": "acl_device_passcode", "desc": "ACL: .devicePasscode"},
-        {"name": "accessibility_when_unlocked", "desc": "kSecAttrAccessibleWhenUnlocked"},
-        {"name": "accessibility_after_first_unlock", "desc": "kSecAttrAccessibleAfterFirstUnlock"},
-        {"name": "accessibility_when_passcode_set", "desc": "kSecAttrAccessibleWhenPasscodeSet"},
-        {"name": "swap_weak_metadata", "desc": "Swap weak ACL metadata onto strong wrapper"},
-        {"name": "swap_strong_metadata", "desc": "Swap strong ACL metadata onto weak wrapper"},
-        {"name": "different_app_group", "desc": "Attach different application access group"},
+        {
+            "name": "accessibility_when_unlocked",
+            "desc": "kSecAttrAccessibleWhenUnlocked",
+        },
+        {
+            "name": "accessibility_after_first_unlock",
+            "desc": "kSecAttrAccessibleAfterFirstUnlock",
+        },
+        {
+            "name": "accessibility_when_passcode_set",
+            "desc": "kSecAttrAccessibleWhenPasscodeSet",
+        },
+        {
+            "name": "swap_weak_metadata",
+            "desc": "Swap weak ACL metadata onto strong wrapper",
+        },
+        {
+            "name": "swap_strong_metadata",
+            "desc": "Swap strong ACL metadata onto weak wrapper",
+        },
+        {
+            "name": "different_app_group",
+            "desc": "Attach different application access group",
+        },
     ],
     "wrapper_integrity": [
         {"name": "flip_bit_header", "desc": "Flip one bit in header region"},
@@ -355,11 +376,26 @@ FUZZ_VARIATIONS: dict[str, list[dict[str, Any]]] = {
         {"name": "duplicate_field_body", "desc": "Duplicate apparent body field"},
         {"name": "change_version_field", "desc": "Change suspected version field"},
         {"name": "change_length_field", "desc": "Change suspected length field"},
-        {"name": "header_from_other_wrapper", "desc": "Replace header with another wrapper's header"},
-        {"name": "body_from_other_wrapper", "desc": "Replace body with another wrapper's body"},
-        {"name": "oversize_declared_length", "desc": "Set declared length larger than buffer"},
-        {"name": "replay_older_version", "desc": "Replay wrapper from previous OS version"},
-        {"name": "replay_pre_policy_change", "desc": "Replay wrapper from before policy change"},
+        {
+            "name": "header_from_other_wrapper",
+            "desc": "Replace header with another wrapper's header",
+        },
+        {
+            "name": "body_from_other_wrapper",
+            "desc": "Replace body with another wrapper's body",
+        },
+        {
+            "name": "oversize_declared_length",
+            "desc": "Set declared length larger than buffer",
+        },
+        {
+            "name": "replay_older_version",
+            "desc": "Replay wrapper from previous OS version",
+        },
+        {
+            "name": "replay_pre_policy_change",
+            "desc": "Replay wrapper from before policy change",
+        },
     ],
 }
 
@@ -387,9 +423,7 @@ class FuzzTestResult:
     canary_hits: list[dict[str, Any]] = dataclasses.field(default_factory=list)
     error: str = ""
     duration_ms: float = 0.0
-    additional_buffers: list[dict[str, Any]] = dataclasses.field(
-        default_factory=list
-    )
+    additional_buffers: list[dict[str, Any]] = dataclasses.field(default_factory=list)
 
     @property
     def anomaly(self) -> bool:
@@ -445,16 +479,17 @@ def run_fuzz_variation(
     desc: str = variation.get("description", variation.get("desc", ""))
 
     # Build the mutated wrapper based on variation name
-    mutated, expected_behaviors = _apply_mutation(
-        name, base_wrapper, category
-    )
+    mutated, expected_behaviors = _apply_mutation(name, base_wrapper, category)
 
     try:
-        resp = submit(mutated, {
-            "variation": name,
-            "category": category,
-        })
-    except Exception as exc:
+        resp = submit(
+            mutated,
+            {
+                "variation": name,
+                "category": category,
+            },
+        )
+    except (OSError, RuntimeError) as exc:
         return FuzzTestResult(
             variation=name,
             category=category,
@@ -526,7 +561,13 @@ def run_fuzz_variation(
         error=raw_error,
         duration_ms=resp.get("duration_ms", 0.0),
         additional_buffers=[
-            {"index": i, "sha256": hashlib.sha256(bytes.fromhex(h) if isinstance(h, str) else b"").hexdigest(), "length": len(bytes.fromhex(h) if isinstance(h, str) else b"")}
+            {
+                "index": i,
+                "sha256": hashlib.sha256(
+                    bytes.fromhex(h) if isinstance(h, str) else b""
+                ).hexdigest(),
+                "length": len(bytes.fromhex(h) if isinstance(h, str) else b""),
+            }
             for i, h in enumerate(output_buffers)
         ],
     )
@@ -540,21 +581,64 @@ def _apply_mutation(
     size = len(w)
 
     mutations: dict[str, tuple[bytes, str]] = {
-        "flip_bit_header": (w[:1] + bytes([w[1] ^ 0x01]) + w[2:] if size > 1 else w, "reject (integrity check failed)"),
-        "flip_bit_body": (w[:size//2] + bytes([w[size//2] ^ 0x01]) + w[size//2+1:] if size > size//2 else w, "reject (integrity check failed)"),
-        "flip_bit_footer": (w[:-1] + bytes([w[-1] ^ 0x01]) if size > 0 else w, "reject (integrity check failed)"),
-        "truncate_at_header": (w[:16] if size > 16 else w, "reject (truncated/invalid)"),
-        "truncate_at_body_start": (w[:max(size//3, 1)] if size > 0 else w, "reject (truncated/invalid)"),
-        "truncate_at_body_end": (w[:max(2*size//3, 1)] if size > 0 else w, "reject (truncated/invalid)"),
+        "flip_bit_header": (
+            w[:1] + bytes([w[1] ^ 0x01]) + w[2:] if size > 1 else w,
+            "reject (integrity check failed)",
+        ),
+        "flip_bit_body": (
+            w[: size // 2] + bytes([w[size // 2] ^ 0x01]) + w[size // 2 + 1 :]
+            if size > size // 2
+            else w,
+            "reject (integrity check failed)",
+        ),
+        "flip_bit_footer": (
+            w[:-1] + bytes([w[-1] ^ 0x01]) if size > 0 else w,
+            "reject (integrity check failed)",
+        ),
+        "truncate_at_header": (
+            w[:16] if size > 16 else w,
+            "reject (truncated/invalid)",
+        ),
+        "truncate_at_body_start": (
+            w[: max(size // 3, 1)] if size > 0 else w,
+            "reject (truncated/invalid)",
+        ),
+        "truncate_at_body_end": (
+            w[: max(2 * size // 3, 1)] if size > 0 else w,
+            "reject (truncated/invalid)",
+        ),
         "append_zeroes": (w + b"\x00" * 64, "reject (extra trailing data)"),
-        "append_random": (w + bytes([0xAB, 0xCD, 0xEF] * 20), "reject (extra trailing data)"),
-        "duplicate_field_header": (w + w[:32] if size >= 32 else w, "varies (duplicate field)"),
-        "duplicate_field_body": (w + w[size//2:size//2+32] if size >= size//2+32 else w, "varies (duplicate field)"),
-        "change_version_field": (w[:4] + bytes([0xFF]) + w[5:] if size > 5 else w, "reject (invalid version)"),
-        "change_length_field": (w[:8] + bytes([0xFF, 0xFF, 0xFF, 0xFF]) + w[12:] if size > 12 else w, "reject (invalid length)"),
-        "header_from_other_wrapper": (base.wrapper_bytes[:32] + bytes(32) + base.wrapper_bytes[64:] if size > 96 else w, "reject (header mismatch)"),
-        "body_from_other_wrapper": (w[:32] + bytes(32) + w[64:] if size > 96 else w, "reject (body mismatch)"),
-        "oversize_declared_length": (w + b"\xFF" * 4096, "reject (oversize)"),
+        "append_random": (
+            w + bytes([0xAB, 0xCD, 0xEF] * 20),
+            "reject (extra trailing data)",
+        ),
+        "duplicate_field_header": (
+            w + w[:32] if size >= 32 else w,
+            "varies (duplicate field)",
+        ),
+        "duplicate_field_body": (
+            w + w[size // 2 : size // 2 + 32] if size >= size // 2 + 32 else w,
+            "varies (duplicate field)",
+        ),
+        "change_version_field": (
+            w[:4] + bytes([0xFF]) + w[5:] if size > 5 else w,
+            "reject (invalid version)",
+        ),
+        "change_length_field": (
+            w[:8] + bytes([0xFF, 0xFF, 0xFF, 0xFF]) + w[12:] if size > 12 else w,
+            "reject (invalid length)",
+        ),
+        "header_from_other_wrapper": (
+            base.wrapper_bytes[:32] + bytes(32) + base.wrapper_bytes[64:]
+            if size > 96
+            else w,
+            "reject (header mismatch)",
+        ),
+        "body_from_other_wrapper": (
+            w[:32] + bytes(32) + w[64:] if size > 96 else w,
+            "reject (body mismatch)",
+        ),
+        "oversize_declared_length": (w + b"\xff" * 4096, "reject (oversize)"),
     }
 
     if name in mutations:
@@ -668,7 +752,9 @@ class SEPKeyFuzzer:
     @property
     def base_wrapper(self) -> SEPKeyWrapper:
         if self._base_wrapper is None:
-            raise FuzzTestError("no base wrapper set; call generate_base_wrapper() first")
+            raise FuzzTestError(
+                "no base wrapper set; call generate_base_wrapper() first"
+            )
         return self._base_wrapper
 
     def run(
@@ -717,11 +803,13 @@ class SEPKeyFuzzer:
                     result = run_fuzz_variation(
                         variation, cat, self.base_wrapper, submit
                     )
-                except Exception as exc:
+                except (OSError, RuntimeError) as exc:
                     result = FuzzTestResult(
                         variation=variation["name"],
                         category=cat,
-                        description=variation.get("description", variation.get("desc", "")),
+                        description=variation.get(
+                            "description", variation.get("desc", "")
+                        ),
                         wrapper_sha256="",
                         public_key_sha256=self.base_wrapper.public_key_sha256,
                         expected_behavior="N/A",
@@ -752,9 +840,7 @@ class SEPKeyFuzzer:
         )
         self.custody.seal()
 
-        manifest = self._build_manifest(
-            results, anomalies, output_dir
-        )
+        manifest = self._build_manifest(results, anomalies, output_dir)
         self._write_manifest(manifest, output_dir)
         self.custody.write(output_dir / "chain-of-custody.json")
         return manifest
@@ -788,16 +874,14 @@ class SEPKeyFuzzer:
             "base_wrapper": self.base_wrapper.to_dict(),
             "campaign": {
                 "started_at": self.base_wrapper.created_at,
-                "completed_at": dt.datetime.now().astimezone().isoformat(
-                    timespec="seconds"
-                ),
+                "completed_at": dt.datetime.now()
+                .astimezone()
+                .isoformat(timespec="seconds"),
             },
             "summary": {
                 "total_tests": len(results),
                 "anomalies": len(anomalies),
-                "canary_hits": sum(
-                    len(r.get("canary_hits", [])) for r in results
-                ),
+                "canary_hits": sum(len(r.get("canary_hits", [])) for r in results),
                 "by_classification": by_class,
                 "bounty_categories": bounty_categories,
             },
@@ -980,15 +1064,18 @@ def generate_bounty_report(
     anomaly_section = "\n".join(anomaly_details) if anomaly_details else "*(None)*\n"
 
     lifecycle_count = sum(
-        1 for r in manifest.get("all_results", [])
+        1
+        for r in manifest.get("all_results", [])
         if r.get("category") == "device_lifecycle"
     )
     acl_count = sum(
-        1 for r in manifest.get("all_results", [])
+        1
+        for r in manifest.get("all_results", [])
         if r.get("category") == "access_control"
     )
     integrity_count = sum(
-        1 for r in manifest.get("all_results", [])
+        1
+        for r in manifest.get("all_results", [])
         if r.get("category") == "wrapper_integrity"
     )
 
@@ -1023,12 +1110,10 @@ def generate_bounty_report(
 
 
 _BOUNTY_CLASSIFICATION_LABELS: dict[str, str] = {
-    k: v["label"]
-    for k, v in BOUNTY_SIGNIFICANCE.items()
+    k: v["label"] for k, v in BOUNTY_SIGNIFICANCE.items()
 }
 _BOUNTY_ELIGIBLE: dict[str, str] = {
-    k: "Yes" if v["bounty_eligible"] else "No"
-    for k, v in BOUNTY_SIGNIFICANCE.items()
+    k: "Yes" if v["bounty_eligible"] else "No" for k, v in BOUNTY_SIGNIFICANCE.items()
 }
 
 

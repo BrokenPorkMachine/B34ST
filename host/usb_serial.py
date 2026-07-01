@@ -120,7 +120,12 @@ def enumerate_devices() -> list[DeviceIdentity]:
                 )
                 result.append(desc)
             except (usb.core.USBError, ValueError, TypeError):
-                continue
+                pass
+            finally:
+                try:
+                    usb.util.dispose(device)
+                except Exception:
+                    pass
     return result
 
 
@@ -588,6 +593,13 @@ class USBDevice:
 
     def close(self) -> None:
         self._release()
+        dev = self.device
+        self.device = None
+        if dev is not None:
+            try:
+                usb.util.dispose(dev)
+            except Exception:
+                pass
 
 
 def _read_binary(path: str) -> bytes:

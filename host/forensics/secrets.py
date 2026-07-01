@@ -98,13 +98,13 @@ class SepMailbox:
 
         try:
             self._write(cmd_packet)
-        except Exception as exc:
+        except (OSError, RuntimeError) as exc:
             raise SecretsError(f"SEP mailbox write failed: {exc}") from exc
 
         doorbell_val = struct.pack("<I", 1)
         try:
             self._write(doorbell_val)
-        except Exception as exc:
+        except (OSError, RuntimeError) as exc:
             raise SecretsError(f"SEP doorbell trigger failed: {exc}") from exc
 
         deadline = time.monotonic() + self.POLL_TIMEOUT
@@ -191,7 +191,7 @@ class KeybagAcquisitor:
                         json.dumps(result, sort_keys=True).encode("utf-8")
                     )
                 results.append(result)
-            except Exception as exc:
+            except (OSError, RuntimeError) as exc:
                 errors.append(f"bag {bag['identifier']}: {exc}")
                 result = {"bag_id": bag["identifier"], "error": str(exc)}
                 results.append(result)
@@ -294,7 +294,7 @@ class KeychainAcquisitor:
                         json.dumps(result, sort_keys=True).encode("utf-8")
                     )
                 results.append(result)
-            except Exception as exc:
+            except (OSError, RuntimeError) as exc:
                 errors.append(f"item {item['key']}: {exc}")
                 result = {"key": item["key"], "error": str(exc)}
                 results.append(result)
@@ -468,7 +468,7 @@ class SecretsAcquisitor:
                 result["raw"] = raw
                 if "ok" in raw.lower():
                     result["unlocked"] = True
-            except Exception as exc:
+            except (OSError, RuntimeError) as exc:
                 result["error"] = str(exc)
 
         if use_exploit and not result["unlocked"]:
@@ -478,7 +478,7 @@ class SecretsAcquisitor:
                 result["raw"] = raw
                 if "ok" in raw.lower():
                     result["unlocked"] = True
-            except Exception as exc:
+            except (OSError, RuntimeError) as exc:
                 result["error"] = str(exc)
                 if "not" in result.get("error", ""):
                     result["error_exploit"] = str(exc)
@@ -523,7 +523,7 @@ class SecretsAcquisitor:
                     "secrets.keybags",
                     f"Extracted {bag_result['acquisition']['extracted']} keybags",
                 )
-            except Exception as exc:
+            except (OSError, RuntimeError) as exc:
                 results["keybags"] = {"status": "failed", "error": str(exc)}
                 self.custody.record("secrets.keybags", f"Failed: {exc}")
 
@@ -538,7 +538,7 @@ class SecretsAcquisitor:
                     "secrets.keychain",
                     f"Acquired {kc_result['acquisition']['acquired']} keychain items",
                 )
-            except Exception as exc:
+            except (OSError, RuntimeError) as exc:
                 results["keychain"] = {"status": "failed", "error": str(exc)}
                 self.custody.record("secrets.keychain", f"Failed: {exc}")
 
@@ -554,7 +554,7 @@ class SecretsAcquisitor:
                 f"Found {ic_result['acquisition']['account_count']} accounts, "
                 f"{ic_result['acquisition']['token_count']} tokens",
             )
-        except Exception as exc:
+        except (OSError, RuntimeError) as exc:
             results["icloud"] = {"status": "failed", "error": str(exc)}
             self.custody.record("secrets.icloud", f"Failed: {exc}")
 

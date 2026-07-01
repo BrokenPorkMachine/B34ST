@@ -1263,7 +1263,7 @@ def build_parser():
     jp.add_argument("--monitor", help="path to FBR34KER monitor binary (auto-built if omitted)")
     jp.add_argument("--kernel", help="kernelcache physical address visible to the monitor")
     jp.add_argument("--ecid", help="device ECID / serial for targeting")
-    jp.add_argument("--timeout", type=float, default=30.0)
+    jp.add_argument("--timeout", type=float, default=60.0)
     jp.add_argument("--evidence", help="write evidence JSON to path")
 
     pp = sub.add_parser("pwndfu")

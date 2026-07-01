@@ -132,16 +132,18 @@ def normalize_catalog(value: Any, product: str) -> dict[str, Any]:
             or not isinstance(signed, bool)
         ):
             continue
-        normalized.append({
-            "product": product,
-            "version": version,
-            "build": build,
-            "signed": signed,
-            "url": _apple_firmware_url(url),
-            "sha1": record.get("sha1sum") or record.get("sha1"),
-            "released": record.get("releasedate") or record.get("date"),
-            "filename": pathlib.PurePosixPath(urllib.parse.urlparse(url).path).name,
-        })
+        normalized.append(
+            {
+                "product": product,
+                "version": version,
+                "build": build,
+                "signed": signed,
+                "url": _apple_firmware_url(url),
+                "sha1": record.get("sha1sum") or record.get("sha1"),
+                "released": record.get("releasedate") or record.get("date"),
+                "filename": pathlib.PurePosixPath(urllib.parse.urlparse(url).path).name,
+            }
+        )
     if not normalized:
         raise IPSWError(f"catalog contains no usable IPSWs for {product}")
     return {
@@ -213,15 +215,21 @@ def inspect_ipsw(path: pathlib.Path) -> dict[str, Any]:
             names = set(archive.namelist())
             restore = (
                 plistlib.loads(archive.read("Restore.plist"))
-                if "Restore.plist" in names else {}
+                if "Restore.plist" in names
+                else {}
             )
             manifest = (
                 plistlib.loads(archive.read("BuildManifest.plist"))
-                if "BuildManifest.plist" in names else {}
+                if "BuildManifest.plist" in names
+                else {}
             )
     except (zipfile.BadZipFile, KeyError, plistlib.InvalidFileException) as exc:
         raise IPSWError(f"invalid IPSW archive: {exc}") from exc
-    products = manifest.get("SupportedProductTypes") or restore.get("SupportedProductTypes") or []
+    products = (
+        manifest.get("SupportedProductTypes")
+        or restore.get("SupportedProductTypes")
+        or []
+    )
     if not isinstance(products, list):
         products = []
     version = restore.get("ProductVersion") or manifest.get("ProductVersion")
@@ -249,7 +257,9 @@ def verify_target(info: dict[str, Any], product: str) -> None:
 def _write_json(path: pathlib.Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temporary.write_text(
+        json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     temporary.replace(path)
 
 
@@ -258,9 +268,7 @@ def catalog_command(args: argparse.Namespace) -> int:
     if args.signed_only:
         value["firmwares"] = [item for item in value["firmwares"] if item["signed"]]
     elif args.unsigned_only:
-        value["firmwares"] = [
-            item for item in value["firmwares"] if not item["signed"]
-        ]
+        value["firmwares"] = [item for item in value["firmwares"] if not item["signed"]]
     print(json.dumps(value, indent=2, sort_keys=True))
     return 0
 
@@ -318,7 +326,9 @@ def upgrade_command(args: argparse.Namespace) -> int:
     command.append(str(args.ipsw.resolve()))
     evidence = {
         "schema_version": 1,
-        "operation": "signed-ipsw-upgrade" if not args.erase else "signed-ipsw-erase-restore",
+        "operation": "signed-ipsw-upgrade"
+        if not args.erase
+        else "signed-ipsw-erase-restore",
         "product": args.product,
         "firmware": record,
         "ipsw": info,
@@ -343,19 +353,19 @@ def _adapter_configuration(
     command: str | None,
 ) -> tuple[list[str] | None, str | None, str | None]:
     raw = command or os.environ.get(TETHER_ADAPTER_ENV)
-    source = (
-        "--adapter-command"
-        if command
-        else TETHER_ADAPTER_ENV
-        if raw
-        else None
-    )
+    source = "--adapter-command" if command else TETHER_ADAPTER_ENV if raw else None
     if not raw:
-        return None, None, (
-            "No external tether adapter is configured. B34ST does not bundle "
-            "a target-specific boot adapter. Supply --adapter-command or set "
-            f"{TETHER_ADAPTER_ENV}."
+        return (
+            None,
+            None,
+            (
+                "No external tether adapter is configured. B34ST does not bundle "
+                "a target-specific boot adapter. Supply --adapter-command or set "
+                f"{TETHER_ADAPTER_ENV}."
+            ),
         )
+    if any(c in raw for c in ";|&$`\n\r()"):
+        return None, source, "External adapter command contains shell metacharacters."
     try:
         tokens = shlex.split(raw)
     except ValueError as exc:
@@ -368,9 +378,13 @@ def _adapter_configuration(
         if candidate.is_file() and os.access(candidate, os.X_OK):
             executable = str(candidate.resolve())
     if executable is None:
-        return None, source, (
-            f"External adapter executable was not found or is not executable: "
-            f"{tokens[0]}"
+        return (
+            None,
+            source,
+            (
+                f"External adapter executable was not found or is not executable: "
+                f"{tokens[0]}"
+            ),
         )
     tokens[0] = executable
     return tokens, source, None
@@ -389,7 +403,9 @@ def _prepare_downgrade(
         signed_only=False,
     )
     if record["signed"]:
-        raise IPSWError("target firmware is signed; use the signed upgrade/restore workflow")
+        raise IPSWError(
+            "target firmware is signed; use the signed upgrade/restore workflow"
+        )
     adapter, adapter_source, adapter_error = _adapter_configuration(
         args.adapter_command
     )
@@ -475,30 +491,33 @@ def _render_downgrade_plan(plan: dict[str, Any]) -> str:
         )
     for blocker in readiness["blockers"]:
         lines.append(f"Blocked by:  {blocker}")
-    lines.extend([
-        "",
-        "What the tether adapter is:",
-        f"  {plan['adapter_contract']['definition']}",
-        "  B34ST validates and orchestrates; the adapter performs the "
-        "target-specific device-side boot work.",
-        "  It is not the IPSW, a USB cable, idevicerestore, or a component "
-        "bundled with B34ST.",
-        f"  {plan['adapter_contract']['public_compatibility']}",
-        "  Public-project details: docs/TETHERED_DOWNGRADE.md",
-        "",
-        "What happens next:",
-    ])
     lines.extend(
-        f"  {index}. {step}"
-        for index, step in enumerate(plan["next_steps"], 1)
+        [
+            "",
+            "What the tether adapter is:",
+            f"  {plan['adapter_contract']['definition']}",
+            "  B34ST validates and orchestrates; the adapter performs the "
+            "target-specific device-side boot work.",
+            "  It is not the IPSW, a USB cable, idevicerestore, or a component "
+            "bundled with B34ST.",
+            f"  {plan['adapter_contract']['public_compatibility']}",
+            "  Public-project details: docs/TETHERED_DOWNGRADE.md",
+            "",
+            "What happens next:",
+        ]
     )
-    lines.extend([
-        "",
-        "Adapter contract:",
-        f"  Input:  {plan['adapter_contract']['input']}",
-        f"  Output: {plan['adapter_contract']['success_output']}",
-        "=" * 64,
-    ])
+    lines.extend(
+        f"  {index}. {step}" for index, step in enumerate(plan["next_steps"], 1)
+    )
+    lines.extend(
+        [
+            "",
+            "Adapter contract:",
+            f"  Input:  {plan['adapter_contract']['input']}",
+            f"  Output: {plan['adapter_contract']['success_output']}",
+            "=" * 64,
+        ]
+    )
     return "\n".join(lines)
 
 
@@ -567,12 +586,16 @@ def _execute_tether_adapter(
     plan["exit_code"] = result.returncode
     if args.evidence:
         _write_json(args.evidence, plan)
-    if result.returncode != 0 or not isinstance(response, dict) or response.get("ok") is not True:
+    if (
+        result.returncode != 0
+        or not isinstance(response, dict)
+        or response.get("ok") is not True
+    ):
         detail = (
-            response.get("error")
-            if isinstance(response, dict)
-            else None
-        ) or result.stderr.strip() or f"adapter exit code {result.returncode}"
+            (response.get("error") if isinstance(response, dict) else None)
+            or result.stderr.strip()
+            or f"adapter exit code {result.returncode}"
+        )
         raise IPSWError(f"tether adapter rejected the operation: {detail}")
     if getattr(args, "human", False):
         print(_render_downgrade_plan(plan))
@@ -621,9 +644,7 @@ def _select_unsigned_firmware(args: argparse.Namespace) -> dict[str, Any]:
     catalog = fetch_catalog(args.product, args.catalog, args.timeout)
     unsigned = [item for item in catalog["firmwares"] if not item["signed"]]
     if not unsigned:
-        raise IPSWError(
-            f"the catalog contains no unsigned IPSWs for {args.product}"
-        )
+        raise IPSWError(f"the catalog contains no unsigned IPSWs for {args.product}")
     version = args.version or _guide_prompt(
         "Exact target iOS version (blank to browse the newest 20)", ""
     )
@@ -636,9 +657,7 @@ def _select_unsigned_firmware(args: argparse.Namespace) -> dict[str, Any]:
     ]
     if not matches:
         qualifier = build or version or "requested criteria"
-        raise IPSWError(
-            f"the catalog contains no unsigned target matching {qualifier}"
-        )
+        raise IPSWError(f"the catalog contains no unsigned target matching {qualifier}")
     if len(matches) == 1:
         selected = matches[0]
         print(
@@ -651,10 +670,7 @@ def _select_unsigned_firmware(args: argparse.Namespace) -> dict[str, Any]:
     print("\nUnsigned firmware available from the configured catalog:")
     for index, record in enumerate(displayed, 1):
         released = f", released {record['released']}" if record["released"] else ""
-        print(
-            f"  {index:2d}. iOS {record['version']} ({record['build']})"
-            f"{released}"
-        )
+        print(f"  {index:2d}. iOS {record['version']} ({record['build']}){released}")
     if len(matches) > len(displayed):
         print(
             f"  ... {len(matches) - len(displayed)} older targets hidden; "
@@ -690,9 +706,7 @@ def downgrade_guide_command(args: argparse.Namespace) -> int:
         "B34ST's current A12+ profiles. See docs/TETHERED_DOWNGRADE.md.\n"
     )
     if not args.product:
-        args.product = _guide_prompt(
-            "Apple product identifier", "iPhone12,1"
-        )
+        args.product = _guide_prompt("Apple product identifier", "iPhone12,1")
     if not args.product:
         raise IPSWError("a product identifier is required")
 
@@ -724,9 +738,7 @@ def downgrade_guide_command(args: argparse.Namespace) -> int:
         else:
             raise IPSWError("choose L for a local IPSW or D to download")
 
-    configured_adapter = args.adapter_command or os.environ.get(
-        TETHER_ADAPTER_ENV
-    )
+    configured_adapter = args.adapter_command or os.environ.get(TETHER_ADAPTER_ENV)
     if not args.plan_only and not configured_adapter:
         print(
             "\nExternal adapter setup\n"
@@ -741,9 +753,9 @@ def downgrade_guide_command(args: argparse.Namespace) -> int:
             "an A12+ adapter. See docs/TETHERED_DOWNGRADE.md for the compatibility\n"
             "table and contract-only example.\n"
         )
-        args.adapter_command = _guide_prompt(
-            "Adapter command (blank to save a plan only)"
-        ) or None
+        args.adapter_command = (
+            _guide_prompt("Adapter command (blank to save a plan only)") or None
+        )
 
     args.evidence = args.evidence or _default_guide_evidence()
     args.human = True
@@ -788,8 +800,11 @@ def parser() -> argparse.ArgumentParser:
         prog="fbr34ker ipsw",
         description=__doc__,
     )
-    root.add_argument("--catalog", default=DEFAULT_CATALOG,
-                      help="catalog URL template or local JSON file")
+    root.add_argument(
+        "--catalog",
+        default=DEFAULT_CATALOG,
+        help="catalog URL template or local JSON file",
+    )
     root.add_argument("--timeout", type=float, default=60.0)
     sub = root.add_subparsers(dest="command", required=True)
 
@@ -804,7 +819,9 @@ def parser() -> argparse.ArgumentParser:
     download.add_argument("--version")
     download.add_argument("--build")
     download.add_argument("--signed-only", action="store_true")
-    download.add_argument("--output-dir", type=pathlib.Path, default=pathlib.Path("downloads/ipsw"))
+    download.add_argument(
+        "--output-dir", type=pathlib.Path, default=pathlib.Path("downloads/ipsw")
+    )
     download.add_argument("--manifest", type=pathlib.Path)
 
     inspect = sub.add_parser("inspect")
@@ -870,7 +887,9 @@ def parser() -> argparse.ArgumentParser:
         "--build",
         help="exact unsigned build to select when downloading",
     )
-    guide.add_argument("--ecid", help="optional exact device ECID passed to the adapter")
+    guide.add_argument(
+        "--ecid", help="optional exact device ECID passed to the adapter"
+    )
     guide.add_argument(
         "--adapter-command",
         help=(

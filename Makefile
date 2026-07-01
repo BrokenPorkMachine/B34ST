@@ -670,7 +670,7 @@ verify:
 	$(PYTHON) scripts/non_qemu_verify.py --version $(VERSION) \
 		--build-jobs $(BUILD_JOBS) --output validation-logs/non-qemu
 
-verify-layouts:
+verify-layouts: $(TARGET).elf build-generic/fbr34ker-generic.elf $(GENERIC_LOADER_TARGET).elf $(HARDWARE_PROBE_TARGET).elf apple-boot-images apple-bringup-simulate physical-integration-simulate physical-validation-candidate
 	$(PYTHON) scripts/verify_layout.py $(TARGET).elf --expected-entry 0x40080000
 	$(PYTHON) scripts/verify_layout.py build-generic/fbr34ker-generic.elf --expected-entry 0x80000000
 	$(PYTHON) scripts/verify_layout.py $(GENERIC_LOADER_TARGET).elf --expected-entry 0x40080000 --profile loader

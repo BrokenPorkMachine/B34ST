@@ -21,6 +21,7 @@ class MemoryAcquisitionError(RuntimeError):
 @dataclasses.dataclass(frozen=True)
 class MemoryRegion:
     """Describes a memory region to acquire."""
+
     name: str
     base: int
     size: int
@@ -73,7 +74,7 @@ class MemoryAcquisitor:
                     errors.append(f"empty read at offset 0x{offset:x}")
                     offset += chunk_size
                     continue
-            except Exception as exc:
+            except (OSError, RuntimeError) as exc:
                 errors.append(f"read error at offset 0x{offset:x}: {exc}")
                 offset += chunk_size
                 continue
@@ -83,13 +84,15 @@ class MemoryAcquisitor:
             page_file = region_dir / f"page-0x{base + offset:016x}-{chunk_size}.bin"
             page_file.write_bytes(data)
 
-            pages.append({
-                "offset": offset,
-                "address": base + offset,
-                "size": len(data),
-                "sha256": page_hash,
-                "file": page_file.name,
-            })
+            pages.append(
+                {
+                    "offset": offset,
+                    "address": base + offset,
+                    "size": len(data),
+                    "sha256": page_hash,
+                    "file": page_file.name,
+                }
+            )
             total_read += len(data)
             offset += chunk_size
 
@@ -102,7 +105,9 @@ class MemoryAcquisitor:
                 "critical": region.critical,
             },
             "acquisition": {
-                "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+                "timestamp": dt.datetime.now()
+                .astimezone()
+                .isoformat(timespec="seconds"),
                 "total_bytes": total_read,
                 "page_count": len(pages),
                 "error_count": len(errors),
@@ -132,9 +137,15 @@ class MemoryAcquisitor:
             try:
                 result = self.acquire_region(region, output_dir)
                 results.append(result)
-            except Exception as exc:
-                results.append({
-                    "region": {"name": region.name, "base": region.base, "size": region.size},
-                    "error": str(exc),
-                })
+            except (OSError, RuntimeError) as exc:
+                results.append(
+                    {
+                        "region": {
+                            "name": region.name,
+                            "base": region.base,
+                            "size": region.size,
+                        },
+                        "error": str(exc),
+                    }
+                )
         return results

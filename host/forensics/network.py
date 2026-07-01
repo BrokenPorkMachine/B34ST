@@ -20,6 +20,7 @@ class NetworkAcquisitionError(RuntimeError):
 @dataclasses.dataclass(frozen=True)
 class NetworkInterfaceInfo:
     """Describes a network interface on the target."""
+
     name: str
     type: str
     mac: str = ""
@@ -47,10 +48,8 @@ class NetworkAcquisitor:
     def _run(self, command: str) -> str:
         try:
             return self._command_fn(command)
-        except Exception as exc:
-            raise NetworkAcquisitionError(
-                f"command failed: {command}: {exc}"
-            ) from exc
+        except RuntimeError as exc:
+            raise NetworkAcquisitionError(f"command failed: {command}: {exc}") from exc
 
     def capture_interfaces(self) -> list[NetworkInterfaceInfo]:
         raw = self._run("network-interfaces")
@@ -58,13 +57,15 @@ class NetworkAcquisitor:
         for line in raw.strip().splitlines():
             parts = line.strip().split()
             if len(parts) >= 1:
-                interfaces.append(NetworkInterfaceInfo(
-                    name=parts[0],
-                    type=parts[1] if len(parts) > 1 else "",
-                    mac=parts[2] if len(parts) > 2 else "",
-                    ipv4=parts[3] if len(parts) > 3 else "",
-                    state=parts[4] if len(parts) > 4 else "",
-                ))
+                interfaces.append(
+                    NetworkInterfaceInfo(
+                        name=parts[0],
+                        type=parts[1] if len(parts) > 1 else "",
+                        mac=parts[2] if len(parts) > 2 else "",
+                        ipv4=parts[3] if len(parts) > 3 else "",
+                        state=parts[4] if len(parts) > 4 else "",
+                    )
+                )
         return interfaces
 
     def capture_connections(self) -> str:
@@ -103,16 +104,16 @@ class NetworkAcquisitor:
                     captures[name] = [dataclasses.asdict(i) for i in result]
                 else:
                     captures[name] = result
-                (net_dir / f"{name}.txt").write_text(
-                    str(result), encoding="utf-8"
-                )
-            except Exception as exc:
+                (net_dir / f"{name}.txt").write_text(str(result), encoding="utf-8")
+            except (OSError, RuntimeError) as exc:
                 errors.append(f"{name}: {exc}")
                 captures[name] = {"error": str(exc)}
 
         manifest = {
             "acquisition": {
-                "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+                "timestamp": dt.datetime.now()
+                .astimezone()
+                .isoformat(timespec="seconds"),
                 "categories": list(captures.keys()),
                 "error_count": len(errors),
             },

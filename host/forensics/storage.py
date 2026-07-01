@@ -21,6 +21,7 @@ class StorageAcquisitionError(RuntimeError):
 @dataclasses.dataclass(frozen=True)
 class StoragePartition:
     """Describes a storage partition to acquire."""
+
     name: str
     device: str
     size: int
@@ -79,7 +80,7 @@ class StorageAcquisitor:
                     errors.append(f"empty read at offset 0x{offset:x}")
                     offset += chunk_size
                     continue
-            except Exception as exc:
+            except (OSError, RuntimeError) as exc:
                 errors.append(f"read error at offset 0x{offset:x}: {exc}")
                 offset += chunk_size
                 continue
@@ -89,12 +90,14 @@ class StorageAcquisitor:
             block_file = part_dir / f"block-0x{offset:016x}.bin"
             block_file.write_bytes(data)
 
-            blocks.append({
-                "offset": offset,
-                "size": len(data),
-                "sha256": block_hash,
-                "file": block_file.name,
-            })
+            blocks.append(
+                {
+                    "offset": offset,
+                    "size": len(data),
+                    "sha256": block_hash,
+                    "file": block_file.name,
+                }
+            )
             total_read += len(data)
             offset += chunk_size
 
@@ -109,7 +112,9 @@ class StorageAcquisitor:
                 "critical": partition.critical,
             },
             "acquisition": {
-                "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+                "timestamp": dt.datetime.now()
+                .astimezone()
+                .isoformat(timespec="seconds"),
                 "total_bytes": total_read,
                 "block_count": len(blocks),
                 "error_count": len(errors),
@@ -138,9 +143,11 @@ class StorageAcquisitor:
             try:
                 result = self.acquire_partition(part, output_dir)
                 results.append(result)
-            except Exception as exc:
-                results.append({
-                    "partition": {"name": part.name, "device": part.device},
-                    "error": str(exc),
-                })
+            except (OSError, RuntimeError) as exc:
+                results.append(
+                    {
+                        "partition": {"name": part.name, "device": part.device},
+                        "error": str(exc),
+                    }
+                )
         return results

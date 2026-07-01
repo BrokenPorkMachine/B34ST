@@ -117,6 +117,7 @@ BOUNTY_IMPACTS: dict[str, dict[str, Any]] = {
 @dataclasses.dataclass
 class BoundaryObservation:
     """A single observation about the AP→SEP boundary."""
+
     operation: str
     api_call: str
     process: str
@@ -137,6 +138,7 @@ class BoundaryObservation:
 @dataclasses.dataclass
 class ArchitecturalMap:
     """Collated architectural observations."""
+
     device_model: str
     os_build: str
     chipset: str
@@ -146,17 +148,13 @@ class ArchitecturalMap:
 
     def add(self, obs: BoundaryObservation) -> None:
         self.observations.append(obs)
-        self.request_types[obs.operation] = (
-            self.request_types.get(obs.operation, 0) + 1
-        )
+        self.request_types[obs.operation] = self.request_types.get(obs.operation, 0) + 1
 
     def compute_timing(self) -> None:
         timing: dict[str, list[float]] = {}
         for obs in self.observations:
             timing.setdefault(obs.operation, []).append(obs.timing_ms)
-        self.avg_timing = {
-            op: sum(vals) / len(vals) for op, vals in timing.items()
-        }
+        self.avg_timing = {op: sum(vals) / len(vals) for op, vals in timing.items()}
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -204,7 +202,7 @@ class ArchitecturalMapper:
             error_code = ""
             sep_reset = False
             ap_crash = False
-        except Exception as exc:
+        except RuntimeError as exc:
             response = ""
             error_code = str(exc)
             sep_reset = "sep" in str(exc).lower() or "reset" in str(exc).lower()
@@ -254,8 +252,14 @@ class ArchitecturalMapper:
 
 _DEFAULT_OBSERVATIONS: list[dict[str, str]] = [
     {"name": "key_generate", "api_call": "secure-enclave key generate P256"},
-    {"name": "key_generate_biometry", "api_call": "secure-enclave key generate P256 biometry-current-set"},
-    {"name": "key_generate_user_presence", "api_call": "secure-enclave key generate P256 user-presence"},
+    {
+        "name": "key_generate_biometry",
+        "api_call": "secure-enclave key generate P256 biometry-current-set",
+    },
+    {
+        "name": "key_generate_user_presence",
+        "api_call": "secure-enclave key generate P256 user-presence",
+    },
     {"name": "key_restore", "api_call": "secure-enclave key restore <wrapper>"},
     {"name": "sign_message_empty", "api_call": "secure-enclave sign <key> <empty>"},
     {"name": "sign_message_64b", "api_call": "secure-enclave sign <key> <64bytes>"},
@@ -266,7 +270,10 @@ _DEFAULT_OBSERVATIONS: list[dict[str, str]] = [
     {"name": "key_info", "api_call": "secure-enclave key info <key>"},
     {"name": "key_export_public", "api_call": "secure-enclave key export-public <key>"},
     {"name": "auth_cancel", "api_call": "local-authentication cancel"},
-    {"name": "auth_evaluate", "api_call": "local-authentication evaluate policy device-owner"},
+    {
+        "name": "auth_evaluate",
+        "api_call": "local-authentication evaluate policy device-owner",
+    },
 ]
 
 
@@ -278,6 +285,7 @@ _DEFAULT_OBSERVATIONS: list[dict[str, str]] = [
 @dataclasses.dataclass
 class CorpusEntry:
     """A single entry in the valid-request corpus."""
+
     name: str
     category: str
     api_call: str
@@ -302,35 +310,168 @@ class CorpusEntry:
 
 _CORPUS_TEMPLATES: list[dict[str, Any]] = [
     # Key lifecycle
-    {"name": "create_p256", "category": "key_lifecycle", "api_call": "key create p256 signing", "expected": "success"},
-    {"name": "create_p256_privateKeyUsage", "category": "key_lifecycle", "api_call": "key create p256 signing acl privateKeyUsage", "expected": "success"},
-    {"name": "create_p256_userPresence", "category": "key_lifecycle", "api_call": "key create p256 signing acl userPresence", "expected": "success"},
-    {"name": "create_p256_biometryCurrentSet", "category": "key_lifecycle", "api_call": "key create p256 signing acl biometryCurrentSet", "expected": "success"},
-    {"name": "create_p256_devicePasscode", "category": "key_lifecycle", "api_call": "key create p256 signing acl devicePasscode", "expected": "success"},
-    {"name": "restore_from_wrapper", "category": "key_lifecycle", "api_call": "key restore p256 <wrapper>", "expected": "success"},
-    {"name": "delete_key", "category": "key_lifecycle", "api_call": "key delete <key>", "expected": "success"},
-    {"name": "use_after_delete", "category": "key_lifecycle", "api_call": "key sign <key> <data>", "expected": "error_invalid_handle"},
+    {
+        "name": "create_p256",
+        "category": "key_lifecycle",
+        "api_call": "key create p256 signing",
+        "expected": "success",
+    },
+    {
+        "name": "create_p256_privateKeyUsage",
+        "category": "key_lifecycle",
+        "api_call": "key create p256 signing acl privateKeyUsage",
+        "expected": "success",
+    },
+    {
+        "name": "create_p256_userPresence",
+        "category": "key_lifecycle",
+        "api_call": "key create p256 signing acl userPresence",
+        "expected": "success",
+    },
+    {
+        "name": "create_p256_biometryCurrentSet",
+        "category": "key_lifecycle",
+        "api_call": "key create p256 signing acl biometryCurrentSet",
+        "expected": "success",
+    },
+    {
+        "name": "create_p256_devicePasscode",
+        "category": "key_lifecycle",
+        "api_call": "key create p256 signing acl devicePasscode",
+        "expected": "success",
+    },
+    {
+        "name": "restore_from_wrapper",
+        "category": "key_lifecycle",
+        "api_call": "key restore p256 <wrapper>",
+        "expected": "success",
+    },
+    {
+        "name": "delete_key",
+        "category": "key_lifecycle",
+        "api_call": "key delete <key>",
+        "expected": "success",
+    },
+    {
+        "name": "use_after_delete",
+        "category": "key_lifecycle",
+        "api_call": "key sign <key> <data>",
+        "expected": "error_invalid_handle",
+    },
     # Signing operations
-    {"name": "sign_empty", "category": "signing", "api_call": "key sign <key> <0b>", "expected": "success"},
-    {"name": "sign_1b", "category": "signing", "api_call": "key sign <key> <1b>", "expected": "success"},
-    {"name": "sign_16b", "category": "signing", "api_call": "key sign <key> <16b>", "expected": "success"},
-    {"name": "sign_256b", "category": "signing", "api_call": "key sign <key> <256b>", "expected": "success"},
-    {"name": "sign_4096b", "category": "signing", "api_call": "key sign <key> <4096b>", "expected": "success"},
-    {"name": "sign_65536b", "category": "signing", "api_call": "key sign <key> <65536b>", "expected": "success"},
-    {"name": "sign_1mb", "category": "signing", "api_call": "key sign <key> <1048576b>", "expected": "success"},
-    {"name": "verify_valid", "category": "signing", "api_call": "key verify <key> <data> <signature>", "expected": "success"},
-    {"name": "verify_invalid", "category": "signing", "api_call": "key verify <key> <data> <bad_sig>", "expected": "error_invalid_signature"},
-    {"name": "verify_wrong_key", "category": "signing", "api_call": "key verify <other_key> <data> <signature>", "expected": "error_invalid_signature"},
+    {
+        "name": "sign_empty",
+        "category": "signing",
+        "api_call": "key sign <key> <0b>",
+        "expected": "success",
+    },
+    {
+        "name": "sign_1b",
+        "category": "signing",
+        "api_call": "key sign <key> <1b>",
+        "expected": "success",
+    },
+    {
+        "name": "sign_16b",
+        "category": "signing",
+        "api_call": "key sign <key> <16b>",
+        "expected": "success",
+    },
+    {
+        "name": "sign_256b",
+        "category": "signing",
+        "api_call": "key sign <key> <256b>",
+        "expected": "success",
+    },
+    {
+        "name": "sign_4096b",
+        "category": "signing",
+        "api_call": "key sign <key> <4096b>",
+        "expected": "success",
+    },
+    {
+        "name": "sign_65536b",
+        "category": "signing",
+        "api_call": "key sign <key> <65536b>",
+        "expected": "success",
+    },
+    {
+        "name": "sign_1mb",
+        "category": "signing",
+        "api_call": "key sign <key> <1048576b>",
+        "expected": "success",
+    },
+    {
+        "name": "verify_valid",
+        "category": "signing",
+        "api_call": "key verify <key> <data> <signature>",
+        "expected": "success",
+    },
+    {
+        "name": "verify_invalid",
+        "category": "signing",
+        "api_call": "key verify <key> <data> <bad_sig>",
+        "expected": "error_invalid_signature",
+    },
+    {
+        "name": "verify_wrong_key",
+        "category": "signing",
+        "api_call": "key verify <other_key> <data> <signature>",
+        "expected": "error_invalid_signature",
+    },
     # Access control
-    {"name": "sign_locked", "category": "access_control", "api_call": "key sign <biometry_key> <data>", "expected": "error_device_locked", "auth_state": "locked"},
-    {"name": "sign_after_biometry_remove", "category": "access_control", "api_call": "key sign <biometry_key> <data>", "expected": "error_acl_invalidated", "auth_state": "biometry_removed"},
-    {"name": "sign_after_passcode_change", "category": "access_control", "api_call": "key sign <passcode_key> <data>", "expected": "error_acl_invalidated", "auth_state": "passcode_changed"},
-    {"name": "auth_cancel_during_sign", "category": "access_control", "api_call": "key sign <user_presence_key> <data> cancel", "expected": "error_auth_cancelled"},
+    {
+        "name": "sign_locked",
+        "category": "access_control",
+        "api_call": "key sign <biometry_key> <data>",
+        "expected": "error_device_locked",
+        "auth_state": "locked",
+    },
+    {
+        "name": "sign_after_biometry_remove",
+        "category": "access_control",
+        "api_call": "key sign <biometry_key> <data>",
+        "expected": "error_acl_invalidated",
+        "auth_state": "biometry_removed",
+    },
+    {
+        "name": "sign_after_passcode_change",
+        "category": "access_control",
+        "api_call": "key sign <passcode_key> <data>",
+        "expected": "error_acl_invalidated",
+        "auth_state": "passcode_changed",
+    },
+    {
+        "name": "auth_cancel_during_sign",
+        "category": "access_control",
+        "api_call": "key sign <user_presence_key> <data> cancel",
+        "expected": "error_auth_cancelled",
+    },
     # Sessions
-    {"name": "session_open", "category": "sessions", "api_call": "session open", "expected": "success"},
-    {"name": "session_close", "category": "sessions", "api_call": "session close <session>", "expected": "success"},
-    {"name": "session_use_closed", "category": "sessions", "api_call": "session close <session>; key sign <key> <data>", "expected": "error_invalid_session"},
-    {"name": "session_double_close", "category": "sessions", "api_call": "session close <session>; session close <session>", "expected": "error_invalid_session"},
+    {
+        "name": "session_open",
+        "category": "sessions",
+        "api_call": "session open",
+        "expected": "success",
+    },
+    {
+        "name": "session_close",
+        "category": "sessions",
+        "api_call": "session close <session>",
+        "expected": "success",
+    },
+    {
+        "name": "session_use_closed",
+        "category": "sessions",
+        "api_call": "session close <session>; key sign <key> <data>",
+        "expected": "error_invalid_session",
+    },
+    {
+        "name": "session_double_close",
+        "category": "sessions",
+        "api_call": "session close <session>; session close <session>",
+        "expected": "error_invalid_session",
+    },
 ]
 
 
@@ -361,7 +502,7 @@ class RequestCorpus:
             try:
                 response = self._api(api_call)
                 actual_outcome = "success" if response else "empty_response"
-            except Exception as exc:
+            except RuntimeError as exc:
                 response = ""
                 actual_outcome = f"error: {exc}"
 
@@ -398,6 +539,7 @@ class RequestCorpus:
 @dataclasses.dataclass
 class DiffPair:
     """A pair of requests differing in exactly one variable."""
+
     variable: str
     value_a: str
     value_b: str
@@ -460,12 +602,12 @@ class DifferentialAnalyzer:
 
         try:
             resp_a = self._api(call_a)
-        except Exception as exc:
+        except RuntimeError as exc:
             resp_a = f"error: {exc}"
 
         try:
             resp_b = self._api(call_b)
-        except Exception as exc:
+        except RuntimeError as exc:
             resp_b = f"error: {exc}"
 
         return DiffPair(
@@ -618,7 +760,9 @@ class StructuralFuzzer:
         elif name == "wrong_key_type":
             test_call = "key sign <wrong_key_type> <data>"
         elif name == "contradictory_lengths":
-            test_call = "key create p256 signing declared-length 10 actual-data <256bytes>"
+            test_call = (
+                "key create p256 signing declared-length 10 actual-data <256bytes>"
+            )
         elif name == "duplicate_field":
             test_call = "key create p256 signing acl userPresence acl userPresence"
         elif name == "missing_required":
@@ -635,7 +779,7 @@ class StructuralFuzzer:
             response = self._api(test_call)
             accepted = len(response) > 0
             error = ""
-        except Exception as exc:
+        except RuntimeError as exc:
             response = ""
             accepted = False
             error = str(exc)
@@ -681,37 +825,68 @@ class StructuralFuzzer:
 _STATEFUL_SEQUENCES: list[dict[str, Any]] = [
     {
         "name": "create_use_delete_use",
-        "steps": ["key create p256 signing", "key sign <key> <data>", "key delete <key>", "key sign <key> <data>"],
+        "steps": [
+            "key create p256 signing",
+            "key sign <key> <data>",
+            "key delete <key>",
+            "key sign <key> <data>",
+        ],
         "expected_final": "error_invalid_handle",
     },
     {
         "name": "open_auth_cancel_continue",
-        "steps": ["session open", "auth evaluate policy device-owner", "auth cancel", "key sign <key> <data>"],
+        "steps": [
+            "session open",
+            "auth evaluate policy device-owner",
+            "auth cancel",
+            "key sign <key> <data>",
+        ],
         "expected_final": "error_auth_cancelled",
     },
     {
         "name": "begin_reboot_finish",
-        "steps": ["key create p256 signing", "key export-public <key>", "simulate reboot", "key sign <key> <data>"],
+        "steps": [
+            "key create p256 signing",
+            "key export-public <key>",
+            "simulate reboot",
+            "key sign <key> <data>",
+        ],
         "expected_final": "error_invalid_handle",
     },
     {
         "name": "client_a_uses_b_handle",
-        "steps": ["client A: key create p256 signing", "client B: key sign <key_A> <data>"],
+        "steps": [
+            "client A: key create p256 signing",
+            "client B: key sign <key_A> <data>",
+        ],
         "expected_final": "error_cross_client",
     },
     {
         "name": "open_twice_close_twice",
-        "steps": ["session open", "session open", "session close <sess1>", "session close <sess2>"],
+        "steps": [
+            "session open",
+            "session open",
+            "session close <sess1>",
+            "session close <sess2>",
+        ],
         "expected_final": "success",
     },
     {
         "name": "create_after_biometry_remove",
-        "steps": ["key create p256 signing acl biometryCurrentSet", "simulate biometry-remove", "key sign <key> <data>"],
+        "steps": [
+            "key create p256 signing acl biometryCurrentSet",
+            "simulate biometry-remove",
+            "key sign <key> <data>",
+        ],
         "expected_final": "error_acl_invalidated",
     },
     {
         "name": "create_after_passcode_change",
-        "steps": ["key create p256 signing acl devicePasscode", "simulate passcode-change", "key sign <key> <data>"],
+        "steps": [
+            "key create p256 signing acl devicePasscode",
+            "simulate passcode-change",
+            "key sign <key> <data>",
+        ],
         "expected_final": "error_acl_invalidated",
     },
 ]
@@ -764,7 +939,7 @@ class StatefulFuzzer:
         for i, step in enumerate(steps):
             try:
                 self._api(step)
-            except Exception as exc:
+            except RuntimeError as exc:
                 actual = str(exc)
                 failure_step = i
                 return StatefulFuzzResult(
@@ -887,12 +1062,12 @@ class ConcurrencyFuzzer:
 
         try:
             outcome_a = self._api(scenario["thread_a"])
-        except Exception as exc:
+        except RuntimeError as exc:
             outcome_a = str(exc)
 
         try:
             outcome_b = self._api(scenario["thread_b"])
-        except Exception as exc:
+        except RuntimeError as exc:
             outcome_b = str(exc)
 
         elapsed = (time.monotonic() - start) * 1000.0
@@ -935,37 +1110,57 @@ FAULT_SIGNATURES: dict[str, dict[str, Any]] = {
     "app_crash": {
         "layer": FaultLayer.TEST_APP,
         "indicators": [
-            "SIGSEGV", "SIGABRT", "EXC_BAD_ACCESS", "Segmentation fault",
-            "app crashed", "test app terminated",
+            "SIGSEGV",
+            "SIGABRT",
+            "EXC_BAD_ACCESS",
+            "Segmentation fault",
+            "app crashed",
+            "test app terminated",
         ],
     },
     "daemon_crash": {
         "layer": FaultLayer.AP_DAEMON,
         "indicators": [
-            "securityd crashed", "sec crashed", "com.apple.security",
-            "daemon crash", "sysdiagnose daemon",
+            "securityd crashed",
+            "sec crashed",
+            "com.apple.security",
+            "daemon crash",
+            "sysdiagnose daemon",
         ],
     },
     "kernel_panic": {
         "layer": FaultLayer.AP_KERNEL,
         "indicators": [
-            "kernel panic", "panic(cpu", "Watchdog", "resetting",
-            "AP watchdog", "kernel crash",
+            "kernel panic",
+            "panic(cpu",
+            "Watchdog",
+            "resetting",
+            "AP watchdog",
+            "kernel crash",
         ],
     },
     "sep_reset": {
         "layer": FaultLayer.SEPOS,
         "indicators": [
-            "SEP reset", "sep reset", "SEP panicked", "sep panicked",
-            "SEP watchdog", "secure enclave reset",
-            "sepOS crash", "sepos panic",
+            "SEP reset",
+            "sep reset",
+            "SEP panicked",
+            "sep panicked",
+            "SEP watchdog",
+            "secure enclave reset",
+            "sepOS crash",
+            "sepos panic",
         ],
     },
     "sep_boot_rom": {
         "layer": FaultLayer.SEP_BOOT_ROM,
         "indicators": [
-            "SEP ROM", "sep boot rom", "SEP DFU", "sep dfu",
-            "SEP recovery", "sep recovery",
+            "SEP ROM",
+            "sep boot rom",
+            "SEP DFU",
+            "sep dfu",
+            "SEP recovery",
+            "sep recovery",
         ],
     },
 }
@@ -1013,8 +1208,7 @@ class CrashTriager:
 
         for sig_name, sig in FAULT_SIGNATURES.items():
             matches = sum(
-                1 for ind in sig["indicators"]
-                if ind.lower() in fault_string.lower()
+                1 for ind in sig["indicators"] if ind.lower() in fault_string.lower()
             )
             if matches > 0:
                 confidence = min(1.0, matches / len(sig["indicators"]) + 0.3)
@@ -1081,9 +1275,7 @@ class SEPResearchPipeline:
             operator="b34st-sep-research",
             device_id=device_model,
         )
-        self.mapper = ArchitecturalMapper(
-            device_model, os_build, chipset, self._api
-        )
+        self.mapper = ArchitecturalMapper(device_model, os_build, chipset, self._api)
         self.corpus = RequestCorpus(self._api)
         self.differ = DifferentialAnalyzer(self._api)
         self.structural = StructuralFuzzer(self._api)
@@ -1129,9 +1321,7 @@ class SEPResearchPipeline:
             pairs = self.differ.run_all()
             result = {
                 "total_pairs": len(pairs),
-                "different_outcomes": sum(
-                    1 for p in pairs if not p.same_outcome
-                ),
+                "different_outcomes": sum(1 for p in pairs if not p.same_outcome),
                 "pairs": [p.to_dict() for p in pairs],
             }
             _write_json(result, output_dir / "differential-analysis.json")
@@ -1225,7 +1415,7 @@ class SEPResearchPipeline:
         for stage in stages:
             try:
                 stage_results[stage] = self.run_stage(stage, output_dir / stage)
-            except Exception as exc:
+            except (OSError, RuntimeError, ValueError) as exc:
                 errors.append(f"{stage}: {exc}")
                 stage_results[stage] = {"error": str(exc)}
                 self.custody.record(
@@ -1245,9 +1435,9 @@ class SEPResearchPipeline:
             "campaign": {
                 "stages_completed": list(stage_results.keys()),
                 "stages_with_errors": errors,
-                "completed_at": dt.datetime.now().astimezone().isoformat(
-                    timespec="seconds"
-                ),
+                "completed_at": dt.datetime.now()
+                .astimezone()
+                .isoformat(timespec="seconds"),
             },
             "summary": {
                 "total_stages": len(stages),
@@ -1345,7 +1535,8 @@ class SEPResearchPipeline:
             anomaly_details=anomaly_section,
             errors="\n".join(
                 f"- {e}" for e in campaign["campaign"]["stages_with_errors"]
-            ) or "*(None)*",
+            )
+            or "*(None)*",
         )
 
         report_path = output_dir / "SEP_Research_Campaign_Report.md"
@@ -1440,9 +1631,7 @@ def _default_api(call: str) -> str:
 
 def _write_json(data: dict[str, Any], path: pathlib.Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------

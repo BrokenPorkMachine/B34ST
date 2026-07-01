@@ -12,9 +12,9 @@ scanner (Darwin 23.x).
 
 | SoC | Target | iOS versions | Offsets |
 |-----|--------|-------------|---------|
-| T8015 | A12 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
-| T8020 | A13 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
-| T8030 | A14 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
+| T8020 | A12 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
+| T8030 | A13 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
+| T8101 | A14 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
 | T8028 | A12Z | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
 | T8103 | M1 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
 | T8110 | A15 | 16, 17+ | amfi, task_for_pid, privilege, mount_root, codesign, sandbox, pe_debugger, cs_enforcement |
@@ -22,7 +22,7 @@ scanner (Darwin 23.x).
 
 ## Build modes
 
-**Default build (`make`):** Mutation paths disabled. `kernel-patches apply|revert|escalate` return failure.
+**Default build (`make`):** Physical writes are disabled; patch operations update the simulated state model.
 
 **Operational build (`make SECURITY_MODEL=1 build-operational`):** All mutation paths active. The
 `kernel-patches` commands perform full state transitions on the kernel patch model.

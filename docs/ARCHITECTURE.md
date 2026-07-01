@@ -28,18 +28,18 @@ FBR34KER does not install an MMU. A loader must document inherited translation a
 
 ## Security-state models
 
-Version 0.6.0_beta includes bounded in-memory models for patch, boot-policy, and
+Version 0.6.1b includes bounded in-memory models for patch, boot-policy, and
 persistence concepts. They exist to validate interface shape, status output,
 policy gates, event wiring, and failure handling. They do not modify target
 memory, Apple trust policy, filesystems, or reboot state.
 
 Release builds do not define `FBR34KER_ENABLE_SECURITY_MODEL`, so mutation
-operations return failure. Immutable probe images remain locked regardless of
+operations update state only without physical writes. Immutable probe images remain locked regardless of
 build options. A native harness verifies the release-default boundary.
 
 ## Runtime architecture graph
 
-Version 0.6.0_beta retains an allocation-free orchestration layer with fixed compile-time capacities.
+Version 0.6.1b retains an allocation-free orchestration layer with fixed compile-time capacities.
 
 The lifecycle starts components across six ordered phases: early, core, platform, services, extensions, and interactive. Every component declares capability bits it requires and provides, plus bounded start and health callbacks. Duplicate component names, provided-capability collisions, failed starts, unresolved dependencies, and unhealthy components remain observable.
 

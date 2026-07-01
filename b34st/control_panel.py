@@ -1637,7 +1637,7 @@ def _usbliter8_hardware_guide(session: Session) -> None:
         "USB host: xHCI, ASMedia xHCI, or RP2350 PIO-based USB (avoid VIA USB 3.0)",
         "Cable: high-quality USB-A to Lightning data sync cable (Apple OEM or Anker)",
         "Power: host port provides at least 500 mA",
-        "Device: A12+ (CPID >= 0x8015) in DFU mode",
+        "Device: exact reviewed A12+ CPID in DFU mode",
     ]
     for item in items:
         print(f"  - {item}")
@@ -1840,7 +1840,7 @@ def _usbliter8_jailbreak(session: Session) -> int:
         )
         print("Troubleshooting:")
         print("  - Ensure the device is in DFU mode (not Recovery)")
-        print("  - Confirm CPID is 0x8015 or above (A12 or newer)")
+        print("  - Confirm the exact CPID is in the reviewed target table")
         print("  - Check USB cable and host port are functioning")
         print("  - Review session log for detailed error output")
         session.record("USBliter8 jailbreak FAILED")
@@ -2059,8 +2059,8 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
         "authorization": "confirmed",
         "pwndfu": {
             "succeeded": pwndfu_ok,
-            "target": "A12+ (CPID >= 0x8015)",
-            "exploit": "DWC3 USBliter8 firmware patch",
+            "target": "reviewed exact-match A12+ CPID",
+            "exploit": "experimental DWC3 USBliter8 transfer sequence",
         },
         "chipset": chipset_info,
         "known_protections": known_protections,

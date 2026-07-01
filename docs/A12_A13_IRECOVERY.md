@@ -1,6 +1,6 @@
 # A12/A13 iRecovery workflow
 
-FBR34KER 0.6.0_beta adds an optional host workflow for sending a validated recovery boot image through the `irecovery` utility from libirecovery. The workflow targets devices or development boards that the operator owns or is authorized to test.
+FBR34KER 0.6.1b adds an optional host workflow for sending a validated recovery boot image through the `irecovery` utility from libirecovery. The workflow targets devices or development boards that the operator owns or is authorized to test.
 
 ## Security boundary
 
@@ -33,9 +33,9 @@ The family profiles gate the operation by CPID:
 
 | Family | SoC | CPID | Profile |
 |---|---:|---:|---|
-| A12 | T8015 | `0x8015` | `profiles/apple-a12-recovery.json` |
+| A12 | T8020 | `0x8020` | `profiles/apple-a12-recovery.json` |
 | A12Z | T8028 | `0x8028` | `profiles/apple-a12x-recovery.json` |
-| A13 | T8020 | `0x8020` | `profiles/apple-a13-recovery.json` |
+| A13 | T8030 | `0x8030` | `profiles/apple-a13-recovery.json` |
 
 The A12Z entry is marked experimental-profile-only.
 

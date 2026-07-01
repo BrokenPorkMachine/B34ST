@@ -68,7 +68,7 @@ def test_comprehensive_menu_capabilities():
         for cat in sorted(missing_categories):
             print(f"    ✗ {cat}")
 
-    return len(missing_categories) == 0
+    assert not missing_categories
 
 
 def test_help_system_coverage():
@@ -99,7 +99,7 @@ def test_help_system_coverage():
     print(f"  Successfully Provided Help: {passed_categories}")
     print(f"  Success Rate: {passed_categories / tested_categories * 100:.1f}%")
 
-    return passed_categories == tested_categories
+    assert passed_categories == tested_categories
 
 
 def test_smart_defaults_coverage():
@@ -138,9 +138,7 @@ def test_smart_defaults_coverage():
     print(f"  Successfully Generated: {passed_categories}")
     print(f"  Success Rate: {passed_categories / tested_categories * 100:.1f}%")
 
-    return (
-        passed_categories >= tested_categories * 0.8
-    )  # Allow some categories to have no defaults
+    assert passed_categories >= tested_categories * 0.8
 
 
 def test_automation_exposure():
@@ -188,12 +186,8 @@ def test_automation_exposure():
     )
     print(f"  Automation Coverage: {automation_coverage:.1f}%")
 
-    if automation_coverage >= 60:
-        print(f"  ✓ Good automation exposure ({automation_coverage:.1f}%)")
-        return True
-    else:
-        print(f"  ⚠ Low automation exposure ({automation_coverage:.1f}%)")
-        return False
+    assert automation_coverage >= 60
+    print(f"  ✓ Good automation exposure ({automation_coverage:.1f}%)")
 
 
 def test_education_features():
@@ -263,7 +257,8 @@ def test_education_features():
     print(f"  Successful Headers: {successful_headers}")
     print(f"  Success Rate: {header_success_rate:.1f}%")
 
-    return education_coverage >= 70 and header_success_rate >= 90
+    assert education_coverage >= 70
+    assert header_success_rate >= 90
 
 
 def main():
@@ -291,12 +286,9 @@ def main():
         print(f"{'=' * 70}")
 
         try:
-            if test_func():
-                print(f"\n✓ {test_name}: PASSED")
-                passed_tests += 1
-            else:
-                print(f"\n✗ {test_name}: FAILED")
-                failed_tests += 1
+            test_func()
+            print(f"\n✓ {test_name}: PASSED")
+            passed_tests += 1
         except Exception as e:
             print(f"\n⚠ {test_name}: ERROR - {e}")
             failed_tests += 1

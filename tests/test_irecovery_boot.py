@@ -44,7 +44,7 @@ class IRecoveryBootTests(unittest.TestCase):
             )
             device = root / "device.json"
             device.write_text(
-                json.dumps({"cpid": "0x8015", "mode": "DFU", "ecid": "1"})
+                json.dumps({"cpid": "0x8020", "mode": "DFU", "ecid": "1"})
             )
             result = subprocess.run(
                 [
@@ -78,7 +78,7 @@ class IRecoveryBootTests(unittest.TestCase):
             )
             device = root / "device.json"
             device.write_text(
-                json.dumps({"cpid": "0x8020", "mode": "DFU", "ecid": "abcd"})
+                json.dumps({"cpid": "0x8030", "mode": "DFU", "ecid": "abcd"})
             )
             log = root / "irecovery.log"
             fake = root / "irecovery"
@@ -127,7 +127,7 @@ class IRecoveryBootTests(unittest.TestCase):
             root = pathlib.Path(directory)
             device = root / "device.json"
             device.write_text(
-                json.dumps({"cpid": "0x8020", "mode": "DFU", "ecid": "abcd"})
+                json.dumps({"cpid": "0x8030", "mode": "DFU", "ecid": "abcd"})
             )
             evidence = root / "verify.json"
             result = subprocess.run(

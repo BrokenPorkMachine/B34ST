@@ -13,7 +13,7 @@
     "adapter-console"
   ],
   "cpids": [
-    "0x8020"
+    "0x8030"
   ],
   "default_boot_command": "bootx",
   "direct_stock_iboot_compatible": false,

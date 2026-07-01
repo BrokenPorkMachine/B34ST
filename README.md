@@ -1,8 +1,8 @@
 # B34ST - FBR34KER 0.6.1b
 
-FBR34KER is a freestanding ARM64 preboot monitor, USBliter8 exploit chain, and authorized loader-integration research toolkit. Version 0.6.1b provides deterministic QEMU simulation, bridge validation, DWC3 firmware exploitation, kernel patching with per-SoC offset tables, boot-policy bypass, persistence modeling, evidence collection, and the B34ST unified multi-tool control panel.
+FBR34KER is a freestanding ARM64 preboot monitor and authorized loader-integration research toolkit. Version 0.6.1b provides deterministic QEMU simulation, bridge validation, experimental DWC3 control-transfer research, kernel-patch state models, boot-policy and persistence modeling, evidence collection, and the B34ST unified multi-tool control panel.
 
-The tree contains operational exploit primitives including the USBliter8 DWC3 firmware exploit chain for A12+ (T8015/T8020/T8030/T8028/T8103/T8110/T8112), kernel patch engines with per-SoC offset tables across 7 SoCs x 2 iOS versions, secure boot bypass state machines with 6 bypass types, persistence deployment models with 8 hook types, a CVE database and exploit chain planner, forensics acquisition, and an evidence-gated 16-stage research runtime orchestrator. All mutation paths are compile-time gated by the `FBR34KER_ENABLE_SECURITY_MODEL` flag. Build with `SECURITY_MODEL=1` to enable the full exploit chain. The default build (`make`) keeps mutation paths disabled for safety.
+The tree contains experimental USB transfer planners for A12+ (T8020/T8027/T8028/T8030/T8101/T8103/T8110/T8112), kernel-patch engines with per-SoC research tables, secure-boot and persistence state models, a CVE database and chain planner, forensics acquisition, and an evidence-gated research runtime. USB transfer completion is never treated as exploitation proof: physical workflows require positive PWNDFU or vendor-request evidence. Mutation paths are compile-time gated by `FBR34KER_ENABLE_SECURITY_MODEL`; the default build keeps writes disabled.
 
 ---
 
@@ -67,9 +67,9 @@ FBR34KER supports two build modes controlled by the `SECURITY_MODEL` flag:
 make
 ```
 
-Builds the monitor at `build/fbr34ker.bin` with all mutation paths disabled for safe QEMU testing. The `kernel-patches`, `secure-boot-bypass`, `persistence`, and `exploit-chain` mutation commands return failure.
+Builds the monitor at `build/fbr34ker.bin` with physical writes disabled for safe QEMU testing. Mutation commands update bounded state models and label their effects simulated.
 
-### Operational (full exploit chain)
+### Mutation-enabled research image
 
 ```sh
 make SECURITY_MODEL=1 build-operational
@@ -305,7 +305,7 @@ exploit-status
 mmio [read|write|dump|peek|poke]
 ```
 
-**Default build:** Mutation commands (apply, activate, deploy, pwndfu, exec, run, inject) return failure.
+**Default build:** Kernel-patch mutation commands update state only and perform no physical writes. Hardware transitions still require positive target evidence.
 **Operational build (`SECURITY_MODEL=1`):** All mutation paths are active.
 
 ### Detailed command reference
@@ -382,15 +382,15 @@ The jailbreak subsystem implements a 14-state state machine that coordinates:
 
 ### Overview
 
-The USBliter8 exploit chain implements USB-based DWC3 firmware exploitation for A12+ Apple SoCs. Unlike A5-A11 (checkm8), A12+ has no bootrom exploit — instead, the DWC3 USB controller's internal firmware is exploited via USB control transfers from the host.
+The USBliter8 path is an experimental DWC3 control-transfer research model for A12+ Apple SoCs. It is not proof of a stock-device exploit. The host requires a positive response from the vendor-request interface before it records PWNDFU success.
 
 ### Supported SoCs
 
 | SoC | Target | DWC3 firmware patch words |
 |-----|--------|--------------------------|
-| T8015 | A12 | 6 DWC3 firmware patch words |
-| T8020 | A13 | 6 DWC3 firmware patch words |
-| T8030 | A14 | 7 DWC3 firmware patch words |
+| T8020 | A12 | 6 experimental DWC3 patch words |
+| T8030 | A13 | 6 experimental DWC3 patch words |
+| T8101 | A14 | 7 experimental DWC3 patch words |
 | T8028 | A12Z | 6 DWC3 firmware patch words |
 | T8103 | M1 | 8 DWC3 firmware patch words |
 | T8110 | A15 | 8 DWC3 firmware patch words |
@@ -408,7 +408,7 @@ After the DWC3 exploit, FBR34KER presents as a composite USB device (VID 0x05AC,
 
 ### Vendor-specific requests
 
-After DWC3 firmware exploitation, the device accepts vendor-specific control requests on EP0 providing physical memory access and code execution:
+When an authorized target-specific first stage exposes the interface, vendor-specific EP0 requests provide physical-memory access and code execution:
 
 | bRequest | Name | Direction | Data stage |
 |----------|------|-----------|------------|
@@ -487,7 +487,7 @@ troubleshooting.
    recommended Waveshare RP2350 USB-A host setup, cable selection, and power.
 2. **Build operational image**: `make build-operational`
 3. **Put device into DFU mode**: Power + Volume Down for 10s, release Power, hold Volume Down for 5s
-4. **Verify DFU**: `irecovery -q | grep CPID` (expect 0x8015 for A12, 0x8020 for A13, etc.)
+4. **Verify DFU**: `irecovery -q | grep CPID` (expect `0x8020` for A12, `0x8030` for A13, or `0x8101` for A14)
 5. **Apply USBliter8 exploit**: `python3 scripts/run_exploit.py --monitor build-exploit/fbr34ker-operational.bin --auto`
 6. **Connect to USB console**: via CDC ACM device or `host/usb_serial.py`
 7. **Run exploit commands**: `secure-boot-bypass forgive`, `kernel-patches apply`, `kernel-patches escalate`, `persistence deploy`, `persistence activate`, `exploit-chain run`
@@ -509,9 +509,9 @@ The kernel patching subsystem provides per-SoC kernel patch offset tables for Ap
 
 | SoC | Target | iOS versions | Patch types |
 |-----|--------|-------------|-------------|
-| T8015 | A12 | 16, 17+ | 8 |
-| T8020 | A13 | 16, 17+ | 8 |
-| T8030 | A14 | 16, 17+ | 8 |
+| T8020 | A12 | 16, 17+ | 8 |
+| T8030 | A13 | 16, 17+ | 8 |
+| T8101 | A14 | 16, 17+ | 8 |
 | T8028 | A12Z | 16, 17+ | 8 |
 | T8103 | M1 | 16, 17+ | 8 |
 | T8110 | A15 | 16, 17+ | 8 |
@@ -1307,7 +1307,7 @@ Built-in graph components:
 
 Version 0.6.1b includes bounded in-memory models for patch, boot-policy, and persistence concepts. They exist to validate interface shape, status output, policy gates, event wiring, and failure handling. They do not modify target memory, Apple trust policy, filesystems, or reboot state.
 
-Release builds do not define `FBR34KER_ENABLE_SECURITY_MODEL`, so mutation operations return failure. Immutable probe images remain locked regardless of build options.
+Release builds do not define `FBR34KER_ENABLE_SECURITY_MODEL`, so mutation operations are bounded state transitions without physical writes. Immutable probe images remain locked regardless of build options.
 
 ### Layers
 
@@ -1400,7 +1400,7 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 - **Expanded release coverage** — generic and exact-product profiles for A14,
   A15, M1, and M2, with deterministic boot images included in manifests and
   complete packages
-- **USBliter8 exploit chain** for A12+ (T8015/T8020/T8030/T8028/T8103/T8110/T8112) — DWC3 firmware exploitation with real SoC-specific patch byte sequences, PWNDFU entry, vendor-specific physical memory access (SET_ADDR/MEM_READ/MEM_WRITE/EXECUTE), and image loading/execution
+- **Experimental USBliter8 research path** for A12+ (T8020/T8027/T8028/T8030/T8101/T8103/T8110/T8112) — control-transfer planning, fail-closed vendor-interface verification, and image loading only after positive target evidence
 - **Jailbreak coordinator** — 14-state machine: PAC bypass, APRR bypass, WXN bypass, kernel detection, KASLR slide computation, boot-args injection, SEP readiness, kernel boot
 - **Per-SoC kernel patch offset tables** for A12/A13/A14/A12Z/A15/M1/M2 across iOS 16/17 — amfi, task_for_pid, privilege escalation, root mount, codesign, sandbox, PE_debugger, cs_enforcement (8 patch types)
 - **Secure boot bypass engine** — 6 bypass types (Image4 sig, cert chain, APTicket, SHSH blob, iBoot auth, boot manifest)

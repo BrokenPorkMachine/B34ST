@@ -2106,7 +2106,7 @@ class B34STCLI:
             self.log(f"USBliter8 exploit failed (exit {return_code})", "ERROR")
             print("Troubleshooting:")
             print("  - Ensure device is in DFU mode")
-            print("  - Confirm CPID is 0x8015 or above (A12+)")
+            print("  - Confirm the exact CPID is in the reviewed target table")
             print("  - Check USB cable and host port")
             print(f"  - Review evidence: {evidence}")
 

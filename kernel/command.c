@@ -2222,7 +2222,7 @@ static int command_exploit_chain(int argument_count, char **arguments)
         fm_printf("  Chain complete:   %s\n",
                   (es.state == USBLITER8_STATE_COMPLETE) ? "yes" : "no");
     } else if (fm_strcmp(arguments[1], "pwndfu") == 0) {
-        u16 cpid = 0x8015U;
+        u16 cpid = 0x8020U;
         if (argument_count >= 3) {
             u64 cpid_val = 0U;
             if (!parse_u64(arguments[2], &cpid_val)) {
@@ -2231,15 +2231,18 @@ static int command_exploit_chain(int argument_count, char **arguments)
             }
             cpid = (u16)cpid_val;
         }
-        if (cpid < 0x8015U) {
-            fm_printf("USBliter8 requires A12+ (CPID >= 0x8015), got 0x%04x\n", cpid);
+        if (!usbliter8_cpid_supported(cpid)) {
+            fm_printf("USBliter8 does not support CPID 0x%04x\n", cpid);
             return -1;
         }
         if (!usbliter8_enter_pwndfu(cpid)) {
             fm_printf("Failed to enter PWNDFU\n");
             return -1;
         }
-        usbliter8_apply_usb_rogue_chain(cpid);
+        if (!usbliter8_apply_usb_rogue_chain(cpid)) {
+            fm_printf("PWNDFU state entered, but USB rogue chain failed\n");
+            return -1;
+        }
         fm_printf("PWNDFU entered for A12+ CPID 0x%04x, USB rogue chain applied\n", cpid);
         (void)event_bus_publish(FBR34KER_EVENT_EXPLOIT_CHAIN,
                                 "exploit-pwndfu", (u64)cpid, 1U);
@@ -2319,7 +2322,7 @@ static int command_exploit_chain(int argument_count, char **arguments)
         secure_boot_bypass_deactivate_all();
         fm_printf("Exploit chain state reset\n");
     } else if (fm_strcmp(arguments[1], "run") == 0) {
-        u16 cpid = 0x8015U;
+        u16 cpid = 0x8020U;
         if (argument_count >= 3) {
             u64 cpid_val = 0U;
             if (parse_u64(arguments[2], &cpid_val)) {
@@ -2328,11 +2331,17 @@ static int command_exploit_chain(int argument_count, char **arguments)
         }
         const usbliter8_status_t es = usbliter8_exploit_status();
         if (!es.pwned) {
-            usbliter8_enter_pwndfu(cpid);
-            usbliter8_apply_usb_rogue_chain(cpid);
+            if (!usbliter8_enter_pwndfu(cpid) ||
+                !usbliter8_apply_usb_rogue_chain(cpid)) {
+                fm_printf("Failed to enter verified PWNDFU state\n");
+                return -1;
+            }
             fm_printf("Auto-entered PWNDFU for A12+ (CPID 0x%04x)\n", cpid);
         } else if (!es.usb_patch_applied) {
-            usbliter8_apply_usb_rogue_chain(cpid);
+            if (!usbliter8_apply_usb_rogue_chain(cpid)) {
+                fm_printf("Failed to apply USB rogue chain\n");
+                return -1;
+            }
             fm_printf("Applied USB rogue chain for CPID 0x%04x\n", cpid);
         }
         kernel_patches_set_soc(cpid, 0U);

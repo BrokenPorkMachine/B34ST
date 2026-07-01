@@ -147,8 +147,8 @@ static bool bypass_register_and_apply(const char *name, u64 kernel_offset,
 
 bool secure_boot_bypass_image4_signature(void)
 {
-    state.signature_validation_disabled = true;
     bool ok = bypass_register_and_apply("img4-sig", 0x00B00000U, 0xD503201FU);
+    state.signature_validation_disabled = ok;
     log_write(LOG_LEVEL_INFO, "Image4 signature validation disabled (patch %s)",
               ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
@@ -158,8 +158,8 @@ bool secure_boot_bypass_image4_signature(void)
 
 bool secure_boot_bypass_deploy_fake_chain(void)
 {
-    state.certificate_chain_deployed = true;
     bool ok = bypass_register_and_apply("cert-chain", 0x00B00100U, 0x52800020U);
+    state.certificate_chain_deployed = ok;
     log_write(LOG_LEVEL_INFO, "fake certificate chain deployed (patch %s)",
               ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
@@ -170,32 +170,19 @@ bool secure_boot_bypass_deploy_fake_chain(void)
 bool secure_boot_bypass_forge_signature(u8 *output, usize *output_size,
                                          const u8 *manifest, usize manifest_size)
 {
-    if (output == NULL || output_size == NULL ||
-        manifest == NULL ||
-        manifest_size == 0U || *output_size < 256U) {
-        return false;
-    }
-    if (fault_injection_should_fail(FBR34KER_FAULT_EVENT_PUBLISH,
-                                    "secure_boot_bypass_forge")) {
-        return false;
-    }
-    fm_memcpy(output, manifest,
-              manifest_size < 256U ? manifest_size : 256U);
-    if (manifest_size < 256U) {
-        fm_memset(output + manifest_size, 0, 256U - manifest_size);
-    }
-    *output_size = 256U;
-    log_write(LOG_LEVEL_INFO, "forged signature block (%u bytes)",
-              (unsigned)*output_size);
-    (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
-                            "signature-forge", (u64)*output_size, 1U);
-    return true;
+    UNUSED(output);
+    UNUSED(output_size);
+    UNUSED(manifest);
+    UNUSED(manifest_size);
+    log_write(LOG_LEVEL_ERROR,
+              "signature forging is unsupported without a target-specific signing implementation");
+    return false;
 }
 
 bool secure_boot_bypass_ap_ticket(void)
 {
-    state.ap_ticket_bypassed = true;
     bool ok = bypass_register_and_apply("ap-ticket", 0x00B00200U, 0xD503201FU);
+    state.ap_ticket_bypassed = ok;
     log_write(LOG_LEVEL_INFO, "APTicket validation bypassed (patch %s)",
               ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
@@ -205,8 +192,8 @@ bool secure_boot_bypass_ap_ticket(void)
 
 bool secure_boot_bypass_shsh_blob(void)
 {
-    state.shsh_bypassed = true;
     bool ok = bypass_register_and_apply("shsh-blob", 0x00B00300U, 0xD503201FU);
+    state.shsh_bypassed = ok;
     log_write(LOG_LEVEL_INFO, "SHSH blob acceptance enabled (patch %s)",
               ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
@@ -216,8 +203,8 @@ bool secure_boot_bypass_shsh_blob(void)
 
 bool secure_boot_bypass_iboot_authentication(void)
 {
-    state.iboot_auth_disabled = true;
     bool ok = bypass_register_and_apply("iboot-auth", 0x00B00400U, 0xD503201FU);
+    state.iboot_auth_disabled = ok;
     log_write(LOG_LEVEL_INFO, "iBoot image authentication disabled (patch %s)",
               ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,
@@ -227,8 +214,8 @@ bool secure_boot_bypass_iboot_authentication(void)
 
 bool secure_boot_bypass_boot_manifest(void)
 {
-    state.boot_manifest_compromised = true;
     bool ok = bypass_register_and_apply("boot-manifest", 0x00B00500U, 0xD503201FU);
+    state.boot_manifest_compromised = ok;
     log_write(LOG_LEVEL_INFO, "boot manifest trust evaluation overridden (patch %s)",
               ok ? "applied" : "pending");
     (void)event_bus_publish(FBR34KER_EVENT_COMPONENT_STATE,

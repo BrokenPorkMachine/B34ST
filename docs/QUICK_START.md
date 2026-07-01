@@ -156,7 +156,7 @@ Connect via USB, hold Power + Volume Down for 10s, release Power, hold
 Volume Down for 5s. Verify:
 
 ```sh
-irecovery -q | grep CPID    # Should show 0x8015 (A12), 0x8020 (A13), etc.
+irecovery -q | grep CPID    # 0x8020 (A12), 0x8030 (A13), 0x8101 (A14)
 ```
 
 ### Phase 3 — Apply USBliter8 DWC3 exploit (FBR34KER)

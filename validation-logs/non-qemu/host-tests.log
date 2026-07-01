@@ -1,7 +1,7 @@
 python3 scripts/check_sources.py
-source syntax validation passed (157 Python files, 23 shell files)
-python3 scripts/check_version_consistency.py --expected 0.6.0_beta
-version consistency passed (0.6.0_beta-beta, 35 release surfaces)
+source syntax validation passed (165 Python files, 23 shell files)
+python3 scripts/check_version_consistency.py --expected 0.6.1b
+version consistency passed (0.6.1b-beta, 35 release surfaces)
 rm -rf build/install-test
 ./scripts/install.sh --prefix /usr/local --destdir ./build/install-test
 installed FBR34KER under ./build/install-test/usr/local
@@ -19,50 +19,58 @@ removed FBR34KER from ./build/install-test/usr/local
 public ABI compatibility check passed
 env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL -u TARGET \
 		python3 scripts/run_host_tests.py --timeout 300 --module-timeout 60
-[host-tests] isolated modules: 45, total-timeout=300s, module-timeout=60s
-[PASS   ] tests.test_b34st_cve: 121 tests, 0 skipped, 1.91s
-[PASS   ] tests.test_b34st_environment: 9 tests, 0 skipped, 0.63s
-[PASS   ] tests.test_b34st_forensics: 163 tests, 0 skipped, 1.49s
-[PASS   ] tests.test_b34st_version: 4 tests, 0 skipped, 0.09s
-[PASS   ] tests.test_b34stool: 3 tests, 0 skipped, 0.54s
+[host-tests] isolated modules: 50, total-timeout=300s, module-timeout=60s
+[PASS   ] tests.test_b34st_cve: 121 tests, 0 skipped, 2.27s
+[PASS   ] tests.test_b34st_environment: 9 tests, 0 skipped, 0.50s
+[PASS   ] tests.test_b34st_forensics: 163 tests, 0 skipped, 1.08s
+[PASS   ] tests.test_b34st_version: 4 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_b34stool: 3 tests, 0 skipped, 0.29s
 [PASS   ] tests.test_boot_evidence_decoder: 2 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_boot_image: 3 tests, 0 skipped, 0.14s
-[PASS   ] tests.test_boot_image_negative_corpus: 1 tests, 0 skipped, 0.24s
-[PASS   ] tests.test_bridge_protocol: 2 tests, 0 skipped, 0.23s
-[PASS   ] tests.test_deployment: 10 tests, 0 skipped, 0.34s
-[PASS   ] tests.test_deployment_profile: 2 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_boot_image: 3 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_boot_image_negative_corpus: 1 tests, 0 skipped, 0.13s
+[PASS   ] tests.test_bridge_protocol: 2 tests, 0 skipped, 0.18s
+[PASS   ] tests.test_build_modes: 2 tests, 0 skipped, 0.23s
+[PASS   ] tests.test_checkm8_payload: 26 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_deployment: 10 tests, 0 skipped, 0.24s
+[PASS   ] tests.test_deployment_profile: 2 tests, 0 skipped, 0.08s
 [PASS   ] tests.test_deployment_stream: 2 tests, 0 skipped, 0.18s
-[PASS   ] tests.test_device_dashboard: 2 tests, 0 skipped, 0.61s
-[PASS   ] tests.test_device_tools: 3 tests, 0 skipped, 0.45s
-[PASS   ] tests.test_evidence_compare: 1 tests, 0 skipped, 0.33s
-[PASS   ] tests.test_fbr34kctl: 19 tests, 0 skipped, 0.32s
-[PASS   ] tests.test_fbr34kdeploy: 3 tests, 0 skipped, 0.67s
-[PASS   ] tests.test_first_stage_adapter: 4 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_handoff_binary: 2 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_handoff_schema: 7 tests, 0 skipped, 0.20s
-[PASS   ] tests.test_hardware_bringup: 3 tests, 0 skipped, 0.62s
-[PASS   ] tests.test_hardware_profile: 4 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_hardware_workflow: 2 tests, 0 skipped, 0.42s
-[PASS   ] tests.test_ipsw_manager: 10 tests, 0 skipped, 0.93s
-[PASS   ] tests.test_irecovery_boot: 5 tests, 0 skipped, 0.55s
-[PASS   ] tests.test_launcher: 17 tests, 0 skipped, 1.68s
-[PASS   ] tests.test_loader_simulator: 3 tests, 0 skipped, 0.15s
-[PASS   ] tests.test_physical_profiles: 2 tests, 0 skipped, 0.14s
-[PASS   ] tests.test_physical_validation: 6 tests, 0 skipped, 0.20s
-[PASS   ] tests.test_process_support: 1 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_profile_import: 1 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_qemu_boot: 3 tests, 3 skipped, 0.14s
-[PASS   ] tests.test_qemu_generic_loader: 1 tests, 1 skipped, 0.14s
-[PASS   ] tests.test_qemu_launcher: 2 tests, 0 skipped, 0.32s
-[PASS   ] tests.test_ramdisk_manager: 6 tests, 0 skipped, 0.40s
-[PASS   ] tests.test_release_tools: 17 tests, 0 skipped, 8.34s
-[PASS   ] tests.test_research_runtime: 5 tests, 0 skipped, 0.13s
+[PASS   ] tests.test_device_dashboard: 2 tests, 0 skipped, 0.44s
+[PASS   ] tests.test_device_jailbreak: 28 tests, 0 skipped, 4.19s
+[PASS   ] tests.test_device_tools: 3 tests, 0 skipped, 0.29s
+[PASS   ] tests.test_evidence_compare: 1 tests, 0 skipped, 0.13s
+[PASS   ] tests.test_fbr34kctl: 19 tests, 0 skipped, 0.13s
+[PASS   ] tests.test_fbr34kdeploy: 3 tests, 0 skipped, 0.28s
+[PASS   ] tests.test_first_stage_adapter: 4 tests, 0 skipped, 0.12s
+[PASS   ] tests.test_handoff_binary: 2 tests, 0 skipped, 0.08s
+[PASS   ] tests.test_handoff_schema: 7 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_hardware_bringup: 3 tests, 0 skipped, 0.50s
+[PASS   ] tests.test_hardware_profile: 4 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_hardware_workflow: 2 tests, 0 skipped, 0.28s
+[PASS   ] tests.test_ipsw_manager: 10 tests, 0 skipped, 0.70s
+[PASS   ] tests.test_irecovery_boot: 5 tests, 0 skipped, 0.50s
+[PASS   ] tests.test_launcher: 17 tests, 0 skipped, 1.36s
+[PASS   ] tests.test_limera1n_payload: 29 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_loader_simulator: 3 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_physical_profiles: 3 tests, 0 skipped, 0.08s
+[PASS   ] tests.test_physical_validation: 6 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_process_support: 1 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_profile_import: 1 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_qemu_boot: 3 tests, 3 skipped, 0.13s
+[PASS   ] tests.test_qemu_generic_loader: 1 tests, 1 skipped, 0.07s
+[PASS   ] tests.test_qemu_launcher: 2 tests, 0 skipped, 0.13s
+[PASS   ] tests.test_ramdisk_manager: 10 tests, 0 skipped, 0.34s
+[PASS   ] tests.test_release_tools: 17 tests, 0 skipped, 3.11s
+[PASS   ] tests.test_research_runtime: 5 tests, 0 skipped, 0.08s
 [PASS   ] tests.test_sdk_conformance: 1 tests, 0 skipped, 0.07s
-[PASS   ] tests.test_session_bundle: 1 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_session_tools: 1 tests, 0 skipped, 0.34s
-[PASS   ] tests.test_tether_adapter_example: 2 tests, 0 skipped, 0.19s
-[PASS   ] tests.test_tethered_downgrade_control_panel: 2 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_tls_support: 2 tests, 0 skipped, 0.18s
+[PASS   ] tests.test_session_bundle: 1 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_session_tools: 1 tests, 0 skipped, 0.29s
+[PASS   ] tests.test_target_identity: 3 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_tether_adapter_example: 2 tests, 0 skipped, 0.18s
+[PASS   ] tests.test_tethered_downgrade_control_panel: 2 tests, 0 skipped, 0.07s
+[PASS   ] tests.test_tls_support: 2 tests, 0 skipped, 0.13s
 [PASS   ] tests.test_usbliter8_workflow: 3 tests, 0 skipped, 0.13s
 [PASS   ] tests.test_wire_protocol: 3 tests, 0 skipped, 0.08s
-isolated host tests passed (466 tests, 4 skipped, 24.51s)
+isolated host tests passed (559 tests, 4 skipped, 20.04s)
+python3 -m pytest -q test_enhanced_menu.py test_menu_enhancement.py test_final_menu_coverage.py
+......................                                                   [100%]
+22 passed in 0.23s

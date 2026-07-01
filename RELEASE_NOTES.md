@@ -1,6 +1,6 @@
-# FBR34KER 0.6.1b Beta release notes
+# FBR34KER 0.6.2b Beta release notes
 
-FBR34KER 0.6.1b Beta is a patch release based on the merged 0.4.0 Beta tree. It
+FBR34KER 0.6.2b Beta is a patch release based on the merged 0.4.0 Beta tree. It
 packages the latest fixes and updates under one consistent release identity.
 
 ## Patch-release highlights
@@ -44,7 +44,7 @@ packages the latest fixes and updates under one consistent release identity.
 
 ## Compatibility
 
-0.6.1b does not change the public binary interfaces:
+0.6.2b does not change the public binary interfaces:
 
 - protocol: 1
 - handoff ABI: 4
@@ -72,7 +72,7 @@ Loaders and modules that conform to the 0.4.0 interfaces require no migration.
 
 ## Validation
 
-The 0.6.1b source is gated by release-version consistency checks, isolated host
+The 0.6.2b source is gated by release-version consistency checks, isolated host
 tests, native harnesses, Clang analysis, deterministic build and conformance
 stages, QEMU integration/smoke tests, archive verification, checksum
 verification, and an extracted operational-package smoke test. Measured

@@ -21,7 +21,7 @@ from first_stage_adapter import (
 from irecovery_boot import DeviceInfo, RecoveryError, load_device_info, validate_target
 from session_bundle import SessionBundleError, write_session_bundle
 
-RELEASE_VERSION = "0.6.1b"
+RELEASE_VERSION = "0.6.2b"
 DEFAULT_STAGES = (
     "console",
     "board-inventory",

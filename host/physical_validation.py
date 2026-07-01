@@ -18,7 +18,7 @@ from session_bundle import (
     verify_session_bundle,
 )
 
-RELEASE_VERSION = "0.6.1b"
+RELEASE_VERSION = "0.6.2b"
 MATURITY_ORDER = (
     "simulated",
     "qemu-verified",

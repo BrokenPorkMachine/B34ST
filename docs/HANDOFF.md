@@ -58,6 +58,6 @@ python3 host/fbr34kctl.py handoff-validate handoff.json --output normalized.json
 
 This checks the logical design document. The monitor still validates the actual in-memory object at boot.
 
-## 0.6.1b SDK and offline conformance workflow
+## 0.6.2b SDK and offline conformance workflow
 
 Use `fbr34kctl handoff-template`, `handoff-validate`, and `loader-simulate` to produce the exact packed v4 structures before writing a physical loader. The generated callback stubs are deliberate traps and must never be used as live callbacks. A loader must reserve all monitor, metadata, DTB, module, framebuffer, stack, and heap ranges before entry.

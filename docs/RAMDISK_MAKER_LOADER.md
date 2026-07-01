@@ -1,6 +1,6 @@
 # Ramdisk maker and loader
 
-B34ST 0.6.1b provides one guided workflow for assembling, validating, planning,
+B34ST 0.6.2b provides one guided workflow for assembling, validating, planning,
 and externally loading recovery/research ramdisk bundles:
 
 ```text

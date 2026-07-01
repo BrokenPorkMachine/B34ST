@@ -1,4 +1,4 @@
-# FBR34KER loader SDK 0.6.1b
+# FBR34KER loader SDK 0.6.2b
 
 This directory is a standalone, freestanding C11 SDK for constructing and
 validating FBR34KER handoff ABI v4 structures. It does not depend on monitor

@@ -28,7 +28,7 @@ from deployment_transport import (
     TransportError,
 )
 
-VERSION = "0.6.1b"
+VERSION = "0.6.2b"
 
 
 def parse_address(value: str) -> int:

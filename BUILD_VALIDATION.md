@@ -1,10 +1,10 @@
-# FBR34KER 0.6.1b Beta validation
+# FBR34KER 0.6.2b Beta validation
 
 Validation date: 2026-07-01
 
 ## Result
 
-The 0.6.1b Beta release preparation passed the canonical non-QEMU gate, the
+The 0.6.2b Beta release preparation passed the canonical non-QEMU gate, the
 complete QEMU-backed release gate, deterministic package construction,
 checksum verification, and an extracted operational-package smoke test.
 
@@ -15,7 +15,7 @@ checksum verification, and an extracted operational-package smoke test.
 - **Host suite:** **559 tests passed**; 4 QEMU-dependent tests were skipped in
   the isolated non-QEMU run and executed by the integration stage.
 - **Version consistency:** all **35 active release surfaces** matched
-  `0.6.1b-beta`.
+  `0.6.2b-beta`.
 - **Source validation:** 165 Python files and 23 shell files passed syntax
   validation.
 
@@ -42,9 +42,9 @@ and diagnostics collection.
   security-model build passed.
 - Deterministic FBRI bundles for A12, A12X/A12Z, A13, A14, A15, M1, and M2
   passed inspection and manifest validation.
-- The release manifest identifies version `0.6.1b`,
-  channel `beta`, source ID `0.6.1b-beta`, and release root
-  `B34ST_0.6.1b_Beta`.
+- The release manifest identifies version `0.6.2b`,
+  channel `beta`, source ID `0.6.2b-beta`, and release root
+  `B34ST_0.6.2b_Beta`.
 - Deployment, bring-up, persistent-bridge, failure-matrix, reset-invalidation,
   and recovery-after-reauthorization simulations passed.
 
@@ -52,10 +52,10 @@ and diagnostics collection.
 
 The following deterministic archives were built and verified:
 
-- `B34ST_0.6.1b_Beta_source.zip`
-- `B34ST_0.6.1b_Beta_complete.zip`
-- `B34ST_0.6.1b_Beta_sdk.zip`
-- `B34ST_0.6.1b_Beta_operational.zip`
+- `B34ST_0.6.2b_Beta_source.zip`
+- `B34ST_0.6.2b_Beta_complete.zip`
+- `B34ST_0.6.2b_Beta_sdk.zip`
+- `B34ST_0.6.2b_Beta_operational.zip`
 
 All four SHA-256 sidecars passed `shasum -a 256 -c`. The operational archive
 was extracted and successfully ran:

@@ -22,6 +22,7 @@ class ImagingError(RuntimeError):
 @dataclasses.dataclass
 class ImagingOptions:
     """Options for forensic imaging operations."""
+
     block_size: int = 65536
     compress: bool = False
     sparse: bool = True
@@ -76,19 +77,21 @@ class ForensicImage:
                     errors.append(f"empty read at offset 0x{offset:x}")
                     offset += chunk_size
                     continue
-            except Exception as exc:
+            except (OSError, RuntimeError) as exc:
                 errors.append(f"read error at offset 0x{offset:x}: {exc}")
                 offset += chunk_size
                 continue
 
             all_zero = all(b == 0 for b in data)
             if self.options.sparse and all_zero:
-                blocks.append({
-                    "offset": offset,
-                    "size": chunk_size,
-                    "sparse": True,
-                    "sha256": hashlib.sha256(data).hexdigest(),
-                })
+                blocks.append(
+                    {
+                        "offset": offset,
+                        "size": chunk_size,
+                        "sparse": True,
+                        "sha256": hashlib.sha256(data).hexdigest(),
+                    }
+                )
                 sha256_all.update(data)
                 total_read += chunk_size
                 offset += chunk_size
@@ -116,19 +119,19 @@ class ForensicImage:
                 if self.options.compress:
                     written = zlib.decompress(written)
                 if written != data:
-                    errors.append(
-                        f"verify failed at offset 0x{offset:x}"
-                    )
+                    errors.append(f"verify failed at offset 0x{offset:x}")
 
-            blocks.append({
-                "offset": offset,
-                "size": chunk_size,
-                "stored_size": stored_size,
-                "sparse": False,
-                "compressed": self.options.compress,
-                "sha256": block_hash,
-                "file": block_file.name,
-            })
+            blocks.append(
+                {
+                    "offset": offset,
+                    "size": chunk_size,
+                    "stored_size": stored_size,
+                    "sparse": False,
+                    "compressed": self.options.compress,
+                    "sha256": block_hash,
+                    "file": block_file.name,
+                }
+            )
             total_read += chunk_size
             offset += chunk_size
 
@@ -149,7 +152,9 @@ class ForensicImage:
                 "block_size": block_size,
             },
             "acquisition": {
-                "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+                "timestamp": dt.datetime.now()
+                .astimezone()
+                .isoformat(timespec="seconds"),
                 "total_bytes_read": total_read,
                 "block_count": len(blocks),
                 "error_count": len(errors),

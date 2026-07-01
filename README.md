@@ -151,7 +151,7 @@ B34ST/
 ├── tests/                    # Test suite (30 C + 37 Python)
 ├── fbr34ker                  # CLI entry point
 ├── b34stctl                  # Compatibility entry point
-└── b34stool.py               # Python control panel
+└── b34st/control_panel.py       # Python control panel
 ```
 
 ---
@@ -1189,30 +1189,6 @@ See `sdk/README.md` and `docs/LOADER_SDK.md` for full details.
 
 ---
 
-## Full boot chain
-
-FBR34KER models the USBliter8 entry and onboard coordinator. Remaining
-boot-chain and ramdisk components must be supplied by a reviewed external
-adapter. References below are conceptual and do not establish compatibility
-with an exact product or OS build:
-
-```
-DFU → USBliter8 DWC3 exploit → iBSS → iBEC → SPTM bypass → TXM bypass → Kernel → SSH ramdisk
- │                              │       │        │             │          │          └─ dropbear (iproxy 2222→44)
- │                              │       │        │             │          └─ kernel_patchfinder (20 targets, ~6s)
- │                              │       │        │             └─ txm_patchfinder (15 patches, iOS 27+)
- │                              │       │        └─ sptm_patchfinder (6 patches, iOS 27+)
- │                              │       └─ iboot_patchfinder (CTRR unlock, boot-args, sig bypass)
- │                              └─ FBR34KER USBliter8 (this repo)
-```
-
-**Important version notes:**
-- SPTM bypass is only needed on iOS 27+ (A12/A13 don't have SPTM/TXM on iOS 26.5 and earlier)
-- TXM bypass is only needed on iOS 27+
-- The iBoot patcher, SPTM bypass, TXM bypass, kernel patchfinder, and SSH ramdisk are all external
-
----
-
 ## External dependencies
 
 Clone these alongside FBR34KER to complete the boot chain:
@@ -1266,7 +1242,7 @@ make sdk-release
 
 Produces \`dist/B34ST_0.6.2b_Beta_operational.zip\` containing:
 
-- B34ST research runtime framework (`b34st/`, `b34stctl`, `b34stool.py`)
+- B34ST research runtime framework (`b34st/`, `b34stctl`, `control_panel.py`)
 - All build artifacts (`build/`, `build-generic/`, `build-exploit/`, `build-apple/`, `build-loader/`, `build-hardware-probe/`, `build-sdk/`)
 - SDK (headers, library, examples, templates, tests)
 - Linker scripts, board profiles, demo modules
@@ -1427,4 +1403,4 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 - **License**: See [LICENSE](LICENSE)
 - **Security policy**: See [SECURITY.md](SECURITY.md) for security boundary, responsible disclosure, and policy
 - **Changelog**: See [CHANGELOG.md](CHANGELOG.md) for version history
-- **Release notes**: See [RELEASE_NOTES.md](RELEASE_NOTES.md) for 0.4.1 Beta release notes
+- **Release notes**: See [RELEASE_NOTES.md](RELEASE_NOTES.md) for 0.6.2b Beta release notes

@@ -125,7 +125,12 @@ def _read_build_manifest(
                 raise RamdiskError("BuildManifest.plist is not a dictionary")
             version = manifest.get("ProductVersion")
             build = manifest.get("ProductBuildVersion")
-            if not isinstance(version, str) or not version or not isinstance(build, str) or not build:
+            if (
+                not isinstance(version, str)
+                or not version
+                or not isinstance(build, str)
+                or not build
+            ):
                 raise RamdiskError(
                     "BuildManifest.plist missing ProductVersion or ProductBuildVersion"
                 )
@@ -134,25 +139,21 @@ def _read_build_manifest(
         raise RamdiskError(f"cannot open IPSW: {exc}") from exc
 
 
-def _resolve_build_identity(
-    manifest: dict[str, Any], product: str
-) -> dict[str, Any]:
+def _resolve_build_identity(manifest: dict[str, Any], product: str) -> dict[str, Any]:
     identities = manifest.get("BuildIdentities")
     if not isinstance(identities, list) or not identities:
         raise RamdiskError("BuildManifest.plist has no BuildIdentities")
     for identity in identities:
         if not isinstance(identity, dict):
             continue
-        products = identity.get("Info", {}).get("SupportedProductTypes") or identity.get(
-            "Info", {}
-        ).get("ProductType")
+        products = identity.get("Info", {}).get(
+            "SupportedProductTypes"
+        ) or identity.get("Info", {}).get("ProductType")
         if isinstance(products, list) and product in products:
             return identity
         if products == product:
             return identity
-    raise RamdiskError(
-        f"no BuildIdentity in IPSW matches product {product}"
-    )
+    raise RamdiskError(f"no BuildIdentity in IPSW matches product {product}")
 
 
 def _extract_ipsw_component(
@@ -266,9 +267,13 @@ def profile_paths() -> list[pathlib.Path]:
         except BootImageError:
             continue
         products = profile.get("product_types", [])
-        if profile.get("requires_exact_product") and products and all(
-            str(product).startswith(("iPhone", "iPad", "Mac", "iMac"))
-            for product in products
+        if (
+            profile.get("requires_exact_product")
+            and products
+            and all(
+                str(product).startswith(("iPhone", "iPad", "Mac", "iMac"))
+                for product in products
+            )
         ):
             paths.append(path)
     return paths
@@ -440,9 +445,7 @@ def component_values(args: argparse.Namespace) -> dict[str, pathlib.Path]:
         result[role] = pathlib.Path(value)
     missing = [role for role in CORE_ROLES if role not in result]
     if missing:
-        raise RamdiskError(
-            "missing required component(s): " + ", ".join(missing)
-        )
+        raise RamdiskError("missing required component(s): " + ", ".join(missing))
     if len(result) > MAX_COMPONENTS:
         raise RamdiskError(f"at most {MAX_COMPONENTS} components are supported")
     return result
@@ -522,9 +525,9 @@ def build_bundle(args: argparse.Namespace) -> dict[str, Any]:
             for item in components
         ],
     }
-    manifest_bytes = (
-        json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-    ).encode("utf-8")
+    manifest_bytes = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
     temporary = output.with_name(output.name + ".tmp")
     try:
         with zipfile.ZipFile(
@@ -532,9 +535,7 @@ def build_bundle(args: argparse.Namespace) -> dict[str, Any]:
         ) as bundle:
             bundle.writestr(zip_info("manifest.json"), manifest_bytes)
             for item in components:
-                stream_into_zip(
-                    bundle, zip_info(item["archive_path"]), item["source"]
-                )
+                stream_into_zip(bundle, zip_info(item["archive_path"]), item["source"])
         if temporary.stat().st_size > MAX_BUNDLE_SIZE:
             raise RamdiskError("resulting bundle exceeds the 16 GiB limit")
         temporary.replace(output)
@@ -574,7 +575,12 @@ def load_manifest(bundle_path: pathlib.Path) -> tuple[dict[str, Any], zipfile.Zi
         raise RamdiskError("manifest exceeds the 1 MiB limit")
     try:
         manifest = json.loads(bundle.read(info))
-    except (UnicodeError, json.JSONDecodeError, RuntimeError, NotImplementedError) as exc:
+    except (
+        UnicodeError,
+        json.JSONDecodeError,
+        RuntimeError,
+        NotImplementedError,
+    ) as exc:
         bundle.close()
         raise RamdiskError(f"invalid manifest JSON: {exc}") from exc
     return manifest, bundle
@@ -674,6 +680,8 @@ def adapter_command(value: str | None) -> list[str] | None:
     raw = value or os.environ.get("B34ST_RAMDISK_ADAPTER")
     if not raw:
         return None
+    if any(c in raw for c in ";|&$`\n\r()"):
+        raise RamdiskError("adapter command contains shell metacharacters")
     try:
         command = shlex.split(raw)
     except ValueError as exc:
@@ -759,9 +767,7 @@ def load_bundle(args: argparse.Namespace) -> dict[str, Any]:
         raise RamdiskError(f'--confirm must exactly equal "{EXECUTION_CONFIRMATION}"')
     command = adapter_command(args.adapter)
     if command is None:
-        raise RamdiskError(
-            "execution requires --adapter or B34ST_RAMDISK_ADAPTER"
-        )
+        raise RamdiskError("execution requires --adapter or B34ST_RAMDISK_ADAPTER")
     request["authorization"] = {
         "owner_authorized": True,
         "confirmation": True,
@@ -797,9 +803,7 @@ def load_bundle(args: argparse.Namespace) -> dict[str, Any]:
         or response.get("schema_version") != SCHEMA_VERSION
         or response.get("ok") is not True
     ):
-        raise RamdiskError(
-            "adapter response must be schema_version 1 with ok=true"
-        )
+        raise RamdiskError("adapter response must be schema_version 1 with ok=true")
     result = {
         "ok": True,
         "executed": True,
@@ -835,9 +839,8 @@ def list_targets(json_mode: bool) -> None:
     result = {
         "schema_version": SCHEMA_VERSION,
         "compatibility_scope": "exact-profiled-products",
-        "physical_execution_verified": bool(records) and all(
-            item["physical_execution_verified"] for item in records
-        ),
+        "physical_execution_verified": bool(records)
+        and all(item["physical_execution_verified"] for item in records),
         "os_version_policy": "exact adapter support and evidence required",
         "target_count": len(records),
         "targets": records,
@@ -846,16 +849,15 @@ def list_targets(json_mode: bool) -> None:
         print(json.dumps(result, indent=2, sort_keys=True))
         return
     print("Profiled ramdisk targets")
-    print("Status: simulation-validated; external adapter and exact OS/build support required")
+    print(
+        "Status: simulation-validated; external adapter and exact OS/build support required"
+    )
     current = None
     for record in records:
         if record["device_class"] != current:
             current = record["device_class"]
             print(f"\n{current.upper()}:")
-        print(
-            f"  {record['product']:<18} {record['family']:<5} "
-            f"{record['profile_id']}"
-        )
+        print(f"  {record['product']:<18} {record['family']:<5} {record['profile_id']}")
 
 
 def _ipsw_lookup(args: argparse.Namespace) -> dict[str, Any]:
@@ -935,9 +937,7 @@ def ipsw_extract_command(args: argparse.Namespace) -> dict[str, Any]:
         "version": info.get("product_version"),
         "build": info.get("product_build"),
         "output_dir": str(output_dir),
-        "components": {
-            role: str(path) for role, path in sorted(extracted.items())
-        },
+        "components": {role: str(path) for role, path in sorted(extracted.items())},
     }
 
 
@@ -1004,7 +1004,9 @@ def guide(args: argparse.Namespace) -> int:
     if not sys.stdin.isatty() or not sys.stdout.isatty():
         raise RamdiskError("ramdisk guide requires an interactive TTY")
     print("B34ST guided ramdisk maker / loader")
-    print("This workflow packages prepared artifacts; it does not create Apple-signed files.")
+    print(
+        "This workflow packages prepared artifacts; it does not create Apple-signed files."
+    )
     print("Physical loading requires a separately installed target-specific adapter.\n")
     product = args.product or prompt("Exact Apple product identifier", "iPhone12,1")
     os_version = args.os_version or prompt("Exact iOS/iPadOS/macOS version")
@@ -1023,7 +1025,9 @@ def guide(args: argparse.Namespace) -> int:
         if args.evidence:
             write_json(args.evidence, plan)
         return 0
-    source = prompt("Component source: local files (L) or extract from IPSW (I)", "L").lower()
+    source = prompt(
+        "Component source: local files (L) or extract from IPSW (I)", "L"
+    ).lower()
     namespace = argparse.Namespace(
         product=product,
         os_version=os_version,
@@ -1050,7 +1054,9 @@ def guide(args: argparse.Namespace) -> int:
             raise RamdiskError("an IPSW path is required for IPSW extraction")
         ipsw_path = pathlib.Path(ipsw_path_str).expanduser()
         print(f"\nExtracting components from IPSW for {product}...")
-        extracted = extract_ipsw_components(ipsw_path, product, ipsw_path.with_suffix(""))
+        extracted = extract_ipsw_components(
+            ipsw_path, product, ipsw_path.with_suffix("")
+        )
         namespace.ramdisk = extracted["ramdisk"]
         namespace.kernelcache = extracted["kernelcache"]
         namespace.devicetree = extracted["devicetree"]
@@ -1093,8 +1099,12 @@ def guide(args: argparse.Namespace) -> int:
 
 
 def add_target_arguments(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--product", required=True, help="exact Apple product identifier")
-    parser.add_argument("--os-version", required=True, help="exact iOS/iPadOS/macOS version")
+    parser.add_argument(
+        "--product", required=True, help="exact Apple product identifier"
+    )
+    parser.add_argument(
+        "--os-version", required=True, help="exact iOS/iPadOS/macOS version"
+    )
     parser.add_argument("--build", help="exact Apple build identifier")
     parser.add_argument("--profile", type=pathlib.Path, help="exact recovery profile")
 
@@ -1157,7 +1167,9 @@ def parser() -> argparse.ArgumentParser:
         description="End-to-end IPSW workflow: list firmwares, download, extract components, and build an FBRD ramdisk bundle from extracted files.",
     )
     ipsw_sub = ipsw_group.add_subparsers(dest="ipsw_command", required=True)
-    catalog = ipsw_sub.add_parser("catalog", help="list available firmwares for a product")
+    catalog = ipsw_sub.add_parser(
+        "catalog", help="list available firmwares for a product"
+    )
     catalog.add_argument("--product", required=True)
     catalog_filter = catalog.add_mutually_exclusive_group()
     catalog_filter.add_argument("--signed-only", action="store_true")
@@ -1170,24 +1182,56 @@ def parser() -> argparse.ArgumentParser:
     download.add_argument("--version")
     download.add_argument("--build")
     download.add_argument("--signed-only", action="store_true")
-    download.add_argument("--output-dir", type=pathlib.Path, default=pathlib.Path("downloads/ipsw"))
+    download.add_argument(
+        "--output-dir", type=pathlib.Path, default=pathlib.Path("downloads/ipsw")
+    )
     download.add_argument("--catalog", default=DEFAULT_CATALOG)
     download.add_argument("--timeout", type=float, default=60.0)
     download.add_argument("--json", action="store_true")
-    extract = ipsw_sub.add_parser("extract", help="extract components from a local IPSW")
+    extract = ipsw_sub.add_parser(
+        "extract", help="extract components from a local IPSW"
+    )
     extract.add_argument("ipsw", type=pathlib.Path)
-    extract.add_argument("--product", help="product identifier (auto-detected when unambiguous)")
-    extract.add_argument("--output-dir", type=pathlib.Path, default=None, help="output directory (default: IPSW filename stem)")
+    extract.add_argument(
+        "--product", help="product identifier (auto-detected when unambiguous)"
+    )
+    extract.add_argument(
+        "--output-dir",
+        type=pathlib.Path,
+        default=None,
+        help="output directory (default: IPSW filename stem)",
+    )
     extract.add_argument("--json", action="store_true")
-    ipsw_build = ipsw_sub.add_parser("build", help="download IPSW, extract components, and build FBRD bundle")
-    ipsw_build.add_argument("--product", required=True, help="exact Apple product identifier")
-    ipsw_build.add_argument("--os-version", "--version", dest="os_version", help="exact OS version (auto-detected from IPSW when omitted)")
-    ipsw_build.add_argument("--build", help="exact Apple build identifier (auto-detected from IPSW when omitted)")
-    ipsw_build.add_argument("--profile", type=pathlib.Path, help="exact recovery profile")
+    ipsw_build = ipsw_sub.add_parser(
+        "build", help="download IPSW, extract components, and build FBRD bundle"
+    )
+    ipsw_build.add_argument(
+        "--product", required=True, help="exact Apple product identifier"
+    )
+    ipsw_build.add_argument(
+        "--os-version",
+        "--version",
+        dest="os_version",
+        help="exact OS version (auto-detected from IPSW when omitted)",
+    )
+    ipsw_build.add_argument(
+        "--build",
+        help="exact Apple build identifier (auto-detected from IPSW when omitted)",
+    )
+    ipsw_build.add_argument(
+        "--profile", type=pathlib.Path, help="exact recovery profile"
+    )
     ipsw_build.add_argument("--signed-only", action="store_true")
-    ipsw_build.add_argument("--timeout", type=float, default=180.0, help="catalog fetch and download timeout")
+    ipsw_build.add_argument(
+        "--timeout",
+        type=float,
+        default=180.0,
+        help="catalog fetch and download timeout",
+    )
     ipsw_build.add_argument("--catalog", default=DEFAULT_CATALOG)
-    ipsw_build.add_argument("--download-dir", type=pathlib.Path, default=pathlib.Path("downloads/ipsw"))
+    ipsw_build.add_argument(
+        "--download-dir", type=pathlib.Path, default=pathlib.Path("downloads/ipsw")
+    )
     ipsw_build.add_argument("--output", type=pathlib.Path, required=True)
     ipsw_build.add_argument("--force", action="store_true")
     ipsw_build.add_argument("--json", action="store_true")
@@ -1208,31 +1252,41 @@ def emit(value: dict[str, Any], json_mode: bool) -> None:
     elif value["operation"] == "ramdisk-inspect":
         print("FBRD verification: PASS")
         print(f"Target: {value['manifest']['target']['product']}")
-        print(f"OS/build: {value['manifest']['os_version']} / {value['manifest'].get('build') or 'not recorded'}")
+        print(
+            f"OS/build: {value['manifest']['os_version']} / {value['manifest'].get('build') or 'not recorded'}"
+        )
         print(f"Components: {value['component_count']}")
         print(f"SHA-256: {value['sha256']}")
     elif value["operation"] == "ramdisk-ipsw-catalog":
         signed_count = sum(1 for fw in value["firmwares"] if fw["signed"])
         unsigned_count = len(value["firmwares"]) - signed_count
-        print(f"Firmware catalog for {value['product']}: {len(value['firmwares'])} entries")
+        print(
+            f"Firmware catalog for {value['product']}: {len(value['firmwares'])} entries"
+        )
         if unsigned_count:
             print(f"  {signed_count} signed, {unsigned_count} unsigned")
         for fw in value["firmwares"]:
             status = "SIGNED" if fw["signed"] else "unsigned"
             print(f"  [{status}] iOS {fw['version']} ({fw['build']})")
     elif value["operation"] == "ramdisk-ipsw-download":
-        print(f"Downloaded IPSW for {value['product']} iOS {value['version']} ({value['build']})")
+        print(
+            f"Downloaded IPSW for {value['product']} iOS {value['version']} ({value['build']})"
+        )
         print(f"Path: {value['path']}  ({_human_size(value['size'])})")
         print(f"SHA-256: {value['sha256']}")
     elif value["operation"] == "ramdisk-ipsw-extract":
-        print(f"Extracted {len(value['components'])} components from IPSW for {value['product']}")
+        print(
+            f"Extracted {len(value['components'])} components from IPSW for {value['product']}"
+        )
         print(f"Output: {value['output_dir']}")
         for role, path_str in sorted(value["components"].items()):
             p = pathlib.Path(path_str)
             sz = _human_size(p.stat().st_size) if p.is_file() else "?"
             print(f"  [{role:<12}] {p.name}  ({sz})")
     elif value["operation"] == "ramdisk-ipsw-build":
-        print(f"IPSW build for {value['product']} iOS {value['version']} ({value['build']})")
+        print(
+            f"IPSW build for {value['product']} iOS {value['version']} ({value['build']})"
+        )
         print(f"IPSW: {value['ipsw']['path']}  ({_human_size(value['ipsw']['size'])})")
         print(f"Bundle: {value['bundle']['path']}")
         print(f"Bundle SHA-256: {value['bundle']['sha256']}")

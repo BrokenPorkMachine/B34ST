@@ -85,7 +85,7 @@ def _make_usb_api(
             return console.run_command(call, timeout=timeout)
         except TransportError as exc:
             raise RuntimeError(f"USB transport error: {exc}")
-        except Exception as exc:
+        except (OSError, RuntimeError) as exc:
             raise RuntimeError(f"USB command failed: {exc}")
 
     return _api
@@ -203,8 +203,7 @@ def make_research_api(
     maker = _backends.get(backend)
     if maker is None:
         raise ValueError(
-            f"Unknown backend: {backend}. "
-            f"Choose from: {', '.join(sorted(_backends))}"
+            f"Unknown backend: {backend}. Choose from: {', '.join(sorted(_backends))}"
         )
     return maker(**kwargs)
 
@@ -302,10 +301,12 @@ def _make_serial_fuzzer_submit(
     def _submit(mutated: bytes, metadata: dict[str, Any]) -> dict[str, Any]:
         wrapper_hex = mutated.hex()
         variation = metadata.get("variation", "unknown")
-        payload = json.dumps({
-            "wrapper_hex": wrapper_hex,
-            "variation": variation,
-        })
+        payload = json.dumps(
+            {
+                "wrapper_hex": wrapper_hex,
+                "variation": variation,
+            }
+        )
         try:
             req = Frame(
                 message_type=MessageType.DATA,
@@ -358,7 +359,9 @@ def make_fuzzer_submit(
         submit = make_fuzzer_submit("serial", port="/dev/ttyUSB0")
         manifest = run_campaign(submit, output_dir)
     """
-    _backends: dict[str, Callable[..., Callable[[bytes, dict[str, Any]], dict[str, Any]]]] = {
+    _backends: dict[
+        str, Callable[..., Callable[[bytes, dict[str, Any]], dict[str, Any]]]
+    ] = {
         "simulator": lambda **_kw: _simulated_submit,
         "usb": _make_usb_fuzzer_submit,
         "serial": _make_serial_fuzzer_submit,
@@ -367,8 +370,7 @@ def make_fuzzer_submit(
     maker = _backends.get(backend)
     if maker is None:
         raise ValueError(
-            f"Unknown backend: {backend}. "
-            f"Choose from: {', '.join(sorted(_backends))}"
+            f"Unknown backend: {backend}. Choose from: {', '.join(sorted(_backends))}"
         )
     return maker(**kwargs)
 
@@ -478,7 +480,7 @@ def deploy_swift_harness(
             "result": result,
             "evidence": client.evidence(),
         }
-    except Exception as exc:
+    except (OSError, RuntimeError) as exc:
         return {
             "success": False,
             "error": str(exc),

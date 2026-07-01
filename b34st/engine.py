@@ -22,6 +22,7 @@ from b34st.environment import (
 )
 from b34st.forensics import _check_security_boundary
 from b34st.version import __version__, __release_name__
+from b34st.control_panel import AUTHORIZATION_TEXT
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -98,7 +99,7 @@ class B34STCLI:
         except B34STError as e:
             self.log(f"B34ST Error: {e}", "ERROR")
             return 1
-        except Exception as e:
+        except (OSError, ImportError, ValueError) as e:
             self.log(f"Unexpected error: {e}", "ERROR")
             if self.verbose:
                 import traceback
@@ -251,9 +252,14 @@ class B34STCLI:
                 return result.returncode
 
         except ImportError as e:
-            raise B34STError(f"FBR34KER not available: {e}")
-        except Exception as e:
-            raise B34STError(f"Failed to validate bundle: {e}")
+            raise B34STError(f"FBR34KER not available: {e}") from e
+        except (
+            OSError,
+            subprocess.SubprocessError,
+            json.JSONDecodeError,
+            ValueError,
+        ) as e:
+            raise B34STError(f"Failed to validate bundle: {e}") from e
 
     def _physical_validation(self, argv: list[str]) -> int:
         """Perform physical validation using FBR34KER's physical-validation command."""
@@ -320,9 +326,14 @@ class B34STCLI:
                 return result.returncode
 
         except ImportError as e:
-            raise B34STError(f"FBR34KER not available: {e}")
-        except Exception as e:
-            raise B34STError(f"Failed to perform physical validation: {e}")
+            raise B34STError(f"FBR34KER not available: {e}") from e
+        except (
+            OSError,
+            subprocess.SubprocessError,
+            json.JSONDecodeError,
+            ValueError,
+        ) as e:
+            raise B34STError(f"Failed to perform physical validation: {e}") from e
 
     def _hardware_prepare(self, argv: list[str]) -> int:
         """Handle hardware preparation using FBR34KER's hardware-prepare command."""
@@ -385,8 +396,8 @@ class B34STCLI:
                     )
                     return result.returncode
 
-            except Exception as e:
-                raise B34STError(f"Failed to generate hardware checklists: {e}")
+            except (OSError, subprocess.SubprocessError) as e:
+                raise B34STError(f"Failed to generate hardware checklists: {e}") from e
 
         if args.validate_bundle:
             try:
@@ -411,8 +422,8 @@ class B34STCLI:
                         "ERROR",
                     )
                     return result.returncode
-            except Exception as e:
-                raise B34STError(f"Failed to validate bundle: {e}")
+            except (OSError, subprocess.SubprocessError) as e:
+                raise B34STError(f"Failed to validate bundle: {e}") from e
 
         return 0
 
@@ -1164,7 +1175,7 @@ class B34STCLI:
             use_exploit = getattr(args, "exploit", False)
             try:
                 result = mgr.remove(passcode, use_exploit=use_exploit)
-            except Exception as exc:
+            except (RuntimeError, OSError, ValueError) as exc:
                 self.log(f"Passcode remove failed: {exc}", "ERROR")
                 return 1
             custody.record(
@@ -1182,7 +1193,7 @@ class B34STCLI:
             passcode = getattr(args, "passcode", "")
             try:
                 result = mgr.set_passcode(passcode)
-            except Exception as exc:
+            except (RuntimeError, OSError, ValueError) as exc:
                 self.log(f"Passcode set failed: {exc}", "ERROR")
                 return 1
             custody.record(
@@ -1201,7 +1212,7 @@ class B34STCLI:
             new = getattr(args, "new", "")
             try:
                 result = mgr.change(current, new)
-            except Exception as exc:
+            except (RuntimeError, OSError, ValueError) as exc:
                 self.log(f"Passcode change failed: {exc}", "ERROR")
                 return 1
             custody.record(
@@ -1712,7 +1723,7 @@ class B34STCLI:
             planner = ChainPlanner(db)
             try:
                 chains = planner.find_chains(args.goal, args.version)
-            except Exception as exc:
+            except (RuntimeError, OSError, ValueError) as exc:
                 self.log(f"Chain planning failed: {exc}", "ERROR")
                 return 1
 
@@ -1840,7 +1851,7 @@ class B34STCLI:
                 chains = planner.find_chains_for_device(
                     args.goal, args.version, args.device
                 )
-            except Exception as exc:
+            except (RuntimeError, OSError, ValueError) as exc:
                 self.log(f"Chain planning failed: {exc}", "ERROR")
                 return 1
 
@@ -1875,7 +1886,7 @@ class B34STCLI:
             planner = ChainPlanner(db)
             try:
                 suggestions = planner.suggest_goals(args.version)
-            except Exception as exc:
+            except (RuntimeError, OSError, ValueError) as exc:
                 self.log(f"Goal suggestion failed: {exc}", "ERROR")
                 return 1
 
@@ -2047,8 +2058,8 @@ class B34STCLI:
         print("\n--- USBliter8 execution ---")
         print("This will exploit the A12+ device via DWC3 and run the chain.\n")
 
-        owner = input('Type "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE" to continue: ')
-        if owner != "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE":
+        owner = input(f'Type "{AUTHORIZATION_TEXT}" to continue: ')
+        if owner != AUTHORIZATION_TEXT:
             print("Authorization not confirmed. Aborting.")
             return 1
 

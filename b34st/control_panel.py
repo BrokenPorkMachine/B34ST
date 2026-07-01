@@ -28,6 +28,7 @@ ROOT = pathlib.Path(
 ).resolve()
 ARTIFACT_ROOT = ROOT / "runtime-artifacts" / "b34st" / "control-panel"
 AUTHORIZATION_TEXT = "I OWN OR AM AUTHORIZED TO TEST THIS DEVICE"
+AUTHORIZATION_RESTORE = AUTHORIZATION_TEXT.replace("TEST", "RESTORE")
 
 
 class Colors:
@@ -1090,6 +1091,11 @@ def _run_prompted(
         print(f"Invalid arguments: {exc}")
         _pause()
         return
+    for token in arguments:
+        if any(c in token for c in [";", "|", "&", "$", "`", "\n", "\r", "(", ")"]):
+            print(f"Rejected unsafe argument token: {token}")
+            _pause()
+            return
     session.run(prefix + arguments, label=label, interactive=interactive)
     _pause()
 
@@ -1458,9 +1464,7 @@ def _ipsw_workflows(session: Session) -> None:
                 print(
                     "Back up the device first. Restore operations can cause irreversible data loss."
                 )
-                owner = _prompt(
-                    f'Type "{AUTHORIZATION_TEXT.replace("TEST", "RESTORE")}"'
-                )
+                owner = _prompt(f'Type "{AUTHORIZATION_RESTORE}"')
                 confirm = _prompt('Type "START SIGNED IPSW RESTORE"')
                 command += [
                     "--execute",
@@ -1894,8 +1898,13 @@ def _usbliter8_jailbreak(session: Session) -> int:
         "",
     )
     if owner != AUTHORIZATION_TEXT:
+        if not owner:
+            session.record(
+                "USBliter8 jailbreak aborted: authorization interrupted (empty/EOF)"
+            )
+        else:
+            session.record("USBliter8 jailbreak aborted: authorization not confirmed")
         print("Authorization not confirmed. Aborting.")
-        session.record("USBliter8 jailbreak aborted: authorization not confirmed")
         _pause()
         return 1
 
@@ -1919,6 +1928,21 @@ def _usbliter8_jailbreak(session: Session) -> int:
         "60",
     ]
     printable = shlex.join(command)
+    evidence_start = {
+        "schema_version": 1,
+        "operation": "usbliter8-jailbreak",
+        "status": "started",
+        "timestamp": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+        "command": printable,
+        "monitor": str(operational_bin),
+    }
+    try:
+        evidence_path.write_text(
+            json.dumps(evidence_start, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+    except OSError as exc:
+        session.record(f"WARNING: could not write initial evidence: {exc}")
     session.record(f"START {label}: {printable}")
     print(f"\n[{label}]")
     print(f"$ {printable}\n")
@@ -2011,8 +2035,15 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
         "",
     )
     if owner != AUTHORIZATION_TEXT:
+        if not owner:
+            session.record(
+                "USBliter8 pwn-and-inspect aborted: authorization interrupted (empty/EOF)"
+            )
+        else:
+            session.record(
+                "USBliter8 pwn-and-inspect aborted: authorization not confirmed"
+            )
         print("Authorization not confirmed. Aborting.")
-        session.record("USBliter8 pwn-and-inspect aborted: authorization not confirmed")
         _pause()
         return 1
 
@@ -2039,6 +2070,25 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
             print("Inspection cannot proceed without an operational image.")
             _pause()
             return 1
+
+    try:
+        evidence_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "operation": "usbliter8-pwn-and-inspect",
+                    "status": "started",
+                    "timestamp": dt.datetime.now()
+                    .astimezone()
+                    .isoformat(timespec="seconds"),
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    except OSError as exc:
+        session.record(f"WARNING: could not write initial evidence: {exc}")
 
     pwndfu_ok = False
     chipset_info = None
@@ -2097,7 +2147,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
             chipset_info = ev.get("chipset")
             chain_results = ev.get("results", {})
             session.record(f"Loaded exploit evidence from {evidence_path}")
-        except Exception as exc:
+        except (OSError, json.JSONDecodeError, ValueError) as exc:
             session.record(f"WARNING: could not parse evidence file: {exc}")
 
     console = None
@@ -2126,7 +2176,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
                 out = console.run_command(cmd, timeout=15.0)
                 console_inspection[cmd] = out
                 print(out)
-            except Exception as exc:
+            except (OSError, RuntimeError, ValueError) as exc:
                 err = f"<inspection command failed: {exc}>"
                 console_inspection[cmd] = err
                 print(f"  {Colors.YELLOW}{err}{Colors.RESET}")
@@ -2137,7 +2187,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
         print(
             f"\n{Colors.YELLOW}pyusb not available; skipping live inspection.{Colors.RESET}"
         )
-    except Exception as exc:
+    except (OSError, RuntimeError, ValueError) as exc:
         session.record(f"INSPECT ERROR: {exc}")
         print(f"\n{Colors.YELLOW}Console inspection error: {exc}{Colors.RESET}")
     finally:
@@ -2227,7 +2277,7 @@ def _usbliter8_pwn_and_inspect(session: Session) -> int:
         print(f"{Colors.GREEN}Inspection report written:{Colors.RESET}")
         print(f"  {report_path.relative_to(ROOT)}")
         session.record(f"PWN-INSPECT report written: {report_path}")
-    except Exception as exc:
+    except (OSError, TypeError, ValueError) as exc:
         session.record(f"ERROR writing report: {exc}")
         print(f"{Colors.RED}Failed to write report: {exc}{Colors.RESET}")
 
@@ -2337,22 +2387,33 @@ def _forensics_workflow(session: Session) -> None:
             profile = profile_map[choice]
             device_id = _prompt("Device identifier", "unknown")
             operator = _prompt("Operator name")
+            caps = []
+            if not _confirm(
+                "Acknowledge credential-extraction and protected-data-access capabilities"
+            ):
+                print(
+                    "Acquisition requires explicit capability acknowledgment. Aborting.",
+                    file=sys.stderr,
+                )
+                _pause()
+                return
+            caps = ["credential-extraction", "protected-data-access"]
             bundle_path = session.directory / f"forensics-{profile}.zip"
-            session.run(
-                [
-                    "forensics",
-                    "acquire",
-                    "--profile",
-                    profile,
-                    "--device-id",
-                    device_id,
-                    "--operator",
-                    operator or "",
-                    "--bundle",
-                    str(bundle_path),
-                ],
-                label=f"Acquisition: {profile}",
-            )
+            acquire_args = [
+                "forensics",
+                "acquire",
+                "--profile",
+                profile,
+                "--device-id",
+                device_id,
+                "--operator",
+                operator or "",
+                "--bundle",
+                str(bundle_path),
+            ]
+            for cap in caps:
+                acquire_args += ["--capabilities", cap]
+            session.run(acquire_args, label=f"Acquisition: {profile}")
             if bundle_path.exists():
                 print(f"\nEvidence bundle: {bundle_path.relative_to(ROOT)}")
             _pause()
@@ -2811,7 +2872,7 @@ def _device_snapshot(session: Session) -> dict:
     )
     try:
         snapshot = build_snapshot(args)
-    except Exception as exc:
+    except (OSError, RuntimeError, ValueError) as exc:
         session.record(f"Dashboard refresh failed: {exc}")
         return {
             "connected": False,

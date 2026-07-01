@@ -61,7 +61,7 @@ class FileSystemAcquisitor:
         entries: list[FileEntry] = []
         try:
             entries = self._list_fn(path)
-        except Exception as exc:
+        except (OSError, RuntimeError) as exc:
             raise FileSystemAcquisitionError(f"failed to list {path}: {exc}") from exc
 
         manifest_path = output_dir / "filesystem" / "listing.json"
@@ -115,7 +115,7 @@ class FileSystemAcquisitor:
         while True:
             try:
                 data = self._read_fn(path, offset, chunk_size)
-            except Exception as exc:
+            except (OSError, RuntimeError) as exc:
                 return {
                     "path": path,
                     "error": str(exc),
@@ -175,6 +175,6 @@ class FileSystemAcquisitor:
             try:
                 result = self.acquire_file(path, output_dir)
                 results.append(result)
-            except Exception as exc:
+            except (OSError, RuntimeError) as exc:
                 results.append({"path": path, "error": str(exc)})
         return results

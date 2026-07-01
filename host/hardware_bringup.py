@@ -37,12 +37,19 @@ class BringupError(RuntimeError):
     pass
 
 
+def _validate_adapter_raw(raw: str) -> None:
+    if any(c in raw for c in ";|&$`\n\r()"):
+        raise BringupError("adapter command contains shell metacharacters")
+
+
 def _adapter(args: argparse.Namespace, device: DeviceInfo):
     if getattr(args, "bridge_command", None):
+        _validate_adapter_raw(args.bridge_command)
         return BridgeFirstStageAdapter(
             shlex.split(args.bridge_command), timeout=args.timeout
         )
     if args.adapter_command:
+        _validate_adapter_raw(args.adapter_command)
         return CommandFirstStageAdapter(
             shlex.split(args.adapter_command), timeout=args.timeout
         )

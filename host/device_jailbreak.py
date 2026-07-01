@@ -54,6 +54,7 @@ try:
         CHIPSET_DB,
         chipset_for_cpid,
         chipset_for_device_string,
+        chipset_for_product,
     )
 
     HAS_CHIPSET_DB = True
@@ -116,26 +117,33 @@ def find_device_cpid(
 
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        for device in usb.core.find(find_all=True):
-            if device.idVendor != vid:
-                continue
-            cpid = _read_cpid(device)
-            if cpid is not None:
-                exploit_type = _lookup_exploit_for_cpid(cpid)
-                return (cpid, exploit_type)
-            prod = _safe_str(device.product)
-            if prod and HAS_CHIPSET_DB:
-                ci = chipset_for_device_string(prod)
-                if ci is not None:
-                    cpid = ci["cpid"]
-                    exploit_type = ci.get("bootrom_exploit")
+        devices = list(usb.core.find(find_all=True))
+        for device in devices:
+            try:
+                if device.idVendor != vid:
+                    continue
+                cpid = _read_cpid(device)
+                if cpid is not None:
+                    exploit_type = _lookup_exploit_for_cpid(cpid)
                     return (cpid, exploit_type)
-                for ci in CHIPSET_DB.values():
-                    for ps in ci.get("_product_strings", []):
-                        if ps.lower() in prod.lower():
-                            cpid = ci["cpid"]
-                            exploit_type = ci.get("bootrom_exploit")
-                            return (cpid, exploit_type)
+                prod = _safe_str(device.product)
+                if prod and HAS_CHIPSET_DB:
+                    ci = chipset_for_device_string(prod)
+                    if ci is not None:
+                        cpid = ci["cpid"]
+                        exploit_type = ci.get("bootrom_exploit")
+                        return (cpid, exploit_type)
+                    for ci in CHIPSET_DB.values():
+                        for ps in ci.get("_product_strings", []):
+                            if ps.lower() in prod.lower():
+                                cpid = ci["cpid"]
+                                exploit_type = ci.get("bootrom_exploit")
+                                return (cpid, exploit_type)
+            finally:
+                try:
+                    usb.util.dispose(device)
+                except Exception:
+                    pass
         time.sleep(0.5)
     return None
 
@@ -178,8 +186,10 @@ def _device_reports_pwndfu(device: usb.core.Device, marker: str) -> bool:
         _safe_str(getattr(device, "product", None)),
     )
     wanted = marker.lower()
-    if any(value and "pwnd" in value.lower() and wanted in value.lower()
-           for value in values):
+    if any(
+        value and "pwnd" in value.lower() and wanted in value.lower()
+        for value in values
+    ):
         return True
     try:
         import subprocess
@@ -232,8 +242,10 @@ def _run_checkm8(device: usb.core.Device, cpid: int) -> bool:
 
     time.sleep(1.0)
     if not _device_reports_pwndfu(device, "checkm8"):
-        print("  [!] checkm8 transfers completed without verified PWNDFU evidence",
-              file=sys.stderr)
+        print(
+            "  [!] checkm8 transfers completed without verified PWNDFU evidence",
+            file=sys.stderr,
+        )
         return False
     return True
 
@@ -271,8 +283,10 @@ def _run_limera1n(device: usb.core.Device, cpid: int) -> bool:
 
     time.sleep(1.0)
     if not _device_reports_pwndfu(device, "limera1n"):
-        print("  [!] limera1n transfers completed without verified PWNDFU evidence",
-              file=sys.stderr)
+        print(
+            "  [!] limera1n transfers completed without verified PWNDFU evidence",
+            file=sys.stderr,
+        )
         return False
     return True
 
@@ -374,6 +388,11 @@ def jailbreak_device(
     except (RuntimeError, usb.core.USBError) as exc:
         result["error"] = str(exc)
         return result
+    finally:
+        try:
+            usb.util.dispose(device)
+        except Exception:
+            pass
 
     if not exploit_success:
         result["error"] = f"{exploit_type} exploit sequence failed"

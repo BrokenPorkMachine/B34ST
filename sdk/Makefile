@@ -12,6 +12,8 @@ OBJECTS := $(patsubst src/%.c,$(BUILD_DIR)/%.o,$(SOURCES))
 LIBRARY := $(BUILD_DIR)/libfbr34ker_sdk.a
 EXAMPLES := minimal_loader callback_console framebuffer_loader
 
+SDK_DEPENDENCIES := $(patsubst src/%.c,$(BUILD_DIR)/%.d,$(SOURCES))
+
 .PHONY: all test examples clean
 all: $(LIBRARY)
 
@@ -19,10 +21,12 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 $(BUILD_DIR)/%.o: src/%.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -MMD -MP -MF $(@:.o=.d) -c $< -o $@
 
 $(LIBRARY): $(OBJECTS)
 	$(AR) rcs $@ $^
+
+-include $(SDK_DEPENDENCIES)
 
 examples: $(addprefix $(BUILD_DIR)/,$(EXAMPLES))
 

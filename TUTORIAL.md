@@ -1,4 +1,4 @@
-# FBR34KER Tutorial — 0.6.0_beta Beta
+# FBR34KER Tutorial — 0.6.1b
 
 ## 1. Introduction
 

@@ -21,6 +21,7 @@ Device & exploit:
   load-monitor PATH    Send FBR34KER image via vendor MEM_WRITE
   console              Connect to FBR34KER CDC ACM console
   exploit              Full exploit chain (DWC3 → monitor → jailbreak → boot kernel)
+  jailbreak            Full automated jailbreak (DFU → DWC3 → patches → boot kernel)
 
 Advanced tools:
   chipsets             List all supported A12+ SoCs
@@ -401,6 +402,87 @@ def cmd_exploit(args):
         return 0 if all_pass else 1
 
 
+def cmd_jailbreak(args):
+    """Full automated jailbreak: DFU → DWC3 exploit → FBR34KER → patches → boot."""
+    try:
+        from scripts.run_exploit import BootChain, build_operational, ExploitError
+    except ImportError:
+        sys.path.insert(0, str(ROOT / "scripts"))
+        from run_exploit import BootChain, build_operational, ExploitError
+
+    monitor = args.monitor
+    if monitor is None:
+        monitor = build_operational()
+    elif not os.path.isfile(monitor):
+        monitor = str(ROOT / monitor)
+        if not os.path.isfile(monitor):
+            raise CliError(f"monitor image not found: {monitor}")
+
+    print()
+    print(f"  {'=' * 56}")
+    print(f"  {Colors.BOLD}  FBR34KER USBliter8 Jailbreak v{VERSION}{Colors.RESET}")
+    print(f"  {Colors.DIM}  A12+ DFU → DWC3 exploit → FBR34KER boot → security bypasses{Colors.RESET}")
+    print(f"  {Colors.DIM}  → kernel patch → boot-args injection → jailbroken kernel boot{Colors.RESET}")
+    print(f"  {'=' * 56}")
+    print()
+
+    with BootChain(
+        monitor_path=monitor,
+        kernel_path=args.kernel,
+        device_serial=args.ecid,
+        timeout=args.timeout,
+    ) as chain:
+        results = chain.run_all()
+
+        print(f"\n  {Colors.BOLD}Jailbreak Chain Results{Colors.RESET}")
+        step_labels = {
+            "device_found": "Device detected in DFU",
+            "dwc_exploited": "DWC3 exploit delivered",
+            "monitor_sent": "FBR34KER monitor loaded",
+            "monitor_executed": "Monitor executing on device",
+            "console_connected": "Console connected",
+            "exploit_chain": "Exploit chain (bypasses + patches)",
+            "jailbreak_chain": "Jailbreak chain (KASLR + boot-args + SEP)",
+            "kernel_booted": "Kernel booted with modified boot-args",
+        }
+        all_pass = True
+        for step, result in results.items():
+            if step == "chipset_detected":
+                continue
+            label = step_labels.get(step, step.replace("_", " ").title())
+            mark = f"{Colors.GREEN}OK{Colors.RESET}" if result else f"{Colors.RED}FAIL{Colors.RESET}"
+            print(f"    {mark}  {label}")
+            if not result:
+                all_pass = False
+        if results.get("chipset_detected"):
+            print(f"           Chipset: {chain.dev.chipset_name}")
+        print(f"  {'=' * 56}")
+
+        if all_pass:
+            print(f"  {Colors.GREEN}{Colors.BOLD}JAILBREAK SUCCESSFUL{Colors.RESET}")
+            print(f"  {Colors.DIM}Device is booting with security bypasses and custom boot-args.{Colors.RESET}")
+            print(f"  {Colors.DIM}Connect via console to verify: ./fbr34ker console{Colors.RESET}")
+        else:
+            print(f"  {Colors.RED}Jailbreak chain incomplete — see results above.{Colors.RESET}")
+
+        if args.evidence:
+            ev_data = {
+                "operation": "jailbreak",
+                "version": VERSION,
+                "monitor": monitor,
+                "kernel": args.kernel,
+                "chipset": chain.dev.chipset,
+                "chipset_name": chain.dev.chipset_name,
+                "results": {k: bool(v) for k, v in results.items()},
+            }
+            ev_path = pathlib.Path(args.evidence)
+            ev_path.parent.mkdir(parents=True, exist_ok=True)
+            ev_path.write_text(json.dumps(ev_data, indent=2))
+            print(f"  Evidence: {ev_path}")
+
+        return 0 if all_pass else 1
+
+
 def cmd_pwndfu(args):
     try:
         from usb_serial import USBDevice
@@ -646,6 +728,7 @@ def _run_and_show(args_list, msg=""):
             "chipsets": cmd_chipsets,
             "detect": cmd_detect,
             "exploit": cmd_exploit,
+            "jailbreak": cmd_jailbreak,
             "device": cmd_device,
             "package": cmd_package,
             "gate": cmd_gate,
@@ -822,40 +905,44 @@ def _menu_device():
         _clear()
         _title("Device Operations")
         _box("Choose an option", [
-            (1, "Legacy exploit chain (not accepted as runtime evidence)"),
-            (2, "Send DWC3 exploit & enter PWNDFU"),
-            (3, "Load FBR34KER monitor via USB"),
-            (4, "Connect to CDC ACM console"),
-            (5, "Auto-detect connected device"),
-            (6, "Show device info"),
-            (7, "Back to main menu"),
+            (1, "Full automated jailbreak (DFU → boot)"),
+            (2, "Legacy exploit chain (not accepted as runtime evidence)"),
+            (3, "Send DWC3 exploit & enter PWNDFU"),
+            (4, "Load FBR34KER monitor via USB"),
+            (5, "Connect to CDC ACM console"),
+            (6, "Auto-detect connected device"),
+            (7, "Show device info"),
+            (8, "Back to main menu"),
         ])
-        c = _prompt("Selection", "7")
+        c = _prompt("Selection", "8")
         _clear(); _title("Device")
         if c == "1":
-            _run_and_show(["exploit", "--auto"])
+            _run_and_show(["jailbreak"])
             _wait()
         elif c == "2":
-            _run_and_show(["pwndfu"])
+            _run_and_show(["exploit", "--auto"])
             _wait()
         elif c == "3":
+            _run_and_show(["pwndfu"])
+            _wait()
+        elif c == "4":
             path = _prompt("Path to monitor binary", "build-generic/fbr34ker-generic.bin")
             if path and os.path.isfile(path):
                 _run_and_show(["load-monitor", path])
             else:
                 _warn("File not found — build first (option 2 in Build menu)")
             _wait()
-        elif c == "4":
+        elif c == "5":
             _info("Connecting to console (Ctrl-D to exit)...")
             _run_and_show(["console"])
             _wait()
-        elif c == "5":
+        elif c == "6":
             _run_and_show(["detect"])
             _wait()
-        elif c == "6":
+        elif c == "7":
             _run_and_show(["device"])
             _wait()
-        elif c in ("7", "q", ""):
+        elif c in ("8", "q", ""):
             return
 
 def _menu_chipset():
@@ -1043,10 +1130,11 @@ def cmd_menu(args):
             (3, "Build project"),
             (4, "Test and verify"),
             (5, "Run in QEMU"),
-            (6, "Inspect or work with a device"),
-            (7, "Package and release"),
-            (8, "Advanced tools"),
-            (9, "Supported chipsets"),
+            (6, "Jailbreak device (full automated chain)"),
+            (7, "Inspect or work with a device"),
+            (8, "Package and release"),
+            (9, "Advanced tools"),
+            (10, "Supported chipsets"),
             (0, "Exit"),
         ], width=64)
         c = _prompt("Selection", "1")
@@ -1061,12 +1149,15 @@ def cmd_menu(args):
         elif c == "5":
             _menu_qemu()
         elif c == "6":
-            _menu_device()
+            _run_and_show(["jailbreak"])
+            _wait()
         elif c == "7":
-            _menu_release()
+            _menu_device()
         elif c == "8":
-            _menu_tools()
+            _menu_release()
         elif c == "9":
+            _menu_tools()
+        elif c == "10":
             _menu_chipset()
         elif c in ("0", "q", ""):
             _clear()
@@ -1161,6 +1252,19 @@ def build_parser():
     ep.add_argument("--timeout", type=float, default=30.0)
     ep.add_argument("--evidence", help="write evidence JSON to path")
     ep.add_argument("--auto", action="store_true", help="auto-build monitor")
+
+    jp = sub.add_parser("jailbreak",
+        help="Full automated jailbreak: DFU → DWC3 exploit → patches → boot kernel",
+        description="Automated USBliter8 jailbreak for A12+ devices. "
+                    "Triggers the DWC3 USB controller exploit, loads the FBR34KER monitor, "
+                    "applies security bypasses (PAC, APRR, W^X), kernel patches (AMFI, sandbox, "
+                    "codesign), injects custom boot-args, and boots the jailbroken kernel.",
+    )
+    jp.add_argument("--monitor", help="path to FBR34KER monitor binary (auto-built if omitted)")
+    jp.add_argument("--kernel", help="kernelcache physical address visible to the monitor")
+    jp.add_argument("--ecid", help="device ECID / serial for targeting")
+    jp.add_argument("--timeout", type=float, default=30.0)
+    jp.add_argument("--evidence", help="write evidence JSON to path")
 
     pp = sub.add_parser("pwndfu")
     pp.add_argument("--ecid")
@@ -1264,7 +1368,7 @@ def main(argv=None):
     short = {
         "-V": ["version"], "-D": ["doctor"], "-b": ["build"],
         "-t": ["test"], "-c": ["clean"], "-e": ["exploit", "--auto"],
-        "-d": ["device"], "-S": ["chipsets"],
+        "-j": ["jailbreak"], "-d": ["device"], "-S": ["chipsets"],
     }
     if len(raw) == 1 and raw[0] in short:
         raw = short[raw[0]]
@@ -1288,6 +1392,7 @@ def main(argv=None):
             "chipsets": cmd_chipsets,
             "detect": cmd_detect,
             "exploit": cmd_exploit,
+            "jailbreak": cmd_jailbreak,
             "pwndfu": cmd_pwndfu,
             "load-monitor": cmd_load_monitor,
             "console": cmd_console,

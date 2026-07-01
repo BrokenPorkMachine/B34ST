@@ -7,7 +7,7 @@ from b34st.version import B34STVersion, VersionError, __version__
 
 class B34STVersionTests(unittest.TestCase):
     def test_current_beta_version_is_valid(self) -> None:
-        self.assertEqual(__version__, "0.6.0_beta")
+        self.assertEqual(__version__, "0.6.1b")
         self.assertTrue(B34STVersion.validate_version())
 
     def test_supported_release_version_forms(self) -> None:

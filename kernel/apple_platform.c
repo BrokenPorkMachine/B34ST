@@ -224,7 +224,7 @@ bool apple_probe_soc(void)
      *
      *   A15 (T8110): PMGR @ 0x83D600000, UART @ 0x81D000000
      *   M2  (T8112): PMGR @ 0x83D600000, UART @ 0x823000000
-     *   A14 (T8030): PMGR @ 0x83D000000, UART @ 0x81D000000
+     *   A14 (T8101): PMGR @ 0x83D000000, UART @ 0x81D000000
      *   A12/A13/M1:  PMGR @ 0x83D000000, UART @ 0x823000000
      */
     u32 pmgr_high_v = 0U;

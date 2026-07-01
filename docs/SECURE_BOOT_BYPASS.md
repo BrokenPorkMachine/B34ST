@@ -19,7 +19,7 @@ and status tracking within the state machine.
 
 ## Build modes
 
-**Default build (`make`):** All mutation paths disabled. `activate|forgive` return failure.
+**Default build (`make`):** Physical writes are disabled; operations update the bounded state model.
 
 **Operational build (`make SECURITY_MODEL=1 build-operational`):** All bypass operations active.
 Each bypass type can be individually activated, forgiven (deactivated), or inspected.

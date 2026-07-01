@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""USBliter8 DWC3 exploit payloads for A12+ devices.
+"""Experimental USBliter8 DWC3 transfer corpus for A12+ devices.
 
-Provides USB control transfer sequences to trigger the DWC3 firmware
-vulnerability and enter PWNDFU mode with vendor request capability.
+Transfer completion does not establish exploitation. Callers must verify the
+vendor-request interface independently and fail closed when it is absent.
 """
 
 from __future__ import annotations
@@ -18,11 +18,11 @@ VENDOR_REQ_MEM_WRITE = 0x03
 VENDOR_REQ_EXECUTE = 0x04
 
 SUPPORTED_CPIDS = {
-    0x8015,  # T8015 (A12)
+    0x8020,  # T8020 (A12)
     0x8027,  # T8027 (A12X)
     0x8028,  # T8028 (A12Z)
-    0x8020,  # T8020 (A13)
-    0x8030,  # T8030 (A14)
+    0x8030,  # T8030 (A13)
+    0x8101,  # T8101 (A14)
     0x8103,  # T8103 (M1)
     0x8110,  # T8110 (A15)
     0x8112,  # T8112 (M2)
@@ -157,11 +157,11 @@ DWC3_FW_V2_PATCH_FULL = bytes(
 )
 
 CPID_PATCH_MAP = {
-    0x8015: (6, DWC3_FW_V1_PATCH),
+    0x8020: (6, DWC3_FW_V1_PATCH),
     0x8027: (6, DWC3_FW_V1_PATCH),
     0x8028: (6, DWC3_FW_V1_PATCH),
-    0x8020: (6, DWC3_FW_V2_PATCH),
-    0x8030: (7, DWC3_FW_V2_PATCH_EXTENDED),
+    0x8030: (6, DWC3_FW_V2_PATCH),
+    0x8101: (7, DWC3_FW_V2_PATCH_EXTENDED),
     0x8103: (8, DWC3_FW_V2_PATCH_FULL),
     0x8110: (8, DWC3_FW_V2_PATCH_FULL),
     0x8112: (8, DWC3_FW_V2_PATCH_FULL),
@@ -175,7 +175,7 @@ USB_DWC3_MMIO_BASE = 0x860000000
 
 
 def _build_patch_sequence(patch_data: bytes) -> list[tuple[int, int, int, int, bytes]]:
-    """Build USB control transfer sequence for DWC3 debug patch write."""
+    """Build an experimental DWC3 debug-write transfer sequence."""
     transfers = []
     num_words = len(patch_data) // 4
 
@@ -201,7 +201,7 @@ def _build_patch_sequence(patch_data: bytes) -> list[tuple[int, int, int, int, b
 def get_exploit_payload_tuples(
     cpid: int,
 ) -> list[tuple[int, int, int, int, bytes]] | None:
-    """Get the USB control transfer sequence for the given CPID.
+    """Get the experimental USB transfer sequence for the given CPID.
 
     Returns a list of tuples: (bmRequestType, bRequest, wValue, wIndex, data)
     suitable for usb.core.Device.ctrl_transfer().
@@ -245,11 +245,11 @@ def get_supported_cpids() -> list[int]:
 def get_cpid_name(cpid: int) -> str:
     """Get human-readable name for a CPID."""
     names = {
-        0x8015: "T8015 (A12)",
+        0x8020: "T8020 (A12)",
         0x8027: "T8027 (A12X)",
         0x8028: "T8028 (A12Z)",
-        0x8020: "T8020 (A13)",
-        0x8030: "T8030 (A14)",
+        0x8030: "T8030 (A13)",
+        0x8101: "T8101 (A14)",
         0x8103: "T8103 (M1)",
         0x8110: "T8110 (A15)",
         0x8112: "T8112 (M2)",

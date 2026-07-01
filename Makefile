@@ -371,6 +371,11 @@ check-native:
 		kernel/string.c kernel/mmio.c tests/security_model_harness.c \
 		-o $(BUILD_DIR)/tests/security_model_harness
 	$(BUILD_DIR)/tests/security_model_harness
+	$(CC) -std=c11 -O2 -ffreestanding -fno-builtin -Wall -Wextra -Werror -Iinclude \
+		-DFBR34KER_ENABLE_SECURITY_MODEL=1 kernel/kernel_patches.c kernel/mmio.c \
+		kernel/string.c tests/security_model_operational_harness.c \
+		-o $(BUILD_DIR)/tests/security_model_operational_harness
+	$(BUILD_DIR)/tests/security_model_operational_harness
 
 
 check-loader-example:

@@ -1,10 +1,15 @@
-# FBR34KER 0.6.0_beta Beta completeness and correctness audit
+# FBR34KER 0.6.1b Beta completeness and correctness audit
 
 ## Outcome
 
-The 0.6.0_beta tree is prepared as a **Beta patch release** for deterministic QEMU
+The 0.6.1b tree is prepared as a **Beta patch release** for deterministic QEMU
 validation, external-loader integration, evidence-gated physical bring-up, and
 guided tethered-downgrade planning.
+
+The July 1 correctness remediation fixed the operational-build flag override,
+Apple CPID drift, unsafe kernel-version scanning, ignored MMIO failures,
+unbounded persistence offsets, false USB success reporting, stale release
+metadata, and incomplete top-level test discovery.
 
 ## Audited release surfaces
 
@@ -15,6 +20,10 @@ guided tethered-downgrade planning.
 - A12 through A15 and M1/M2 profile/build/manifest/package coverage;
 - A12X/T8027 and A12Z/T8028 profile identity plus bounded Apple MMIO
   discrimination;
+- A12/T8020, A13/T8030, and A14/T8101 identity consistency across every
+  profile, example, host map, and firmware table;
+- mutation-enabled apply/revert success and failure propagation;
+- fail-closed PWNDFU, vendor-request, and monitor re-enumeration evidence;
 - monitor formatting behavior and native regression coverage;
 - tether-adapter discovery, execution contract, evidence, documentation, and
   public-tool compatibility guidance;

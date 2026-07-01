@@ -72,8 +72,8 @@ int main(void)
 
     /* individual bypass functions work */
     if (!secure_boot_bypass_image4_signature()) return 11;
-    if (!secure_boot_bypass_forge_signature(output, &output_size,
-                                             manifest, sizeof(manifest))) return 12;
+    if (secure_boot_bypass_forge_signature(output, &output_size,
+                                            manifest, sizeof(manifest))) return 12;
 
     /* can activate all bypasses */
     if (!secure_boot_bypass_activate_all()) return 13;
@@ -84,6 +84,13 @@ int main(void)
     if (!persistence_deploy_all()) return 15;
     if (!persistence_activate_all()) return 16;
     if (!persistence_enable_ota_persistence()) return 17;
+
+    /* A physical base is metadata, never an in-array write offset. */
+    if (!persistence_allocate_hidden_storage(0x800000000ULL, 32U)) return 22;
+    if (!persistence_store_payload("bounded", manifest, sizeof(manifest))) return 23;
+    ps = persistence_status();
+    if (ps.hidden_storage_base != 0x800000000ULL) return 24;
+    if (ps.hidden_storage[0] != 1U || ps.hidden_storage[2] != 3U) return 25;
 
     /* verify state after operations */
     ps = persistence_status();

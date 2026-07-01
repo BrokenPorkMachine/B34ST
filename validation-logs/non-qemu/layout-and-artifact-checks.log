@@ -1,22 +1,22 @@
 python3 scripts/verify_layout.py build/fbr34ker.elf --expected-entry 0x40080000
 layout verification passed
   entry=0x0000000040080000
-  vectors=0x00000000400a5000 size=2048
+  vectors=0x00000000400a6000 size=2048
   stack=65536 bytes with 2x4096-byte guards
   heap=4194304 bytes
-  build_info=0x00000000400a5800 size=148
+  build_info=0x00000000400a6800 size=148
   crashlog=464 bytes
-  boot_evidence=0x00000000400b17f0 size=56
+  boot_evidence=0x00000000400b2c40 size=56
   relocations=none
 python3 scripts/verify_layout.py build-generic/fbr34ker-generic.elf --expected-entry 0x80000000
 layout verification passed
   entry=0x0000000080000000
-  vectors=0x0000000080028000 size=2048
+  vectors=0x0000000080029000 size=2048
   stack=65536 bytes with 2x4096-byte guards
   heap=4194304 bytes
-  build_info=0x0000000080028800 size=148
+  build_info=0x0000000080029800 size=148
   crashlog=464 bytes
-  boot_evidence=0x0000000080034850 size=56
+  boot_evidence=0x0000000080035cb0 size=56
   relocations=none
 python3 scripts/verify_layout.py build-loader/fbr34ker-qemu-loader.elf --expected-entry 0x40080000 --profile loader
 layout verification passed
@@ -29,18 +29,18 @@ layout verification passed
 python3 scripts/verify_layout.py build-hardware-probe/fbr34ker-hardware-probe.elf --expected-entry 0x80000000
 layout verification passed
   entry=0x0000000080000000
-  vectors=0x0000000080028000 size=2048
+  vectors=0x0000000080029000 size=2048
   stack=65536 bytes with 2x4096-byte guards
   heap=4194304 bytes
-  build_info=0x0000000080028800 size=148
+  build_info=0x0000000080029800 size=148
   crashlog=464 bytes
-  boot_evidence=0x0000000080034850 size=56
+  boot_evidence=0x0000000080035cb0 size=56
   relocations=none
 python3 host/fbr34kctl.py manifest build/fbr34ker.bin
 {
   "file": "fbr34ker.bin",
-  "sha256": "b13e48c4220c6abddd079df07acb2731cc3b940ad863a08ad5a1fd55d97b5615",
-  "size": 202272
+  "sha256": "d939d90dc8e8224b63f5eedf7c713c52f2259591f64660419823a5895916d36b",
+  "size": 207472
 }
 python3 host/boot_image.py inspect build-apple/a12/boot.img --json >/dev/null
 python3 host/boot_image.py inspect build-apple/a12x/boot.img --json >/dev/null

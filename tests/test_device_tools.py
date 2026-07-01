@@ -15,7 +15,7 @@ class DeviceToolsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             device = pathlib.Path(d) / "device.json"
             device.write_text(
-                json.dumps({"cpid": "0x8020", "mode": "DFU", "ecid": "1"})
+                json.dumps({"cpid": "0x8030", "mode": "DFU", "ecid": "1"})
             )
             result = subprocess.run(
                 [
@@ -41,7 +41,7 @@ class DeviceToolsTests(unittest.TestCase):
             device.write_text(
                 json.dumps(
                     {
-                        "cpid": "0x8020",
+                        "cpid": "0x8030",
                         "mode": "DFU",
                         "ecid": "1",
                         "product": "iPhone12,1",
@@ -73,7 +73,7 @@ class DeviceToolsTests(unittest.TestCase):
             first.write_text(
                 json.dumps(
                     {
-                        "cpid": "0x8020",
+                        "cpid": "0x8030",
                         "mode": "DFU",
                         "ecid": "1",
                         "product": "iPhone12,1",
@@ -83,7 +83,7 @@ class DeviceToolsTests(unittest.TestCase):
             second.write_text(
                 json.dumps(
                     {
-                        "cpid": "0x8020",
+                        "cpid": "0x8030",
                         "mode": "Recovery",
                         "ecid": "1",
                         "product": "iPhone12,1",

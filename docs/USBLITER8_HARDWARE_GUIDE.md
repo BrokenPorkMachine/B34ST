@@ -244,7 +244,7 @@ After preparation, verify your setup:
 
 ### "DWC3 exploit failed"
 
-- Ensure SoC is A12+ (CPID >= 0x8015)
+- Ensure the exact CPID is present in the reviewed target table; numeric range checks are not sufficient
 - Check DWC3 firmware version compatibility
 - Some devices with patched DWC3 firmware may not be exploitable
 - Try with a different host USB controller

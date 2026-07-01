@@ -37,10 +37,10 @@ typedef struct {
 } soc_patch_offsets_t;
 
 static const soc_patch_offsets_t soc_offsets[] = {
-    /* ── A12 (T8015) ─────────────────────────────────────── */
+    /* ── A12 (T8020) ─────────────────────────────────────── */
     {
-        .cpid = 0x8015,
-        .name = "T8015 (A12) iOS 16",
+        .cpid = 0x8020,
+        .name = "T8020 (A12) iOS 16",
         .ios_ver = IOS_VERSION_16,
         .amfi_offset =          0x00A00000ULL,
         .task_for_pid_offset =  0x00500000ULL,
@@ -52,8 +52,8 @@ static const soc_patch_offsets_t soc_offsets[] = {
         .cs_enforcement_offset = 0x00A00080ULL,
     },
     {
-        .cpid = 0x8015,
-        .name = "T8015 (A12) iOS 17+",
+        .cpid = 0x8020,
+        .name = "T8020 (A12) iOS 17+",
         .ios_ver = IOS_VERSION_17,
         .amfi_offset =          0x00B00000ULL,
         .task_for_pid_offset =  0x00520000ULL,
@@ -64,10 +64,10 @@ static const soc_patch_offsets_t soc_offsets[] = {
         .pe_debugger_offset =   0x00E00000ULL,
         .cs_enforcement_offset = 0x00B00080ULL,
     },
-    /* ── A13 (T8020) ─────────────────────────────────────── */
+    /* ── A13 (T8030) ─────────────────────────────────────── */
     {
-        .cpid = 0x8020,
-        .name = "T8020 (A13) iOS 16",
+        .cpid = 0x8030,
+        .name = "T8030 (A13) iOS 16",
         .ios_ver = IOS_VERSION_16,
         .amfi_offset =          0x00A00000ULL,
         .task_for_pid_offset =  0x00500000ULL,
@@ -79,8 +79,8 @@ static const soc_patch_offsets_t soc_offsets[] = {
         .cs_enforcement_offset = 0x00A00080ULL,
     },
     {
-        .cpid = 0x8020,
-        .name = "T8020 (A13) iOS 17+",
+        .cpid = 0x8030,
+        .name = "T8030 (A13) iOS 17+",
         .ios_ver = IOS_VERSION_17,
         .amfi_offset =          0x00B00000ULL,
         .task_for_pid_offset =  0x00520000ULL,
@@ -118,10 +118,10 @@ static const soc_patch_offsets_t soc_offsets[] = {
         .pe_debugger_offset =   0x00E40000ULL,
         .cs_enforcement_offset = 0x00B40080ULL,
     },
-    /* ── A14 (T8030) ─────────────────────────────────────── */
+    /* ── A14 (T8101) ─────────────────────────────────────── */
     {
-        .cpid = 0x8030,
-        .name = "T8030 (A14) iOS 16",
+        .cpid = 0x8101,
+        .name = "T8101 (A14) iOS 16",
         .ios_ver = IOS_VERSION_16,
         .amfi_offset =          0x00A80000ULL,
         .task_for_pid_offset =  0x00580000ULL,
@@ -133,8 +133,8 @@ static const soc_patch_offsets_t soc_offsets[] = {
         .cs_enforcement_offset = 0x00A80080ULL,
     },
     {
-        .cpid = 0x8030,
-        .name = "T8030 (A14) iOS 17+",
+        .cpid = 0x8101,
+        .name = "T8101 (A14) iOS 17+",
         .ios_ver = IOS_VERSION_17,
         .amfi_offset =          0x00B80000ULL,
         .task_for_pid_offset =  0x005A0000ULL,
@@ -263,14 +263,21 @@ static ios_version_t scan_kernel_version_string(u64 base)
     for (u64 off = 0U; off < scan_limit; off += 16U) {
         char buf[32];
         bool ok = true;
-        for (int i = 0; i < 32; ++i) {
-            u8 val = 0U;
-            if (!mmio_probe_read32(base + off + i, (u32 *)&val)) {
+        fm_memset(buf, 0, sizeof(buf));
+        for (u32 i = 0U; i < sizeof(buf); i += 4U) {
+            u32 word = 0U;
+            if (!mmio_probe_read32(base + off + i, &word)) {
                 ok = false;
                 break;
             }
-            buf[i] = (char)val;
-            if (val == 0U) break;
+            buf[i] = (char)(word & 0xFFU);
+            buf[i + 1U] = (char)((word >> 8U) & 0xFFU);
+            buf[i + 2U] = (char)((word >> 16U) & 0xFFU);
+            buf[i + 3U] = (char)((word >> 24U) & 0xFFU);
+            if (buf[i] == '\0' || buf[i + 1U] == '\0' ||
+                buf[i + 2U] == '\0' || buf[i + 3U] == '\0') {
+                break;
+            }
         }
         if (!ok) continue;
         for (int m = 0; ios17_markers[m]; ++m) {
@@ -381,7 +388,7 @@ void kernel_patches_init(void)
     state.privilege_escalated = false;
     state.escalation_level = 1U;
     if (active_cpid == 0U) {
-        active_cpid = 0x8015U;
+        active_cpid = 0x8020U;
     }
     if (kernel_base == 0U) {
         kernel_base = KERNEL_BASE;
@@ -424,7 +431,9 @@ bool kernel_patches_register(const char *name, kernel_patch_type_t type,
                               u64 original_value, u64 patch_value,
                               bool persistent)
 {
-    if (name == NULL ||
+    if (name == NULL || target_address == 0U ||
+        patch_size == 0U || patch_size > sizeof(u64) ||
+        (patch_size != 4U && patch_size != 8U) ||
         state.patch_count >= MAX_KERNEL_PATCHES ||
         type >= KERNEL_PATCH_TYPE_COUNT) {
         return false;
@@ -466,25 +475,36 @@ static bool apply_patch_entry(kernel_patch_entry_t *entry)
     }
     u64 patch_val = entry->patch_value;
     u64 patch_sz = entry->patch_size;
+    bool write_ok = true;
     switch (entry->type) {
     case KERNEL_PATCH_TYPE_MEMORY:
         for (u64 off = 0U; off < patch_sz && off < 8U; off += 4U) {
-            (void)mmio_write32(patch_addr + off, (u32)(patch_val >> (off * 8U)));
+            if (!mmio_write32(patch_addr + off,
+                              (u32)(patch_val >> (off * 8U)))) {
+                write_ok = false;
+                break;
+            }
         }
         break;
     case KERNEL_PATCH_TYPE_PRIVILEGE:
     case KERNEL_PATCH_TYPE_AUTHENTICATION:
     case KERNEL_PATCH_TYPE_MONITOR_HOOK:
-        if (patch_sz >= 4U) {
-            (void)mmio_write32(patch_addr, (u32)patch_val);
-        }
-        break;
     case KERNEL_PATCH_TYPE_SYSTEM_CALL:
     case KERNEL_PATCH_TYPE_IO_REMAP:
     case KERNEL_PATCH_TYPE_INTERRUPT:
+        write_ok = mmio_write32(patch_addr, (u32)patch_val);
+        break;
     case KERNEL_PATCH_TYPE_COUNT:
     default:
+        write_ok = false;
         break;
+    }
+    if (!write_ok) {
+        entry->state = KERNEL_PATCH_STATE_FAILED;
+        ++state.failed_count;
+        log_write(LOG_LEVEL_ERROR, "kernel patch '%s' write failed at 0x%llx",
+                  entry->name, patch_addr);
+        return false;
     }
 #endif
     entry->state = KERNEL_PATCH_STATE_APPLIED;
@@ -498,6 +518,45 @@ static bool apply_patch_entry(kernel_patch_entry_t *entry)
               "simulated"
 #endif
               );
+    return true;
+}
+
+static bool revert_patch_entry(kernel_patch_entry_t *entry)
+{
+    if (entry == NULL || !entry->applied) {
+        return false;
+    }
+#ifdef FBR34KER_ENABLE_SECURITY_MODEL
+    u64 patch_addr = entry->target_address;
+    if (dram_phys_base != 0U && patch_addr >= APPLE_IOS_KERNEL_BASE) {
+        patch_addr = dram_phys_base + (patch_addr - APPLE_IOS_KERNEL_BASE);
+    }
+    bool write_ok = true;
+    if (entry->type == KERNEL_PATCH_TYPE_MEMORY) {
+        for (u64 off = 0U; off < entry->patch_size && off < 8U; off += 4U) {
+            if (!mmio_write32(
+                    patch_addr + off,
+                    (u32)(entry->original_value >> (off * 8U)))) {
+                write_ok = false;
+                break;
+            }
+        }
+    } else {
+        write_ok = mmio_write32(patch_addr, (u32)entry->original_value);
+    }
+    if (!write_ok) {
+        entry->state = KERNEL_PATCH_STATE_FAILED;
+        ++state.failed_count;
+        log_write(LOG_LEVEL_ERROR, "kernel patch '%s' revert failed at 0x%llx",
+                  entry->name, patch_addr);
+        return false;
+    }
+#endif
+    entry->state = KERNEL_PATCH_STATE_REVERTED;
+    entry->applied = false;
+    if (state.applied_count > 0U) {
+        --state.applied_count;
+    }
     return true;
 }
 
@@ -537,10 +596,9 @@ bool kernel_patches_revert_all(void)
     for (u32 i = 0U; i < state.patch_count; ++i) {
         kernel_patch_entry_t *entry = &state.patches[i];
         if (entry->applied) {
-            entry->state = KERNEL_PATCH_STATE_REVERTED;
-            entry->applied = false;
-            if (state.applied_count > 0U) {
-                --state.applied_count;
+            if (!revert_patch_entry(entry)) {
+                all_success = false;
+                continue;
             }
             log_write(LOG_LEVEL_INFO, "reverted kernel patch '%s'",
                       entry->name);
@@ -560,10 +618,8 @@ bool kernel_patches_revert_by_type(kernel_patch_type_t type)
     for (u32 i = 0U; i < state.patch_count; ++i) {
         kernel_patch_entry_t *entry = &state.patches[i];
         if (entry->type == type && entry->applied) {
-            entry->state = KERNEL_PATCH_STATE_REVERTED;
-            entry->applied = false;
-            if (state.applied_count > 0U) {
-                --state.applied_count;
+            if (!revert_patch_entry(entry)) {
+                all_success = false;
             }
         }
     }
@@ -583,16 +639,7 @@ bool kernel_patches_revert_single(u32 index)
     if (index >= state.patch_count) {
         return false;
     }
-    kernel_patch_entry_t *entry = &state.patches[index];
-    if (!entry->applied) {
-        return false;
-    }
-    entry->state = KERNEL_PATCH_STATE_REVERTED;
-    entry->applied = false;
-    if (state.applied_count > 0U) {
-        --state.applied_count;
-    }
-    return true;
+    return revert_patch_entry(&state.patches[index]);
 }
 
 bool kernel_patches_escalate_privilege(u64 target_el)

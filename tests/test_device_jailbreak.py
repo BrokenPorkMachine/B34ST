@@ -169,6 +169,7 @@ class RunCheckm8Tests(unittest.TestCase):
         mock_dev = mock.MagicMock()
         with (
             mock.patch.object(dj, "HAS_CHECKM8", True),
+            mock.patch.object(dj, "_device_reports_pwndfu", return_value=True),
             mock.patch.object(
                 dj.CHECKM8_MODULE, "get_exploit_transfers",
                 return_value=[(0x21, 6, 0x0100, 0, b"payload")],
@@ -179,6 +180,18 @@ class RunCheckm8Tests(unittest.TestCase):
             mock_dev.ctrl_transfer.assert_called_once_with(
                 0x21, 6, 0x0100, 0, b"payload", timeout=5000
             )
+
+    def test_rejects_unverified_pwndfu(self) -> None:
+        mock_dev = mock.MagicMock()
+        with (
+            mock.patch.object(dj, "HAS_CHECKM8", True),
+            mock.patch.object(dj, "_device_reports_pwndfu", return_value=False),
+            mock.patch.object(
+                dj.CHECKM8_MODULE, "get_exploit_transfers",
+                return_value=[(0x21, 6, 0x0100, 0, b"payload")],
+            ),
+        ):
+            self.assertFalse(dj._run_checkm8(mock_dev, 0x8960))
 
 
 class RunLimera1nTests(unittest.TestCase):
@@ -196,6 +209,7 @@ class RunLimera1nTests(unittest.TestCase):
         mock_dev = mock.MagicMock()
         with (
             mock.patch.object(dj, "HAS_LIMERA1N", True),
+            mock.patch.object(dj, "_device_reports_pwndfu", return_value=True),
             mock.patch.object(
                 dj.LIMERA1N_MODULE, "get_exploit_transfers",
                 return_value=[(0x21, 0, 0, 0, b"\x00" * 0x8000)],

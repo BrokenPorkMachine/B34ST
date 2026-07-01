@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This tutorial walks through the complete FBR34KER 0.6.0_beta Beta workflow: toolchain setup, building all targets, running the monitor in QEMU, exercising the jailbreak security-bypass chain, launching the B34ST unified control panel, navigating the 14-category menu system, using the CVE database and exploit chain planner, performing forensic acquisition, running the evidence-gated research-runtime orchestrator, planning and validating research environments, managing sessions, using the loader SDK, creating release packages, and understanding the full boot chain integration. No physical Apple hardware is required for sections 1-6 and most of 7, 9, 10, 12-16, and 18-20 — everything up to the exploit chain runs under QEMU.
+This tutorial walks through the complete FBR34KER 0.6.1b Beta workflow: toolchain setup, building all targets, running the monitor in QEMU, exercising the jailbreak security-bypass chain, launching the B34ST unified control panel, navigating the 14-category menu system, using the CVE database and exploit chain planner, performing forensic acquisition, running the evidence-gated research-runtime orchestrator, planning and validating research environments, managing sessions, using the loader SDK, creating release packages, and understanding the full boot chain integration. No physical Apple hardware is required for sections 1-6 and most of 7, 9, 10, 12-16, and 18-20 — everything up to the exploit chain runs under QEMU.
 
 Key features covered include:
 - Guided tethered downgrade with exact firmware selection and external adapter contracts
@@ -39,7 +39,7 @@ Windows users should use WSL2 with USB passthrough for device operations.
 This checks for Clang, `ld.lld`, `llvm-objcopy`, `qemu-system-aarch64`, `make`, `pyusb`, `libusb`, and the chipset database. Output example:
 
 ```
-FBR34KER 0.6.0_beta-beta — environment diagnostics
+FBR34KER 0.6.1b-beta — environment diagnostics
   [OK]   clang — found
   [OK]   ld.lld — found
   [OK]   llvm-objcopy — found
@@ -56,7 +56,7 @@ Address any `[MISSING]` items before proceeding.
 ## 3. Project structure
 
 ```
-B34ST_0.6.0_beta_Beta/
+B34ST_0.6.1b_Beta/
 ├── TUTORIAL.md            ← this file
 ├── README.md              ← project overview
 ├── CHANGELOG.md           ← version history
@@ -189,7 +189,7 @@ make build-operational
 ./fbr34ker build --security-model
 ```
 
-This produces `build-exploit/fbr34ker-operational.bin`, which is required for the exploit chain and jailbreak boot on physical devices. In default builds, mutation paths (kernel-patches apply, secure-boot-bypass activate, etc.) return failure — they are read-only state models.
+This produces `build-exploit/fbr34ker-operational.bin`, which enables mutation-capable research code. In default builds, mutation paths are bounded state models and perform no physical writes.
 
 ## 5. Running in QEMU
 
@@ -202,8 +202,8 @@ This produces `build-exploit/fbr34ker-operational.bin`, which is required for th
 This boots `build/fbr34ker.bin` under QEMU virt. You will see the monitor's boot banner, initialization logs, and finally the shell prompt:
 
 ```
-FBR34KER 0.6.0_beta (beta)
-Target: qemu_virt; source: 0.6.0_beta-beta
+FBR34KER 0.6.1b (beta)
+Target: qemu_virt; source: 0.6.1b-beta
 Protocol 4; handoff 4; module ABI 1; FMOD 1; FMBC 1
 
 interactive shell ready
@@ -262,7 +262,7 @@ Press `Ctrl-A` then `X`, or close the terminal window.
 This launches the B34ST interactive menu system. The initial screen shows the 14-category menu:
 
 ```
-FBR34KER B34ST v0.6.0_beta — Unified Multi-Tool Control Panel
+FBR34KER B34ST v0.6.1b — Unified Multi-Tool Control Panel
 
  1.  System           6.  Deployment      11.  Module
  2.  Device           7.  Hardware        12.  Research Runtime
@@ -312,7 +312,7 @@ Check version:
 
 ```sh
 ./fbr34ker version
-# → FBR34KER 0.6.0_beta-beta
+# → FBR34KER 0.6.1b-beta
 ```
 
 ## 7. The jailbreak command walkthrough
@@ -485,9 +485,11 @@ boot-kernel: disabling MMU and jumping to 0xFFFFFFF0083C4000
 
 This is expected under QEMU.
 
-## 8. USBliter8 exploit chain walkthrough
+## 8. Experimental USBliter8 research walkthrough
 
-> This section describes the full exploit chain for physical devices. The
+> This section describes an experimental physical-device research sequence,
+> not a verified stock-device exploit. Each transition requires positive
+> target evidence. The
 > public operational release excludes `kernel/`, `arch/`, and `platform/`
 > firmware source, while retaining the public `host/` runtime required by the
 > packaged CLI. Pre-built firmware images in `build-*` contain the compiled
@@ -501,11 +503,11 @@ cable selection, power considerations, and troubleshooting. B34ST's USBliter8
 workflow (`b34st usbliter8`) includes a guided hardware preparation step that
 can be skipped if already completed.
 
-### The complete A12+ exploit flow
+### Intended A12+ research flow
 
 ```
 DFU mode
-  └─ DWC3 USB controller firmware exploit (USBliter8)
+  └─ Target-specific DWC3 research adapter (USBliter8)
        └─ PWNDFU — vendor SET_ADDR/MEM_READ/MEM_WRITE/EXECUTE active
             └─ Write FBR34KER monitor binary to physical DRAM via MEM_WRITE
                  └─ Execute monitor via EXECUTE — FBR34KER boots
@@ -524,7 +526,7 @@ This builds the operational image, then runs:
 
 1. **`step_dfu_wait`** — Wait for A12+ device in DFU mode
 2. **`step_detect_chipset`** — Auto-detect SoC (A12/A13/A14/M1/etc.)
-3. **`step_pwndfu`** — Send DWC3 USBliter8 exploit payload
+3. **`step_pwndfu`** — Send the experimental transfer sequence and require verified vendor-request evidence
 4. **`step_send_monitor`** — Write FBR34KER monitor to DRAM via vendor MEM_WRITE
 5. **`step_execute_monitor`** — Jump to monitor entry point
 6. **`step_connect_console`** — Connect to CDC ACM console
@@ -554,7 +556,7 @@ fbr34ker> jailbreak boot-kernel
 
 ### Key A12+ differences from checkm8 (A5-A11)
 
-- **No bootrom exploit** — A12+ uses DWC3 USB controller firmware exploit (USBliter8)
+- **No bundled verified bootrom exploit** — A12+ requires a reviewed target-specific first stage
 - **Vendor requests** provide physical memory access (SET_ADDR, MEM_READ, MEM_WRITE, EXECUTE)
 - **DWC3 firmware version matters** — v1 and v2 have different exploit payloads
 - **iOS 17+ kernel base is 0xFFFFFFF007804000** vs iOS 16 `0xFFFFFFF007004000`
@@ -1624,7 +1626,7 @@ Produces a clean public release archive in `dist/` containing everything needed 
 
 | Archive | Contents |
 |---|---|
-| `B34ST_0.6.0_beta_Beta_operational.zip` | Public release — no private code |
+| `B34ST_0.6.1b_Beta_operational.zip` | Public release — no private code |
 
 ### Internal full-source release
 
@@ -1639,9 +1641,9 @@ Produces three archives in `dist/`:
 
 | Archive | Contents |
 |---|---|
-| `B34ST_0.6.0_beta_Beta_source.zip` | All source code, docs, scripts (excludes build artifacts) |
-| `B34ST_0.6.0_beta_Beta_operational.zip` | Source + operational artifacts — public release |
-| `B34ST_0.6.0_beta_Beta_complete.zip` | Source + all build artifacts, SDK, boot images, simulations |
+| `B34ST_0.6.1b_Beta_source.zip` | All source code, docs, scripts (excludes build artifacts) |
+| `B34ST_0.6.1b_Beta_operational.zip` | Source + operational artifacts — public release |
+| `B34ST_0.6.1b_Beta_complete.zip` | Source + all build artifacts, SDK, boot images, simulations |
 
 Each archive has a corresponding `.sha256` checksum file.
 
@@ -1650,7 +1652,7 @@ Each archive has a corresponding `.sha256` checksum file.
 The operational release contains:
 
 ```
-B34ST_0.6.0_beta_Beta/
+B34ST_0.6.1b_Beta/
 ├── TUTORIAL.md
 ├── README.md, CHANGELOG.md, LICENSE, SECURITY.md, RELEASE_NOTES.md
 ├── fbr34ker, b34stctl, b34stool.py
@@ -1888,7 +1890,7 @@ The Ctrl-A sequence must be pressed quickly. Try `Ctrl-A` then `X` (uppercase). 
 | `docs/PERSISTENCE.md` | Persistence subsystem, 8 hook types, 16-hook model |
 | `docs/B34ST_DESIGN.md` | B34ST unified multi-tool architecture, session instrumentation |
 | `docs/B34ST_DEVICE_WORKFLOW.md` | Device dashboard, upgrade/erase/downgrade workflows |
-| `docs/B34ST_TASKS.md` | Historical B34ST task list (all complete as of 0.6.0_beta) |
+| `docs/B34ST_TASKS.md` | Historical B34ST task list (all complete as of 0.6.1b) |
 | `docs/LOADER_SDK.md` | SDK usage, handoff ABI v4 builder/validator |
 | `docs/BINARY_HANDOFF.md` | Handoff ABI specification |
 | `docs/HANDOFF.md` | Handoff protocol details |

@@ -171,6 +171,34 @@ def _safe_str(value: object) -> str | None:
         return None
 
 
+def _device_reports_pwndfu(device: usb.core.Device, marker: str) -> bool:
+    """Require positive PWNDFU evidence from USB identity or iRecovery."""
+    values = (
+        _safe_str(getattr(device, "serial_number", None)),
+        _safe_str(getattr(device, "product", None)),
+    )
+    wanted = marker.lower()
+    if any(value and "pwnd" in value.lower() and wanted in value.lower()
+           for value in values):
+        return True
+    try:
+        import subprocess
+
+        result = subprocess.run(
+            ["irecovery", "-q"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    output = (
+        f"{getattr(result, 'stdout', '')}\n{getattr(result, 'stderr', '')}"
+    ).lower()
+    return result.returncode == 0 and "pwnd" in output and wanted in output
+
+
 def _run_checkm8(device: usb.core.Device, cpid: int) -> bool:
     """Send the checkm8 exploit sequence to *device*.
 
@@ -203,6 +231,10 @@ def _run_checkm8(device: usb.core.Device, cpid: int) -> bool:
             return False
 
     time.sleep(1.0)
+    if not _device_reports_pwndfu(device, "checkm8"):
+        print("  [!] checkm8 transfers completed without verified PWNDFU evidence",
+              file=sys.stderr)
+        return False
     return True
 
 
@@ -238,6 +270,10 @@ def _run_limera1n(device: usb.core.Device, cpid: int) -> bool:
             return False
 
     time.sleep(1.0)
+    if not _device_reports_pwndfu(device, "limera1n"):
+        print("  [!] limera1n transfers completed without verified PWNDFU evidence",
+              file=sys.stderr)
+        return False
     return True
 
 

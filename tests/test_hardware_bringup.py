@@ -25,7 +25,7 @@ class HardwareBringupTests(unittest.TestCase):
             [Component("monitor", monitor, 0x80000000, 0x80000000)],
         )
         device = root / "device.json"
-        device.write_text(json.dumps({"cpid": "0x8020", "mode": "DFU", "ecid": "abcd"}))
+        device.write_text(json.dumps({"cpid": "0x8030", "mode": "DFU", "ecid": "abcd"}))
         return image, device
 
     def command(self, root, image, device, *extra):
@@ -112,7 +112,7 @@ class HardwareBringupTests(unittest.TestCase):
             device.write_text(
                 json.dumps(
                     {
-                        "cpid": "0x8020",
+                        "cpid": "0x8030",
                         "mode": "DFU",
                         "ecid": "abcd",
                         "product": "iPhone12,1",

@@ -313,26 +313,23 @@ class USBConsole:
 
 
 class USBDevice:
-    """A12+ device access via DWC3 vendor-specific control requests.
+    """Evidence-gated A12+ access through DWC3 vendor control requests.
 
-    On A12+ devices (T8015/T8020/T8030), after the DWC3 USB controller
-    is exploited via USBliter8, the device accepts vendor-specific control
-    requests on EP0 that provide physical memory read/write and code execution.
+    A reviewed target-specific first stage may expose vendor-specific EP0
+    requests for physical-memory access and code execution. The bundled
+    transfer corpus is experimental and must be followed by a successful
+    vendor-request probe.
 
     This class sends those vendor requests and orchestrates the exploit chain:
 
     1. Find the device (in DFU mode via buttons, or already-booted iOS)
-    2. Send DWC3 firmware exploit payload (USBliter8) as USB control transfers
+    2. Send the experimental USBliter8 transfer corpus
     3. Load FBR34KER monitor image via vendor MEM_WRITE to physical DRAM
     4. Execute FBR34KER via vendor EXECUTE request
     5. Device re-enumerates as composite CDC ACM + DFU (PID 0x1227)
 
-    The exploit payload must be supplied externally via the 'exploit_payload'
-    attribute as a list of USB control transfer tuples:
-
-        [(bmRequestType, bRequest, wValue, wIndex, data_or_length), ...]
-
-    representing the DWC3 firmware exploit control transfers.
+    A transfer sequence is never treated as proof without the verification
+    probe in ``verify_vendor_requests``.
     """
 
     APPLE_VID = 0x05AC
@@ -449,8 +446,9 @@ class USBDevice:
 
     def vendor_read(self, size: int) -> bytes:
         result = self._ctrl_xfer(self.VENDOR_IN, self.VENDOR_REQ_MEM_READ, 0, 0, size)
-        assert isinstance(result, bytes)
-        return result
+        if isinstance(result, int):
+            raise TransportError("vendor read returned a byte count instead of data")
+        return bytes(result)
 
     def vendor_write(self, data: bytes) -> None:
         self._ctrl_xfer(self.VENDOR_OUT, self.VENDOR_REQ_MEM_WRITE, 0, 0, data)
@@ -459,7 +457,11 @@ class USBDevice:
         dram = (self.chipset or {}).get("dram_base", 0x800000000)
         try:
             self.vendor_set_addr(dram)
-            self.vendor_read(4)
+            result = self.vendor_read(4)
+            if len(result) != 4:
+                raise TransportError(
+                    f"vendor read returned {len(result)} bytes; expected 4"
+                )
             self.pwned = True
             return True
         except usb.core.USBError as exc:
@@ -470,7 +472,7 @@ class USBDevice:
             return False
 
     def enter_pwndfu(self) -> bool:
-        """Send the DWC3 firmware exploit (USBliter8) over USB control transfers.
+        """Send the experimental USBliter8 corpus and verify vendor requests.
 
         Automatically selects the correct exploit payload based on the
         detected device's CPID. Raises an error if CPID is not supported.
@@ -550,6 +552,10 @@ class USBDevice:
             if self.chipset is None:
                 raise TransportError("chipset not available; entry address required")
             entry = self.chipset["load_addr"]
+        previous_identity = (
+            getattr(self.device, "bus", None),
+            getattr(self.device, "address", None),
+        )
         try:
             self.vendor_set_addr(entry)
             self._ctrl_xfer(self.VENDOR_OUT, self.VENDOR_REQ_EXECUTE, 0, 0, b"")
@@ -563,10 +569,22 @@ class USBDevice:
             except (usb.core.USBError, TransportError):
                 break
             time.sleep(0.2)
-        time.sleep(2.0)
         self.device = None
         self.pwned = False
-        return True
+        deadline = time.monotonic() + 15.0
+        while time.monotonic() < deadline:
+            candidate = find_monitor(self.vid, 0x1227, self.serial)
+            if candidate is not None:
+                identity = (
+                    getattr(candidate, "bus", None),
+                    getattr(candidate, "address", None),
+                )
+                if identity != previous_identity:
+                    self.device = candidate
+                    return True
+            time.sleep(0.25)
+        print("[!] monitor did not re-enumerate after EXECUTE", file=sys.stderr)
+        return False
 
     def close(self) -> None:
         self._release()

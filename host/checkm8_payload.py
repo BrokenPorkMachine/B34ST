@@ -1,10 +1,7 @@
-"""checkm8 BootROM exploit payloads for A7–A11 (and T2) devices.
+"""Experimental checkm8 transfer planner for A7–A11 and T2 devices.
 
-checkm8 (CVE-2019-2025) is a permanent unpatchable BootROM vulnerability
-affecting A7 through A11 SoCs as well as the T2 coprocessor.  The exploit
-works by sending oversized USB control transfers that overflow a heap buffer
-in the BootROM USB device descriptor handler, granting arbitrary code
-execution with BootROM privileges.
+The generated corpus is not sufficient evidence of exploitation. Callers must
+verify a PWNDFU marker after transfer and fail closed when it is absent.
 
 Device support:
   A7   (0x8960)  – iPhone 5S, iPad Mini 2/3, iPad Air
@@ -37,7 +34,7 @@ SUPPORTED_CPIDS = {
     0x8003,  # S8003 (A9)
     0x8010,  # T8010 (A10)
     0x8011,  # T8011 (A10)
-    0x8015,  # T8015 (A11) – same CPID as A12 in chipset_db, but different exploit
+    0x8015,  # T8015 (A11)
     0x8012,  # T8012 (T2)
 }
 
@@ -70,12 +67,12 @@ CHECKM8_PAYLOAD_SIZE = 0x8000       # 32 KB payload max
 
 
 def is_cpid_supported(cpid: int) -> bool:
-    """Return True if *cpid* can be exploited with checkm8."""
+    """Return True if *cpid* is eligible for this transfer planner."""
     return cpid in SUPPORTED_CPIDS
 
 
 def get_supported_cpids() -> list[int]:
-    """Return sorted list of CPIDs supported by checkm8."""
+    """Return sorted CPID candidates for the transfer planner."""
     return sorted(SUPPORTED_CPIDS)
 
 
@@ -97,15 +94,12 @@ def get_cpid_name(cpid: int) -> str:
 
 
 def get_exploit_transfers() -> list[tuple[int, int, int, int, bytes]]:
-    """Build the USB control transfer sequence that triggers checkm8.
+    """Build an experimental checkm8 USB control-transfer corpus.
 
     Returns a list of (bmRequestType, bRequest, wValue, wIndex, data) tuples
     suitable for usb.core.Device.ctrl_transfer().
 
-    The sequence corrupts a heap-allocated USB device descriptor header by
-    sending a control request with a buffer larger than the heap chunk,
-    causing an overflow into adjacent heap metadata and eventually into a
-    function pointer that checkm8 redirects to a payload address in SRAM.
+    Transfer completion alone must never be interpreted as PWNDFU success.
     """
     transfers = []
 
@@ -130,9 +124,8 @@ def get_exploit_transfers() -> list[tuple[int, int, int, int, bytes]]:
     # the overflow buffer overwrite the USB stack's callback pointer,
     # redirecting it to the checkm8 payload address in SRAM.
     #
-    # The exact overflow layout depends on the BootROM version (which differs
-    # per SoC).  This generic sequence works across A7–A11 by targeting the
-    # common heap metadata layout.
+    # The exact overflow layout depends on the BootROM version. This corpus is
+    # a planner input; positive PWNDFU evidence is mandatory after transfer.
     for offset in (0x40, 0x80, 0xC0, 0x100, 0x140, 0x180):
         redirect = CHECKM8_PAYLOAD_ADDR & 0xFFFFFFFF
         transfers.append((REQ_OUT, 1, offset, redirect, b""))

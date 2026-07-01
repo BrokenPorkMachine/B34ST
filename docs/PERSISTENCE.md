@@ -21,7 +21,7 @@ fixed-capacity 16-hook model. Maximum hidden storage: 64KB.
 
 ## Build modes
 
-**Default build (`make`):** All mutation paths disabled. `deploy|activate|evade` return failure.
+**Default build (`make`):** Physical writes are disabled; operations update the bounded state model.
 `make establish-persistence` generates a text inventory of the modeled concepts.
 
 **Operational build (`make SECURITY_MODEL=1 build-operational`):** All persistence mutations active.

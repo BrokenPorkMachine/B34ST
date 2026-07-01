@@ -44,7 +44,7 @@ from hardware_profile import (
     write_profile_template,
 )
 
-FBR34KCTL_VERSION = "0.6.1b"
+FBR34KCTL_VERSION = "0.6.2b"
 
 FMOD_MAGIC = b"FMOD"
 FMOD_FORMAT_VERSION = 1

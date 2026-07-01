@@ -17,8 +17,8 @@ import subprocess
 import sys
 from datetime import datetime
 
-__version__ = "0.6.0_beta"
-__release_name__ = "B34ST_0.6.0_beta_Beta"
+__version__ = "0.6.1b"
+__release_name__ = "B34ST_0.6.1b_Beta"
 
 
 class BuildError(Exception):

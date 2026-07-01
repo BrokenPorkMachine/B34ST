@@ -151,7 +151,7 @@ class ReleaseToolTests(unittest.TestCase):
 
     def test_version_consistency_accepts_beta_suffix(self) -> None:
         completed = self.run_python(
-            "scripts/check_version_consistency.py", "--expected", "0.6.0_beta"
+            "scripts/check_version_consistency.py", "--expected", "0.6.1b"
         )
         self.assertNotEqual(completed.returncode, 2, completed.stdout)
         self.assertNotIn("must be a release version", completed.stdout)
@@ -279,7 +279,7 @@ class ReleaseToolTests(unittest.TestCase):
             generated = self.run_python(
                 "scripts/release_manifest.py",
                 "--version",
-                "0.6.0_beta",
+                "0.6.1b",
                 "--release-name",
                 "B34ST_0.6.0_Beta",
                 "--channel",

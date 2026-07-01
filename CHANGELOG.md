@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.1b
+
+- **Feature**: `fbr34ker jailbreak` command — fully automated USBliter8 jailbreak (DFU → DWC3 exploit → FBR34KER → security bypasses → kernel patches → boot-args injection → jailbroken kernel boot)
+- **Feature**: Main menu option 6 "Jailbreak device" and device submenu option 1 for one-step jailbreak
+- **Feature**: `fbr34ker ramdisk ipsw` subcommands — catalog, download, extract, and build FBRD bundles from IPSW
+- **Feature**: Smart default output dir for `ipsw extract` derived from IPSW filename stem
+- **Feature**: Progress feedback with human-readable sizes during IPSW extraction
+- **Fix**: `_read_build_manifest` rejects empty version/build strings
+- **Fix**: Tilde paths (`~/`) now expanded in extract/download/build commands
+- **Fix**: Dead `if not args.ramdisk` check removed from `ipsw_build_command`
+- **Fix**: `--version` flag accepted by `ipsw build` (aliased to `--os-version`)
+- **Fix**: `main_ipsw` catches `OSError` for consistency with `main()`
+- **Tests**: 4 new IPSW extraction tests (role mapping, missing manifest, command dispatch)
+
 ## 0.6.0_beta -- Beta
 
 - **Fix**: CLI now supplies DWC3 exploit payload in usb_serial.py for USBliter8 exploitation

@@ -19,7 +19,7 @@ class DeploymentCliTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("0.6.0_beta", result.stdout)
+        self.assertIn("0.6.1b", result.stdout)
 
     def test_plan(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

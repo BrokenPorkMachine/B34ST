@@ -1,5 +1,5 @@
 PROJECT := fbr34ker
-VERSION := 0.6.0_beta
+VERSION := 0.6.1b
 RELEASE_CHANNEL := beta
 RELEASE_NAME := B34ST_$(VERSION)_Beta
 SOURCE_ID := $(VERSION)-beta

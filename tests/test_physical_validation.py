@@ -50,7 +50,7 @@ class PhysicalValidationTests(unittest.TestCase):
         session = {
             "schema_version": 1,
             "project": "FBR34KER",
-            "release_version": "0.6.0_beta",
+            "release_version": "0.6.1b",
             "session_id": name * 24,
             "profile_id": "apple-a13-iphone-recovery",
             "device": {"cpid": "0x8030", "product": "iPhone12,1"},

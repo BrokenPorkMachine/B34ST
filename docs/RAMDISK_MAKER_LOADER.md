@@ -1,6 +1,6 @@
 # Ramdisk maker and loader
 
-B34ST 0.6.0_beta provides one guided workflow for assembling, validating, planning,
+B34ST 0.6.1b provides one guided workflow for assembling, validating, planning,
 and externally loading recovery/research ramdisk bundles:
 
 ```text
@@ -58,8 +58,11 @@ FBRD (`.fbrd`) ZIP:
 - inspection streams every component through SHA-256 before a load request is
   created.
 
-The maker does **not** download, decrypt, patch, personalize, or Apple-sign
+The maker does **not** decrypt, patch, personalize, or Apple-sign
 firmware. It does not claim that arbitrary files form a bootable set.
+
+The maker **can** download an IPSW and extract its components (ramdisk,
+kernelcache, devicetree) for direct bundling — see the `ipsw` subcommands below.
 
 ## Components
 
@@ -124,6 +127,89 @@ The contract is documented in
 [`schemas/ramdisk-adapter-v1.json`](../schemas/ramdisk-adapter-v1.json).
 Adapter commands are parsed as an argument vector and are never executed
 through a shell.
+
+## IPSW-based workflow
+
+The ramdisk maker can download an IPSW, extract components directly from it,
+and build an FBRD bundle — without requiring manually prepared files.
+
+### 1. Catalog available firmware
+
+```sh
+./fbr34ker ramdisk ipsw catalog --product iPhone12,1
+```
+
+Filter by signing status:
+
+```sh
+./fbr34ker ramdisk ipsw catalog --product iPhone12,1 --signed-only
+./fbr34ker ramdisk ipsw catalog --product iPhone12,1 --unsigned-only
+```
+
+### 2. Download an IPSW
+
+```sh
+./fbr34ker ramdisk ipsw download --product iPhone12,1 --version 18.5
+```
+
+Download by build:
+
+```sh
+./fbr34ker ramdisk ipsw download --product iPhone12,1 --build 22F76
+```
+
+Downloads are saved under `downloads/ipsw/` by default.
+
+### 3. Extract components from a local IPSW
+
+```sh
+./fbr34ker ramdisk ipsw extract \
+  downloads/ipsw/iPhone12,1_18.5_22F76_Restore.ipsw
+```
+
+The output directory defaults to the IPSW filename stem (`iPhone12,1_18.5_22F76_Restore`).
+When the IPSW supports exactly one product, `--product` is optional.
+The extract command reads `BuildManifest.plist` inside the IPSW to locate
+the ramdisk, kernelcache, devicetree, and optional components.
+
+Override the output directory:
+
+```sh
+./fbr34ker ramdisk ipsw extract \
+  downloads/ipsw/iPhone12,1_18.5_22F76_Restore.ipsw \
+  --output-dir extracted/iphone12-1-18.5
+```
+
+### 4. Full automated build (download → extract → bundle)
+
+```sh
+./fbr34ker ramdisk ipsw build \
+  --product iPhone12,1 \
+  --os-version 18.5 \
+  --output build/ramdisk/iphone12-1-18.5.fbrd
+```
+
+This single command:
+1. Looks up the firmware in the catalog
+2. Downloads the matching IPSW
+3. Extracts components into a directory alongside the IPSW
+4. Builds a deterministic FBRD bundle
+
+Override individual extracted components:
+
+```sh
+./fbr34ker ramdisk ipsw build \
+  --product iPhone12,1 \
+  --build 22F76 \
+  --ramdisk prepared/custom-ramdisk.dmg \
+  --output build/ramdisk/iphone12-1-22F76.fbrd
+```
+
+### 5. Extract components within the guided workflow
+
+When running the interactive guide, choose `I` (IPSW) at the component
+source prompt to extract directly from a local IPSW instead of entering
+individual component paths.
 
 ## Streamlined guided workflow
 

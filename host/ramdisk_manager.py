@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import pathlib
+import plistlib
 import re
 import shlex
 import shutil
@@ -18,9 +19,24 @@ from typing import Any, Iterable
 
 try:
     from .boot_image import BootImageError, load_profile
+    from .ipsw_manager import (
+        DEFAULT_CATALOG,
+        IPSWError,
+        download_firmware,
+        fetch_catalog,
+        inspect_ipsw as ipsw_inspect_ipsw,
+        select_firmware,
+    )
 except ImportError:
     from boot_image import BootImageError, load_profile
-
+    from ipsw_manager import (
+        DEFAULT_CATALOG,
+        IPSWError,
+        download_firmware,
+        fetch_catalog,
+        inspect_ipsw as ipsw_inspect_ipsw,
+        select_firmware,
+    )
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PROFILES = ROOT / "profiles"
@@ -49,6 +65,18 @@ OPTIONAL_ROLES = (
     "bootlogo",
     "restore-device-tree",
 )
+IPSW_ROLE_MAP: dict[str, str] = {
+    "RestoreRamDisk": "ramdisk",
+    "KernelCache": "kernelcache",
+    "DeviceTree": "devicetree",
+    "TrustCache": "trustcache",
+    "iBSS": "ibss",
+    "iBEC": "ibec",
+    "iBoot": "iboot",
+    "AppleLogo": "bootlogo",
+    "RestoreDeviceTree": "restore-device-tree",
+}
+IPSW_MANDATORY_KEYS = {"RestoreRamDisk", "KernelCache", "DeviceTree"}
 
 
 class RamdiskError(ValueError):
@@ -61,6 +89,127 @@ def sha256_file(path: pathlib.Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _ipsw_suggest_product(filename: str) -> str | None:
+    match = re.search(
+        r"((?:iPhone|iPad|Mac|iMac)[A-Za-z]*\d+[_,]\d+)",
+        filename.replace("-", "_"),
+    )
+    if match:
+        return match.group(1).replace("_", ",")
+    return None
+
+
+def _human_size(bytes_value: int) -> str:
+    for unit in ("B", "KB", "MB", "GB"):
+        if abs(bytes_value) < 1024:
+            return f"{bytes_value:.1f} {unit}"
+        bytes_value /= 1024
+    return f"{bytes_value:.1f} TB"
+
+
+def _read_build_manifest(
+    ipsw_path: pathlib.Path,
+) -> tuple[dict[str, Any], str, str]:
+    try:
+        with zipfile.ZipFile(ipsw_path, "r") as archive:
+            names = set(archive.namelist())
+            if "BuildManifest.plist" not in names:
+                raise RamdiskError("IPSW does not contain BuildManifest.plist")
+            try:
+                manifest = plistlib.loads(archive.read("BuildManifest.plist"))
+            except (plistlib.InvalidFileException, KeyError) as exc:
+                raise RamdiskError(f"invalid BuildManifest.plist: {exc}") from exc
+            if not isinstance(manifest, dict):
+                raise RamdiskError("BuildManifest.plist is not a dictionary")
+            version = manifest.get("ProductVersion")
+            build = manifest.get("ProductBuildVersion")
+            if not isinstance(version, str) or not version or not isinstance(build, str) or not build:
+                raise RamdiskError(
+                    "BuildManifest.plist missing ProductVersion or ProductBuildVersion"
+                )
+            return manifest, version, build
+    except (OSError, zipfile.BadZipFile) as exc:
+        raise RamdiskError(f"cannot open IPSW: {exc}") from exc
+
+
+def _resolve_build_identity(
+    manifest: dict[str, Any], product: str
+) -> dict[str, Any]:
+    identities = manifest.get("BuildIdentities")
+    if not isinstance(identities, list) or not identities:
+        raise RamdiskError("BuildManifest.plist has no BuildIdentities")
+    for identity in identities:
+        if not isinstance(identity, dict):
+            continue
+        products = identity.get("Info", {}).get("SupportedProductTypes") or identity.get(
+            "Info", {}
+        ).get("ProductType")
+        if isinstance(products, list) and product in products:
+            return identity
+        if products == product:
+            return identity
+    raise RamdiskError(
+        f"no BuildIdentity in IPSW matches product {product}"
+    )
+
+
+def _extract_ipsw_component(
+    archive: zipfile.ZipFile,
+    build_identity: dict[str, Any],
+    manifest_key: str,
+    output_dir: pathlib.Path,
+) -> pathlib.Path | None:
+    entry = build_identity.get("Manifest", {}).get(manifest_key)
+    if not isinstance(entry, dict):
+        return None
+    info = entry.get("Info")
+    if not isinstance(info, dict):
+        return None
+    path_str = info.get("Path")
+    if not isinstance(path_str, str) or not path_str:
+        return None
+    clean = pathlib.PurePosixPath(path_str)
+    if ".." in clean.parts:
+        raise RamdiskError(f"unsafe path in BuildIdentity manifest: {path_str}")
+    try:
+        info_zip = archive.getinfo(path_str)
+    except KeyError:
+        return None
+    if info_zip.is_dir():
+        raise RamdiskError(f"component path is a directory: {path_str}")
+    output_path = output_dir / clean.name
+    with archive.open(info_zip) as src, output_path.open("wb") as dst:
+        for chunk in iter(lambda: src.read(1024 * 1024), b""):
+            dst.write(chunk)
+    return output_path
+
+
+def extract_ipsw_components(
+    ipsw_path: pathlib.Path,
+    product: str,
+    output_dir: pathlib.Path,
+) -> dict[str, pathlib.Path]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    manifest, version, build = _read_build_manifest(ipsw_path)
+    identity = _resolve_build_identity(manifest, product)
+    extracted: dict[str, pathlib.Path] = {}
+    with zipfile.ZipFile(ipsw_path, "r") as archive:
+        for manifest_key, role in IPSW_ROLE_MAP.items():
+            _path = _extract_ipsw_component(archive, identity, manifest_key, output_dir)
+            if _path is not None:
+                size = _human_size(_path.stat().st_size)
+                print(f"  [{role:<12}] {_path.name}  ({size})")
+                extracted[role] = _path
+    missing = IPSW_MANDATORY_KEYS - set(
+        key for key in IPSW_ROLE_MAP if extracted.get(IPSW_ROLE_MAP[key])
+    )
+    if missing:
+        raise RamdiskError(
+            f"IPSW missing mandatory component(s): {', '.join(sorted(missing))}"
+        )
+    return extracted
 
 
 def write_json(path: pathlib.Path, value: object) -> None:
@@ -709,6 +858,140 @@ def list_targets(json_mode: bool) -> None:
         )
 
 
+def _ipsw_lookup(args: argparse.Namespace) -> dict[str, Any]:
+    catalog = fetch_catalog(args.product, args.catalog, args.timeout)
+    version = getattr(args, "version", None) or getattr(args, "os_version", None)
+    return select_firmware(
+        catalog,
+        version=version,
+        build=args.build,
+        signed_only=args.signed_only,
+    )
+
+
+def ipsw_catalog_command(args: argparse.Namespace) -> dict[str, Any]:
+    catalog = fetch_catalog(args.product, args.catalog, args.timeout)
+    if args.signed_only:
+        catalog["firmwares"] = [f for f in catalog["firmwares"] if f["signed"]]
+    elif args.unsigned_only:
+        catalog["firmwares"] = [f for f in catalog["firmwares"] if not f["signed"]]
+    result: dict[str, Any] = {
+        "schema_version": SCHEMA_VERSION,
+        "operation": "ramdisk-ipsw-catalog",
+        "product": args.product,
+        "firmware_count": len(catalog["firmwares"]),
+        "firmwares": catalog["firmwares"],
+    }
+    return result
+
+
+def ipsw_download_command(args: argparse.Namespace) -> dict[str, Any]:
+    record = _ipsw_lookup(args)
+    args.output_dir = args.output_dir.expanduser()
+    hsize = _human_size(record["size"])
+    print(f"Downloading {record['version']} ({record['build']}) — {hsize}...")
+    output = download_firmware(record, args.output_dir)
+    info = ipsw_inspect_ipsw(output)
+    print(f"Saved to {output}")
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "operation": "ramdisk-ipsw-download",
+        "product": args.product,
+        "version": record["version"],
+        "build": record["build"],
+        "path": str(output),
+        "size": info["size"],
+        "sha256": info["sha256"],
+        "signed": record["signed"],
+    }
+
+
+def ipsw_extract_command(args: argparse.Namespace) -> dict[str, Any]:
+    args.ipsw = args.ipsw.expanduser()
+    info = ipsw_inspect_ipsw(args.ipsw)
+    products = [p for p in info.get("supported_products", []) if isinstance(p, str)]
+    product = args.product or (products[0] if len(products) == 1 else None)
+    if not product:
+        suggested = _ipsw_suggest_product(args.ipsw.name)
+        hint = f" try --product {suggested}" if suggested else ""
+        raise RamdiskError(
+            f"could not determine product from IPSW; specify --product.{hint}"
+        )
+    if products and product not in products:
+        raise RamdiskError(f"product {product} is not in IPSW supported products")
+    if args.output_dir is None:
+        default_dir = args.ipsw.with_suffix("")
+        # always resolve to absolute to avoid confusion
+        output_dir = pathlib.Path(default_dir).resolve()
+    else:
+        output_dir = args.output_dir.resolve()
+    print(f"Extracting {product} components from {args.ipsw.name}...")
+    extracted = extract_ipsw_components(args.ipsw, product, output_dir)
+    print(f"Done — {len(extracted)} components extracted to {output_dir}")
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "operation": "ramdisk-ipsw-extract",
+        "product": product,
+        "version": info.get("product_version"),
+        "build": info.get("product_build"),
+        "output_dir": str(output_dir),
+        "components": {
+            role: str(path) for role, path in sorted(extracted.items())
+        },
+    }
+
+
+def ipsw_build_command(args: argparse.Namespace) -> dict[str, Any]:
+    record = _ipsw_lookup(args)
+    download_dir = args.download_dir.expanduser().resolve()
+    output = download_firmware(record, download_dir)
+    info = ipsw_inspect_ipsw(output)
+    extract_dir = output.with_suffix("")
+    extracted = extract_ipsw_components(output, args.product, extract_dir)
+    for role, path in extracted.items():
+        attr = role.replace("-", "_")
+        if not getattr(args, attr, None):
+            setattr(args, attr, path)
+    os_version = args.os_version or info.get("product_version") or record["version"]
+    build = args.build or info.get("product_build") or record["build"]
+    build_args = argparse.Namespace(
+        product=args.product,
+        os_version=os_version,
+        build=build,
+        profile=args.profile,
+        ramdisk=args.ramdisk or extracted.get("ramdisk"),
+        kernelcache=args.kernelcache or extracted.get("kernelcache"),
+        devicetree=args.devicetree or extracted.get("devicetree"),
+        trustcache=args.trustcache or extracted.get("trustcache"),
+        ibss=args.ibss or extracted.get("ibss"),
+        ibec=args.ibec or extracted.get("ibec"),
+        iboot=args.iboot or extracted.get("iboot"),
+        bootlogo=args.bootlogo or extracted.get("bootlogo"),
+        restore_device_tree=args.restore_device_tree
+        or extracted.get("restore-device-tree"),
+        component=getattr(args, "component", []) or [],
+        output=args.output.resolve(),
+        force=args.force,
+    )
+    bundle = build_bundle(build_args)
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "operation": "ramdisk-ipsw-build",
+        "product": args.product,
+        "version": os_version,
+        "build": build,
+        "ipsw": {
+            "path": str(output),
+            "size": info["size"],
+            "sha256": info["sha256"],
+        },
+        "extracted_components": {
+            role: str(path) for role, path in sorted(extracted.items())
+        },
+        "bundle": bundle,
+    }
+
+
 def prompt(label: str, default: str = "") -> str:
     suffix = f" [{default}]" if default else ""
     try:
@@ -740,14 +1023,15 @@ def guide(args: argparse.Namespace) -> int:
         if args.evidence:
             write_json(args.evidence, plan)
         return 0
+    source = prompt("Component source: local files (L) or extract from IPSW (I)", "L").lower()
     namespace = argparse.Namespace(
         product=product,
         os_version=os_version,
         build=build or None,
         profile=args.profile,
-        ramdisk=pathlib.Path(prompt("Prepared ramdisk path")),
-        kernelcache=pathlib.Path(prompt("Prepared kernelcache path")),
-        devicetree=pathlib.Path(prompt("Prepared DeviceTree path")),
+        ramdisk=None,
+        kernelcache=None,
+        devicetree=None,
         trustcache=None,
         ibss=None,
         ibec=None,
@@ -760,10 +1044,28 @@ def guide(args: argparse.Namespace) -> int:
         ),
         force=False,
     )
-    for role in ("trustcache", "ibss", "ibec", "iboot", "bootlogo"):
-        value = prompt(f"Optional {role} path (blank to skip)")
-        if value:
-            setattr(namespace, role, pathlib.Path(value))
+    if source in {"i", "ipsw"}:
+        ipsw_path_str = prompt("Local IPSW path")
+        if not ipsw_path_str:
+            raise RamdiskError("an IPSW path is required for IPSW extraction")
+        ipsw_path = pathlib.Path(ipsw_path_str).expanduser()
+        print(f"\nExtracting components from IPSW for {product}...")
+        extracted = extract_ipsw_components(ipsw_path, product, ipsw_path.with_suffix(""))
+        namespace.ramdisk = extracted["ramdisk"]
+        namespace.kernelcache = extracted["kernelcache"]
+        namespace.devicetree = extracted["devicetree"]
+        for role in ("trustcache", "ibss", "ibec", "iboot", "bootlogo"):
+            if role in extracted:
+                setattr(namespace, role, extracted[role])
+        print(f"Extracted {len(extracted)} components to {ipsw_path.with_suffix('')}")
+    else:
+        namespace.ramdisk = pathlib.Path(prompt("Prepared ramdisk path"))
+        namespace.kernelcache = pathlib.Path(prompt("Prepared kernelcache path"))
+        namespace.devicetree = pathlib.Path(prompt("Prepared DeviceTree path"))
+        for role in ("trustcache", "ibss", "ibec", "iboot", "bootlogo"):
+            value = prompt(f"Optional {role} path (blank to skip)")
+            if value:
+                setattr(namespace, role, pathlib.Path(value))
     result = build_bundle(namespace)
     print(
         f"\nBuilt {result['path']} ({result['size']} bytes)\n"
@@ -849,6 +1151,48 @@ def parser() -> argparse.ArgumentParser:
     guided.add_argument("--ecid")
     guided.add_argument("--timeout", type=float, default=180.0)
     guided.add_argument("--evidence", type=pathlib.Path)
+    ipsw_group = sub.add_parser(
+        "ipsw",
+        help="IPSW catalog, download, extract, and bundle build",
+        description="End-to-end IPSW workflow: list firmwares, download, extract components, and build an FBRD ramdisk bundle from extracted files.",
+    )
+    ipsw_sub = ipsw_group.add_subparsers(dest="ipsw_command", required=True)
+    catalog = ipsw_sub.add_parser("catalog", help="list available firmwares for a product")
+    catalog.add_argument("--product", required=True)
+    catalog_filter = catalog.add_mutually_exclusive_group()
+    catalog_filter.add_argument("--signed-only", action="store_true")
+    catalog_filter.add_argument("--unsigned-only", action="store_true")
+    catalog.add_argument("--catalog", default=DEFAULT_CATALOG)
+    catalog.add_argument("--timeout", type=float, default=60.0)
+    catalog.add_argument("--json", action="store_true")
+    download = ipsw_sub.add_parser("download", help="download an IPSW for a product")
+    download.add_argument("--product", required=True)
+    download.add_argument("--version")
+    download.add_argument("--build")
+    download.add_argument("--signed-only", action="store_true")
+    download.add_argument("--output-dir", type=pathlib.Path, default=pathlib.Path("downloads/ipsw"))
+    download.add_argument("--catalog", default=DEFAULT_CATALOG)
+    download.add_argument("--timeout", type=float, default=60.0)
+    download.add_argument("--json", action="store_true")
+    extract = ipsw_sub.add_parser("extract", help="extract components from a local IPSW")
+    extract.add_argument("ipsw", type=pathlib.Path)
+    extract.add_argument("--product", help="product identifier (auto-detected when unambiguous)")
+    extract.add_argument("--output-dir", type=pathlib.Path, default=None, help="output directory (default: IPSW filename stem)")
+    extract.add_argument("--json", action="store_true")
+    ipsw_build = ipsw_sub.add_parser("build", help="download IPSW, extract components, and build FBRD bundle")
+    ipsw_build.add_argument("--product", required=True, help="exact Apple product identifier")
+    ipsw_build.add_argument("--os-version", "--version", dest="os_version", help="exact OS version (auto-detected from IPSW when omitted)")
+    ipsw_build.add_argument("--build", help="exact Apple build identifier (auto-detected from IPSW when omitted)")
+    ipsw_build.add_argument("--profile", type=pathlib.Path, help="exact recovery profile")
+    ipsw_build.add_argument("--signed-only", action="store_true")
+    ipsw_build.add_argument("--timeout", type=float, default=180.0, help="catalog fetch and download timeout")
+    ipsw_build.add_argument("--catalog", default=DEFAULT_CATALOG)
+    ipsw_build.add_argument("--download-dir", type=pathlib.Path, default=pathlib.Path("downloads/ipsw"))
+    ipsw_build.add_argument("--output", type=pathlib.Path, required=True)
+    ipsw_build.add_argument("--force", action="store_true")
+    ipsw_build.add_argument("--json", action="store_true")
+    for role in CORE_ROLES + OPTIONAL_ROLES:
+        ipsw_build.add_argument(f"--{role}", type=pathlib.Path)
     return root
 
 
@@ -867,6 +1211,35 @@ def emit(value: dict[str, Any], json_mode: bool) -> None:
         print(f"OS/build: {value['manifest']['os_version']} / {value['manifest'].get('build') or 'not recorded'}")
         print(f"Components: {value['component_count']}")
         print(f"SHA-256: {value['sha256']}")
+    elif value["operation"] == "ramdisk-ipsw-catalog":
+        signed_count = sum(1 for fw in value["firmwares"] if fw["signed"])
+        unsigned_count = len(value["firmwares"]) - signed_count
+        print(f"Firmware catalog for {value['product']}: {len(value['firmwares'])} entries")
+        if unsigned_count:
+            print(f"  {signed_count} signed, {unsigned_count} unsigned")
+        for fw in value["firmwares"]:
+            status = "SIGNED" if fw["signed"] else "unsigned"
+            print(f"  [{status}] iOS {fw['version']} ({fw['build']})")
+    elif value["operation"] == "ramdisk-ipsw-download":
+        print(f"Downloaded IPSW for {value['product']} iOS {value['version']} ({value['build']})")
+        print(f"Path: {value['path']}  ({_human_size(value['size'])})")
+        print(f"SHA-256: {value['sha256']}")
+    elif value["operation"] == "ramdisk-ipsw-extract":
+        print(f"Extracted {len(value['components'])} components from IPSW for {value['product']}")
+        print(f"Output: {value['output_dir']}")
+        for role, path_str in sorted(value["components"].items()):
+            p = pathlib.Path(path_str)
+            sz = _human_size(p.stat().st_size) if p.is_file() else "?"
+            print(f"  [{role:<12}] {p.name}  ({sz})")
+    elif value["operation"] == "ramdisk-ipsw-build":
+        print(f"IPSW build for {value['product']} iOS {value['version']} ({value['build']})")
+        print(f"IPSW: {value['ipsw']['path']}  ({_human_size(value['ipsw']['size'])})")
+        print(f"Bundle: {value['bundle']['path']}")
+        print(f"Bundle SHA-256: {value['bundle']['sha256']}")
+        for role, path in sorted(value["extracted_components"].items()):
+            p = pathlib.Path(path)
+            sz = _human_size(p.stat().st_size) if p.is_file() else "?"
+            print(f"  [{role:<12}] {p.name}  ({sz})")
     else:
         print(
             "Ramdisk load: "
@@ -905,9 +1278,33 @@ def main(argv: Iterable[str] | None = None) -> int:
             return 0
         if args.command == "guide":
             return guide(args)
+        if args.command == "ipsw":
+            return main_ipsw(args)
         raise RamdiskError(f"unknown command: {args.command}")
-    except (RamdiskError, OSError) as exc:
-        print(f"ramdisk error: {exc}", file=sys.stderr)
+    except (RamdiskError, OSError, IPSWError) as exc:
+        kind = "ipsw error" if isinstance(exc, IPSWError) else "ramdisk error"
+        print(f"{kind}: {exc}", file=sys.stderr)
+        return 2
+
+
+def main_ipsw(args: argparse.Namespace) -> int:
+    try:
+        if args.ipsw_command == "catalog":
+            emit(ipsw_catalog_command(args), args.json)
+            return 0
+        if args.ipsw_command == "download":
+            emit(ipsw_download_command(args), args.json)
+            return 0
+        if args.ipsw_command == "extract":
+            emit(ipsw_extract_command(args), args.json)
+            return 0
+        if args.ipsw_command == "build":
+            emit(ipsw_build_command(args), args.json)
+            return 0
+        raise RamdiskError(f"unknown ipsw command: {args.ipsw_command}")
+    except (RamdiskError, IPSWError, OSError) as exc:
+        kind = "ipsw error" if isinstance(exc, IPSWError) else "ramdisk error"
+        print(f"{kind}: {exc}", file=sys.stderr)
         return 2
 
 

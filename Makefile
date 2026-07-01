@@ -52,7 +52,21 @@ PHYSICAL_INTEGRATION_SIM_DIR := $(APPLE_BOOT_DIR)/physical-integration-simulatio
 PHYSICAL_VALIDATION_DIR := $(APPLE_BOOT_DIR)/physical-validation-candidate
 
 CC := clang
-LD := ld.lld
+LD := $(shell if command -v ld.lld >/dev/null 2>&1; then \
+	command -v ld.lld; \
+	elif test -x /opt/homebrew/opt/lld/bin/ld.lld; then \
+	echo /opt/homebrew/opt/lld/bin/ld.lld; \
+	elif test -x /usr/local/opt/lld/bin/ld.lld; then \
+	echo /usr/local/opt/lld/bin/ld.lld; \
+	elif test -x /opt/homebrew/opt/llvm/bin/ld.lld; then \
+	echo /opt/homebrew/opt/llvm/bin/ld.lld; \
+	elif test -x /usr/local/opt/llvm/bin/ld.lld; then \
+	echo /usr/local/opt/llvm/bin/ld.lld; \
+	elif test -x /opt/homebrew/bin/ld.lld; then \
+	echo /opt/homebrew/bin/ld.lld; \
+	elif test -x /usr/local/bin/ld.lld; then \
+	echo /usr/local/bin/ld.lld; \
+	else echo ld.lld; fi)
 OBJCOPY := $(shell if command -v llvm-objcopy >/dev/null 2>&1; then \
 	command -v llvm-objcopy; \
 	elif test -x /opt/homebrew/opt/llvm/bin/llvm-objcopy; then \
@@ -60,11 +74,25 @@ OBJCOPY := $(shell if command -v llvm-objcopy >/dev/null 2>&1; then \
 	elif test -x /usr/local/opt/llvm/bin/llvm-objcopy; then \
 	echo /usr/local/opt/llvm/bin/llvm-objcopy; \
 	else echo llvm-objcopy; fi)
-READELF := $(shell command -v llvm-readelf 2>/dev/null || command -v readelf 2>/dev/null || echo llvm-readelf)
+READELF := $(shell if command -v llvm-readelf >/dev/null 2>&1; then \
+	command -v llvm-readelf; \
+	elif test -x /opt/homebrew/opt/llvm/bin/llvm-readelf; then \
+	echo /opt/homebrew/opt/llvm/bin/llvm-readelf; \
+	elif test -x /usr/local/opt/llvm/bin/llvm-readelf; then \
+	echo /usr/local/opt/llvm/bin/llvm-readelf; \
+	elif command -v readelf >/dev/null 2>&1; then command -v readelf; \
+	else echo llvm-readelf; fi)
 QEMU := qemu-system-aarch64
 PYTHON := python3
 BUILD_JOBS ?= 4
-AR := $(shell command -v llvm-ar 2>/dev/null || command -v ar 2>/dev/null || echo llvm-ar)
+AR := $(shell if command -v llvm-ar >/dev/null 2>&1; then \
+	command -v llvm-ar; \
+	elif test -x /opt/homebrew/opt/llvm/bin/llvm-ar; then \
+	echo /opt/homebrew/opt/llvm/bin/llvm-ar; \
+	elif test -x /usr/local/opt/llvm/bin/llvm-ar; then \
+	echo /usr/local/opt/llvm/bin/llvm-ar; \
+	elif command -v ar >/dev/null 2>&1; then command -v ar; \
+	else echo llvm-ar; fi)
 
 REPRO_FLAGS := -ffile-prefix-map=$(CURDIR)=. -fdebug-prefix-map=$(CURDIR)=.
 HARDEN_CFLAGS := -fstack-protector-strong -mstack-protector-guard=global \

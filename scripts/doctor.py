@@ -36,6 +36,8 @@ def _augmented_path() -> str:
     for candidate in (
         "/opt/homebrew/opt/llvm/bin",
         "/usr/local/opt/llvm/bin",
+        "/opt/homebrew/opt/lld/bin",
+        "/usr/local/opt/lld/bin",
     ):
         if pathlib.Path(candidate).is_dir() and candidate not in entries:
             entries.insert(0, candidate)
@@ -223,7 +225,7 @@ def main(argv: list[str] | None = None) -> int:
         print("Host readiness:", "passed" if passed else "failed")
         if not passed:
             print(
-                "On macOS, install missing runtime tools with: brew install llvm qemu"
+                "On macOS, install missing runtime tools with: brew install llvm lld qemu"
             )
         if not any(check.name == "irecovery" and check.ok for check in checks):
             print("Optional A12/A13 recovery transport: brew install libirecovery")

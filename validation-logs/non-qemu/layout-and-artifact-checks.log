@@ -39,7 +39,7 @@ layout verification passed
 python3 host/fbr34kctl.py manifest build/fbr34ker.bin
 {
   "file": "fbr34ker.bin",
-  "sha256": "d939d90dc8e8224b63f5eedf7c713c52f2259591f64660419823a5895916d36b",
+  "sha256": "2689fa14bb79c197742a40f99feb9f43dc7bf34842b55c43095411a0db5cd4db",
   "size": 207472
 }
 python3 host/boot_image.py inspect build-apple/a12/boot.img --json >/dev/null

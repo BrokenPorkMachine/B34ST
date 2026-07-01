@@ -610,16 +610,21 @@ def _help_for_category(subtitle: str) -> None:
             "10": "Authorized adapter reset",
         },
         "External hardware / USBliter8 / first-stage execution": {
-            "1": "Run hardware guide and checklist",
-            "2": "Prepare hardware and firmware",
-            "3": "Pwn and inspect an authorized device",
-            "4": "Run the USBliter8 jailbreak chain",
-            "5": "Connect to the runtime console",
-            "6": "Query iRecovery device state",
-            "7": "Verify firmware compatibility",
-            "8": "Perform authorized first-stage bring-up",
-            "9": "Collect adapter evidence",
-            "10": "Reset the adapter session",
+            "1": "Pwn and inspect an authorized device",
+            "2": "Run the USBliter8 jailbreak chain",
+            "3": "Connect to the runtime console",
+            "4": "Query iRecovery device state",
+            "5": "Verify firmware compatibility",
+            "6": "Perform authorized first-stage bring-up",
+            "7": "Collect adapter evidence",
+            "8": "Reset the adapter session",
+            "D": "Detect connected device and chipset",
+            "C": "List supported A12+ chipsets",
+            "W": "Send DWC3 exploit and enter PWNDFU",
+            "L": "Load FBR34KER monitor via USB",
+            "E": "Full exploit chain (DWC3 → monitor → jailbreak → boot)",
+            "R": "Decode crash evidence",
+            "T": "Trace/debug timeline",
         },
         "Guided research-runtime workflow": {
             "1": "Launch evidence-gated B34ST orchestrator",
@@ -645,6 +650,11 @@ def _help_for_category(subtitle: str) -> None:
             "4": "Generate a physical-validation report",
             "5": "Release gate checks",
             "6": "Package release",
+            "7": "Session tools",
+            "8": "Verify release",
+            "9": "Compare releases",
+            "crash": "Decode crash evidence",
+            "trace": "Trace/debug timeline",
         },
         "Targeted IPSW and restore workflows": {
             "1": "List firmware for a product",
@@ -674,6 +684,12 @@ def _help_for_category(subtitle: str) -> None:
             "3": "Build or inspect boot images",
             "4": "Review loader and next-stage flows",
         },
+        "Module operations": {
+            "1": "Compile module",
+            "2": "Inspect module",
+            "3": "Upload module to device",
+            "4": "Execute module",
+        },
         "Ramdisk maker and loader": {
             "1": "Guided maker/loader (recommended)",
             "2": "Explain components, compatibility, adapter",
@@ -695,6 +711,8 @@ def _help_for_category(subtitle: str) -> None:
             "9": "iCloud/Keychain/Keybag acquisition",
             "10": "Activation/FMI/Baseband operations",
             "11": "Passcode management",
+            "12": "SEP Key Fuzzer campaign",
+            "13": "SEP Research Pipeline",
         },
         "CVE database & exploit chain planner": {
             "1": "Show database statistics",
@@ -704,8 +722,14 @@ def _help_for_category(subtitle: str) -> None:
             "5": "Suggest achievable goals for a version",
             "6": "List available exploit goals",
             "7": "Filter CVEs by criteria",
+            "8": "CVE chain for a specific device",
+            "9": "Device/SoC information",
         },
-        "Fuzzer orchestration": {"1": "List available fuzz targets"},
+        "Fuzzer orchestration": {
+            "1": "List available fuzz targets",
+            "2": "Run SEP Key Fuzzer campaign",
+            "3": "Run SEP Research Pipeline",
+        },
         "Runtime console / logger / shell": {
             "1": "Open an interactive runtime console",
             "2": "Capture and export logs",
@@ -1095,6 +1119,7 @@ def _build_and_verify(session: Session) -> None:
         print("  6. Start generic-loader QEMU runtime")
         print("  7. Run hardware-probe QEMU profile")
         print("  8. Clean generated artifacts")
+        print("  9. Check system permissions")
         print("  0. Back")
         choice = _prompt("Selection", "1")
         actions = {
@@ -1106,6 +1131,7 @@ def _build_and_verify(session: Session) -> None:
             "6": (["run", "generic"], "Generic-loader QEMU runtime"),
             "7": (["run", "probe"], "Hardware-probe QEMU runtime"),
             "8": (["clean"], "Clean build artifacts"),
+            "9": (["permissions"], "System permissions"),
         }
         if choice in actions:
             command, label = actions[choice]
@@ -1144,18 +1170,31 @@ def _external_hardware(session: Session) -> None:
         print()
 
         print("  Available operations:")
-        print("    H. USBliter8 hardware guide — detailed setup and compatibility")
+        print("    H. Hardware guide — detailed setup and compatibility")
         print("    P. Prepare hardware/firmware — guided checklist (skip if done)")
         print()
-        print("  Exploitation:")
-        print("    1. Pwn & Inspect — Complete protection audit and system inspection")
+        print("  Device discovery:")
+        print("    D. Detect connected device and chipset")
+        print("    C. List supported A12+ chipsets")
+        print()
+        print("  Exploitation primitives:")
+        print("    W. PWNDFU — send DWC3 exploit and enter PWNDFU")
+        print("    L. Load FBR34KER monitor via USB")
+        print("    E. Full exploit chain (DWC3 → monitor → jailbreak → boot)")
         print("    2. USBliter8 jailbreak — Full A12+ chain with kernel boot")
+        print()
+        print("  Inspection & console:")
+        print("    1. Pwn & Inspect — Complete protection audit and system inspection")
         print("    3. Guided research runtime — Evidence-gated orchestration")
         print("    4. Device inspection — Read-only hardware information")
         print("    5. iRecovery query — Connected device state")
         print("    6. iRecovery verification — Profile validation")
-        print("    7. Adapter bring-up — First-stage authorized execution")
-        print("    8. Collect evidence — Adapter session capture")
+        print("    R. Decode crash evidence")
+        print("    T. Trace/debug timeline")
+        print()
+        print("  First-stage bringup:")
+        print("    7. Authorized first-stage bring-up")
+        print("    8. Collect adapter evidence")
         print("    9. Adapter reset — Authorized session recovery")
         print("    0. Return to main menu")
         print()
@@ -1166,6 +1205,47 @@ def _external_hardware(session: Session) -> None:
             _usbliter8_hardware_guide(session)
         elif choice.lower() == "p":
             _usbliter8_prepare_hardware(session)
+        elif choice.lower() == "d":
+            _detect_device(session)
+        elif choice.lower() == "c":
+            session.run(["chipsets"], label="Supported chipsets")
+            _pause()
+        elif choice.lower() == "w":
+            _run_prompted(
+                session,
+                ["pwndfu"],
+                label="PWNDFU — send DWC3 exploit",
+                example="--ecid <device-serial> --timeout 30",
+            )
+        elif choice.lower() == "l":
+            _run_prompted(
+                session,
+                ["load-monitor"],
+                label="Load FBR34KER monitor via USB",
+                example="build-generic/fbr34ker-generic.bin --ecid <serial>",
+            )
+        elif choice.lower() == "e":
+            _run_prompted(
+                session,
+                ["exploit", "--auto"],
+                label="Full exploit chain",
+                example="--monitor build-exploit/fbr34ker-operational.bin --timeout 30 --evidence usbliter8-chain.json",
+                interactive=True,
+            )
+        elif choice.lower() == "r":
+            _run_prompted(
+                session,
+                ["crash"],
+                label="Decode crash evidence",
+                example="--help",
+            )
+        elif choice.lower() == "t":
+            _run_prompted(
+                session,
+                ["trace"],
+                label="Trace/debug timeline",
+                example="--help",
+            )
         elif choice == "1":
             _usbliter8_pwn_and_inspect(session)
         elif choice == "2":
@@ -1221,7 +1301,7 @@ def _next_stages(session: Session) -> None:
         print("  4. Dry-run or send through iRecovery")
         print("  5. Run bounded deployment workflow")
         print("  6. Inspect deployment/evidence")
-        print("  7. Module compile, inspect, upload, or execute")
+        print("  7. Module operations (compile, inspect, upload, execute)")
         print("  8. Open runtime console/shell")
         print("  0. Back")
         choice = _prompt("Selection", "1")
@@ -1266,15 +1346,56 @@ def _next_stages(session: Session) -> None:
                 example="--help",
             )
         elif choice == "7":
-            _run_prompted(
-                session,
-                ["module"],
-                label="Module workflow",
-                example="--help",
-                interactive=True,
-            )
+            _module_workflow(session)
         elif choice == "8":
             _runtime_console(session)
+        elif choice in {"0", "q", ""}:
+            return
+
+
+def _module_workflow(session: Session) -> None:
+    while True:
+        _clear()
+        _header(session, "Module operations")
+        print("  1. Compile module")
+        print("  2. Inspect module")
+        print("  3. Upload module to device")
+        print("  4. Execute module")
+        print("  0. Back")
+        choice = _prompt("Selection", "1")
+        if choice == "1":
+            _run_prompted(
+                session,
+                ["module", "compile"],
+                label="Compile module",
+                example="module.fmod --output build/",
+            )
+            _pause()
+        elif choice == "2":
+            _run_prompted(
+                session,
+                ["module", "inspect"],
+                label="Inspect module",
+                example="module.fmod --json",
+            )
+            _pause()
+        elif choice == "3":
+            _run_prompted(
+                session,
+                ["module", "upload"],
+                label="Upload module",
+                example="module.fmod --device /dev/ttyACM0",
+            )
+            _pause()
+        elif choice == "4":
+            _run_prompted(
+                session,
+                ["module", "execute"],
+                label="Execute module",
+                example="module.fmod --device /dev/ttyACM0 -- arg1 arg2",
+                interactive=True,
+            )
+            _pause()
         elif choice in {"0", "q", ""}:
             return
 
@@ -1582,9 +1703,12 @@ def _evidence_and_release(session: Session) -> None:
         print("  3. Compare two evidence bundles")
         print("  4. Generate a physical-validation report")
         print("  5. Inspect or replay a session")
-        print("  6. Decode crash or trace evidence")
-        print("  7. Run release gate")
-        print("  8. Package release")
+        print("  6. Decode crash evidence")
+        print("  7. Trace/debug timeline")
+        print("  8. Run release gate")
+        print("  9. Package release")
+        print(" 10. Verify release")
+        print(" 11. Compare releases")
         print("  0. Back")
         choice = _prompt("Selection", "1")
         routes = {
@@ -1605,15 +1729,26 @@ def _evidence_and_release(session: Session) -> None:
                 "--success success.zip --failure failure.zip --recovered recovered.zip --output report.json",
             ),
             "5": (["session"], "Session tools", "--help"),
-            "6": (["trace"], "Trace tools", "--help"),
+            "6": (["crash"], "Decode crash evidence", "--help"),
+            "7": (["trace"], "Trace tools", "--help"),
+            "10": (
+                ["verify-release"],
+                "Verify release",
+                "--help",
+            ),
+            "11": (
+                ["compare-releases"],
+                "Compare releases",
+                "release-a release-b",
+            ),
         }
         if choice in routes:
             prefix, label, example = routes[choice]
             _run_prompted(session, prefix, label=label, example=example)
-        elif choice == "7":
+        elif choice == "8":
             session.run(["gate"], label="Release gate")
             _pause()
-        elif choice == "8":
+        elif choice == "9":
             session.run(["package"], label="Package release")
             _pause()
         elif choice in {"0", "q", ""}:
@@ -1853,6 +1988,13 @@ def _usbliter8_jailbreak(session: Session) -> int:
 
     _pause()
     return return_code
+
+
+def _detect_device(session: Session) -> None:
+    _clear()
+    _header(session, "Device detection")
+    session.run(["detect"], label="Detect connected device")
+    _pause()
 
 
 def _usbliter8_pwn_and_inspect(session: Session) -> int:
@@ -2174,6 +2316,8 @@ def _forensics_workflow(session: Session) -> None:
             " 10. Activation/FMI/Baseband operations  (bypass, FMI on/off, baseband unlock)"
         )
         print(" 11. Passcode management  (on/off/change/bypass)")
+        print(" 12. SEP Key Fuzzer — Run campaign")
+        print(" 13. SEP Research Pipeline — Full run")
         print("  0. Back")
         choice = _prompt("Selection", "1")
         if choice == "1":
@@ -2225,6 +2369,52 @@ def _forensics_workflow(session: Session) -> None:
             _forensics_activation_menu(session)
         elif choice == "11":
             _forensics_passcode_menu(session)
+        elif choice == "12":
+            device_model = _prompt("Device model", "iPhone14,2")
+            os_build = _prompt("iOS build number", "21A123")
+            chipset = _prompt("Chipset", "A15")
+            output = session.directory / "sep-fuzz"
+            session.run(
+                [
+                    "b34st",
+                    "sep-fuzz",
+                    "run",
+                    "--device-model",
+                    device_model,
+                    "--os-build",
+                    os_build,
+                    "--chipset",
+                    chipset,
+                    "--output",
+                    str(output),
+                ],
+                label="SEP Key Fuzzer campaign",
+                interactive=True,
+            )
+            _pause()
+        elif choice == "13":
+            device_model = _prompt("Device model", "iPhone14,2")
+            os_build = _prompt("iOS build number", "21A123")
+            chipset = _prompt("Chipset", "A15")
+            output = session.directory / "sep-research"
+            session.run(
+                [
+                    "b34st",
+                    "sep-research",
+                    "run",
+                    "--device-model",
+                    device_model,
+                    "--os-build",
+                    os_build,
+                    "--chipset",
+                    chipset,
+                    "--output",
+                    str(output),
+                ],
+                label="SEP Research Pipeline",
+                interactive=True,
+            )
+            _pause()
         elif choice in {"0", "q", ""}:
             return
 
@@ -2392,6 +2582,8 @@ def _cve_workflow(session: Session) -> None:
         print("  5. Suggest achievable goals for a version")
         print("  6. List available exploit goals")
         print("  7. Filter CVEs by criteria")
+        print("  8. CVE chain for a specific device")
+        print("  9. Device/SoC information")
         print("  0. Back")
         choice = _prompt("Selection", "1")
         if choice == "1":
@@ -2443,19 +2635,90 @@ def _cve_workflow(session: Session) -> None:
                 args += ["--component", component]
             session.run(args, label="Filter CVEs")
             _pause()
+        elif choice == "8":
+            version = _prompt("Target iOS version", "16.5")
+            device = _prompt("Device model (e.g., iPhone10,1)", "iPhone12,1")
+            print("\nAvailable goals: jailbreak, userland-jailbreak, extraction,")
+            print("  activation-bypass, passcode-bypass, forensics-ready,")
+            print("  tethered-jailbreak, jailbreak-remote")
+            goal = _prompt("Exploit goal", "jailbreak")
+            if version and device and goal:
+                session.run(
+                    ["cve", "device-chain", goal, version, device],
+                    label=f"Device chain: {goal} on {device} iOS {version}",
+                )
+            _pause()
+        elif choice == "9":
+            identifier = _prompt("Device model or SoC (blank to list all)", "")
+            args = ["cve", "device-info"]
+            if identifier:
+                args.append(identifier)
+            session.run(args, label="Device/SoC information")
+            _pause()
         elif choice in {"0", "q", ""}:
             return
 
 
 def _fuzzer_workflow(session: Session) -> None:
-    _clear()
-    _header(session, "Fuzzer orchestration")
-    print("  1. List available fuzz targets")
-    print("  0. Back")
-    choice = _prompt("Selection", "1")
-    if choice == "1":
-        session.run(["cve", "fuzz", "list"], label="List fuzz targets")
-        _pause()
+    while True:
+        _clear()
+        _header(session, "Fuzzer orchestration")
+        print("  1. List available fuzz targets")
+        print("  2. Run SEP Key Fuzzer campaign")
+        print("  3. Run SEP Research Pipeline")
+        print("  0. Back")
+        choice = _prompt("Selection", "1")
+        if choice == "1":
+            session.run(["cve", "fuzz", "list"], label="List fuzz targets")
+            _pause()
+        elif choice == "2":
+            device_model = _prompt("Device model", "iPhone14,2")
+            os_build = _prompt("iOS build number", "21A123")
+            chipset = _prompt("Chipset", "A15")
+            output = session.directory / "sep-fuzz"
+            session.run(
+                [
+                    "b34st",
+                    "sep-fuzz",
+                    "run",
+                    "--device-model",
+                    device_model,
+                    "--os-build",
+                    os_build,
+                    "--chipset",
+                    chipset,
+                    "--output",
+                    str(output),
+                ],
+                label="SEP Key Fuzzer campaign",
+                interactive=True,
+            )
+            _pause()
+        elif choice == "3":
+            device_model = _prompt("Device model", "iPhone14,2")
+            os_build = _prompt("iOS build number", "21A123")
+            chipset = _prompt("Chipset", "A15")
+            output = session.directory / "sep-research"
+            session.run(
+                [
+                    "b34st",
+                    "sep-research",
+                    "run",
+                    "--device-model",
+                    device_model,
+                    "--os-build",
+                    os_build,
+                    "--chipset",
+                    chipset,
+                    "--output",
+                    str(output),
+                ],
+                label="SEP Research Pipeline",
+                interactive=True,
+            )
+            _pause()
+        elif choice in {"0", "q", ""}:
+            return
 
 
 def _runtime_console(session: Session) -> None:

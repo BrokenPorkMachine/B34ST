@@ -33,6 +33,21 @@ def make(targets, json_mode=False, variables=()): return execute(['make','--no-p
 def require_qemu():
     if not shutil.which('qemu-system-aarch64'): raise CliError('qemu-system-aarch64 is required for this command')
 
+def _cmd_jailbreak(args, j):
+    from device_jailbreak import jailbreak_device
+    result = jailbreak_device(product=args.device, force=args.force)
+    if j:
+        import json; print(json.dumps(result, sort_keys=True))
+    else:
+        status = "PASS" if result["success"] else "FAIL"
+        print(f"  [{status}] Jailbreak")
+        print(f"         Exploit: {result.get('exploit_type', 'n/a')}")
+        if result.get('cpid') is not None:
+            print(f"         CPID:    0x{result['cpid']:04x}")
+        if result.get('error'):
+            print(f"         Error:   {result['error']}")
+    return 0 if result['success'] else 1
+
 def parser():
     p=argparse.ArgumentParser(prog='fbr34ker',description=__doc__,
         epilog='Compatibility aliases: -b/--build, -r/--run, -c/--clean, --verify, --gate, --package, --permissions.')
@@ -43,6 +58,9 @@ def parser():
     t=sub.add_parser('test'); t.add_argument('--qemu',action='store_true'); t.add_argument('--jobs',type=int,default=4)
     r=sub.add_parser('run'); r.add_argument('profile',choices=['direct','generic','probe'],nargs='?',default='direct')
     sub.add_parser('clean'); sub.add_parser('package'); sub.add_parser('gate'); sub.add_parser('permissions')
+    j=sub.add_parser('jailbreak')
+    j.add_argument('--device', help='product identifier (e.g. iPhone10,6)')
+    j.add_argument('--force', action='store_true', help='attempt exploit even without DB match')
     for name in ('deploy','recover','inspect','evidence'):
         x=sub.add_parser(name); x.add_argument('arguments',nargs=argparse.REMAINDER)
     for name in ('boot-image','ramdisk','irecovery','bringup','device','bridge','session','crash','trace','hardware','physical-validation','b34stool','forensics','cve'):
@@ -90,6 +108,8 @@ def main(argv=None):
         if cmd=='package': return make(['package'],j)
         if cmd=='gate': return make(['release-gate'],j)
         if cmd=='permissions': return make(['permissions'],j)
+        if cmd=='jailbreak':
+            return _cmd_jailbreak(args, j)
         if cmd=='run':
             require_qemu(); target={'direct':'run','generic':'generic-qemu-run','probe':'probe-qemu-smoke'}[args.profile]; return execute(['make','--no-print-directory',target],json_mode=j,preserve_stdio=True)
         if cmd in {'deploy','recover','inspect','evidence'}:

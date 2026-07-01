@@ -4,17 +4,213 @@ make[2]: Nothing to be done for `all'.
 /Applications/Xcode.app/Contents/Developer/usr/bin/make FBR34KER_PLATFORM=generic_arm64 BUILD_DIR=build-hardware-probe \
 		TARGET=build-hardware-probe/fbr34ker-hardware-probe \
 		EXTRA_CFLAGS=-DFBR34KER_PHYSICAL_PROBE_IMAGE=1 all
-make[2]: Nothing to be done for `modules'.
 make[2]: Nothing to be done for `sdk'.
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-loader/loader.d -c loader/qemu_handoff/loader.c -o build-loader/loader.o
+python3 host/fbr34kctl.py compile-module modules/dynamic_hello/module.json build/modules/hello-dynamic.fmod
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/arch/arm64/cpu.d -c arch/arm64/cpu.c -o build-generic/arch/arm64/cpu.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/arch/arm64/cpu.d -c arch/arm64/cpu.c -o build-hardware-probe/arch/arm64/cpu.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/arch/arm64/mmu.d -c arch/arm64/mmu.c -o build-generic/arch/arm64/mmu.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/allocator.d -c kernel/allocator.c -o build-generic/kernel/allocator.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/arch/arm64/mmu.d -c arch/arm64/mmu.c -o build-hardware-probe/arch/arm64/mmu.o
+{
+  "capabilities": [
+    "console",
+    "log",
+    "time",
+    "state",
+    "host"
+  ],
+  "code_size": 147,
+  "command": "hello-dynamic-run",
+  "flags": 0,
+  "hash_valid": true,
+  "image_size": 203,
+  "instruction_budget": 128,
+  "name": "hello-dynamic",
+  "payload_kind": "FMBC-v2",
+  "sha256": "0b335e86183542ee0a5b9fe5864cea460663e566667d7733453829c59d529eac",
+  "state_slots": 2,
+  "version": "0.6.2b"
+}
+clang --target=aarch64-none-elf -ffreestanding -fno-pic -fno-pie -march=armv8-a -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -Iinclude -c loader/qemu_handoff/start.S -o build-loader/start.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/architecture.d -c kernel/architecture.c -o build-generic/kernel/architecture.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/board.d -c kernel/board.c -o build-generic/kernel/board.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/allocator.d -c kernel/allocator.c -o build-hardware-probe/kernel/allocator.o
 python3 host/fbr34kctl.py handoff-build examples/handoff-v4.json build/handoff/handoff-v4.fbhb >/dev/null
-make[3]: Nothing to be done for `all'.
-make[3]: Nothing to be done for `all'.
-make[2]: Nothing to be done for `generic-loader'.
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/boot_evidence.d -c kernel/boot_evidence.c -o build-generic/kernel/boot_evidence.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/architecture.d -c kernel/architecture.c -o build-hardware-probe/kernel/architecture.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/bringup_report.d -c kernel/bringup_report.c -o build-generic/kernel/bringup_report.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/build_info.d -c kernel/build_info.c -o build-generic/kernel/build_info.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/board.d -c kernel/board.c -o build-hardware-probe/kernel/board.o
 python3 host/fbr34kctl.py handoff-roundtrip build/handoff/handoff-v4.fbhb >/dev/null
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/bringup.d -c kernel/bringup.c -o build-generic/kernel/bringup.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/command.d -c kernel/command.c -o build-generic/kernel/command.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/console.d -c kernel/console.c -o build-generic/kernel/console.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/boot_evidence.d -c kernel/boot_evidence.c -o build-hardware-probe/kernel/boot_evidence.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/crash.d -c kernel/crash.c -o build-generic/kernel/crash.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/crc32.d -c kernel/crc32.c -o build-generic/kernel/crc32.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/bringup_report.d -c kernel/bringup_report.c -o build-hardware-probe/kernel/bringup_report.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/device_tree.d -c kernel/device_tree.c -o build-generic/kernel/device_tree.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/driver.d -c kernel/driver.c -o build-generic/kernel/driver.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/event.d -c kernel/event.c -o build-generic/kernel/event.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/build_info.d -c kernel/build_info.c -o build-hardware-probe/kernel/build_info.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/bringup.d -c kernel/bringup.c -o build-hardware-probe/kernel/bringup.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/exception.d -c kernel/exception.c -o build-generic/kernel/exception.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/command.d -c kernel/command.c -o build-hardware-probe/kernel/command.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/fault.d -c kernel/fault.c -o build-generic/kernel/fault.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/framebuffer_console.d -c kernel/framebuffer_console.c -o build-generic/kernel/framebuffer_console.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/format.d -c kernel/format.c -o build-generic/kernel/format.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/handoff.d -c kernel/handoff.c -o build-generic/kernel/handoff.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/hardware_probe.d -c kernel/hardware_probe.c -o build-generic/kernel/hardware_probe.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/kernel_patches.d -c kernel/kernel_patches.c -o build-generic/kernel/kernel_patches.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/secure_boot_bypass.d -c kernel/secure_boot_bypass.c -o build-generic/kernel/secure_boot_bypass.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/persistence.d -c kernel/persistence.c -o build-generic/kernel/persistence.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/hal_sim.d -c kernel/hal_sim.c -o build-generic/kernel/hal_sim.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/console.d -c kernel/console.c -o build-hardware-probe/kernel/console.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/interrupt.d -c kernel/interrupt.c -o build-generic/kernel/interrupt.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/lifecycle.d -c kernel/lifecycle.c -o build-generic/kernel/lifecycle.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/log.d -c kernel/log.c -o build-generic/kernel/log.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/main.d -c kernel/main.c -o build-generic/kernel/main.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/crash.d -c kernel/crash.c -o build-hardware-probe/kernel/crash.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/module.d -c kernel/module.c -o build-generic/kernel/module.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/mmio.d -c kernel/mmio.c -o build-generic/kernel/mmio.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/physical_memory.d -c kernel/physical_memory.c -o build-generic/kernel/physical_memory.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/crc32.d -c kernel/crc32.c -o build-hardware-probe/kernel/crc32.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/protocol.d -c kernel/protocol.c -o build-generic/kernel/protocol.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/sha256.d -c kernel/sha256.c -o build-generic/kernel/sha256.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/device_tree.d -c kernel/device_tree.c -o build-hardware-probe/kernel/device_tree.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/service_guard.d -c kernel/service_guard.c -o build-generic/kernel/service_guard.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/service_registry.d -c kernel/service_registry.c -o build-generic/kernel/service_registry.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/stack_guard.d -c kernel/stack_guard.c -o build-generic/kernel/stack_guard.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/string.d -c kernel/string.c -o build-generic/kernel/string.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/trace.d -c kernel/trace.c -o build-generic/kernel/trace.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/watchdog.d -c kernel/watchdog.c -o build-generic/kernel/watchdog.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/apple_platform.d -c kernel/apple_platform.c -o build-generic/kernel/apple_platform.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/usb.d -c kernel/usb.c -o build-generic/kernel/usb.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/usbliter8_exploit.d -c kernel/usbliter8_exploit.c -o build-generic/kernel/usbliter8_exploit.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/trust_cache.d -c kernel/trust_cache.c -o build-generic/kernel/trust_cache.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/driver.d -c kernel/driver.c -o build-hardware-probe/kernel/driver.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/jailbreak.d -c kernel/jailbreak.c -o build-generic/kernel/jailbreak.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/event.d -c kernel/event.c -o build-hardware-probe/kernel/event.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/kernel/jbinit.d -c kernel/jbinit.c -o build-generic/kernel/jbinit.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/exception.d -c kernel/exception.c -o build-hardware-probe/kernel/exception.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/modules/hello/hello.d -c modules/hello/hello.c -o build-generic/modules/hello/hello.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/platform/gic.d -c platform/gic.c -o build-generic/platform/gic.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/platform/generic_arm64/platform.d -c platform/generic_arm64/platform.c -o build-generic/platform/generic_arm64/platform.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/fault.d -c kernel/fault.c -o build-hardware-probe/kernel/fault.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\"  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-generic/platform/generic_arm64/timer.d -c platform/generic_arm64/timer.c -o build-generic/platform/generic_arm64/timer.o
+clang --target=aarch64-none-elf -ffreestanding -fno-pic -fno-pie -march=armv8-a -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -Iinclude -c arch/arm64/start.S -o build-generic/arch/arm64/start.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/framebuffer_console.d -c kernel/framebuffer_console.c -o build-hardware-probe/kernel/framebuffer_console.o
+clang --target=aarch64-none-elf -ffreestanding -fno-pic -fno-pie -march=armv8-a -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -Iinclude -c arch/arm64/vectors.S -o build-generic/arch/arm64/vectors.o
+ld.lld -T loader/qemu_handoff/linker.ld -Map=build-loader/fbr34ker-qemu-loader.map \
+		--gc-sections --fatal-warnings -o build-loader/fbr34ker-qemu-loader.elf \
+		build-loader/start.o build-loader/loader.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/format.d -c kernel/format.c -o build-hardware-probe/kernel/format.o
+ld.lld -T linker/generic_arm64.ld -Map=build-generic/fbr34ker-generic.map --gc-sections --fatal-warnings -o build-generic/fbr34ker-generic.elf build-generic/arch/arm64/cpu.o build-generic/arch/arm64/mmu.o build-generic/kernel/allocator.o build-generic/kernel/architecture.o build-generic/kernel/board.o build-generic/kernel/boot_evidence.o build-generic/kernel/bringup_report.o build-generic/kernel/build_info.o build-generic/kernel/bringup.o build-generic/kernel/command.o build-generic/kernel/console.o build-generic/kernel/crash.o build-generic/kernel/crc32.o build-generic/kernel/device_tree.o build-generic/kernel/driver.o build-generic/kernel/event.o build-generic/kernel/exception.o build-generic/kernel/fault.o build-generic/kernel/framebuffer_console.o build-generic/kernel/format.o build-generic/kernel/handoff.o build-generic/kernel/hardware_probe.o build-generic/kernel/kernel_patches.o build-generic/kernel/secure_boot_bypass.o build-generic/kernel/persistence.o build-generic/kernel/hal_sim.o build-generic/kernel/interrupt.o build-generic/kernel/lifecycle.o build-generic/kernel/log.o build-generic/kernel/main.o build-generic/kernel/module.o build-generic/kernel/mmio.o build-generic/kernel/physical_memory.o build-generic/kernel/protocol.o build-generic/kernel/sha256.o build-generic/kernel/service_guard.o build-generic/kernel/service_registry.o build-generic/kernel/stack_guard.o build-generic/kernel/string.o build-generic/kernel/trace.o build-generic/kernel/watchdog.o build-generic/kernel/apple_platform.o build-generic/kernel/usb.o build-generic/kernel/usbliter8_exploit.o build-generic/kernel/trust_cache.o build-generic/kernel/jailbreak.o build-generic/kernel/jbinit.o build-generic/modules/hello/hello.o build-generic/platform/gic.o build-generic/platform/generic_arm64/platform.o build-generic/platform/generic_arm64/timer.o build-generic/arch/arm64/start.o build-generic/arch/arm64/vectors.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/handoff.d -c kernel/handoff.c -o build-hardware-probe/kernel/handoff.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/hardware_probe.d -c kernel/hardware_probe.c -o build-hardware-probe/kernel/hardware_probe.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/kernel_patches.d -c kernel/kernel_patches.c -o build-hardware-probe/kernel/kernel_patches.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/secure_boot_bypass.d -c kernel/secure_boot_bypass.c -o build-hardware-probe/kernel/secure_boot_bypass.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/persistence.d -c kernel/persistence.c -o build-hardware-probe/kernel/persistence.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/hal_sim.d -c kernel/hal_sim.c -o build-hardware-probe/kernel/hal_sim.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/interrupt.d -c kernel/interrupt.c -o build-hardware-probe/kernel/interrupt.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/lifecycle.d -c kernel/lifecycle.c -o build-hardware-probe/kernel/lifecycle.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/log.d -c kernel/log.c -o build-hardware-probe/kernel/log.o
+/opt/homebrew/opt/llvm/bin/llvm-objcopy -O binary build-loader/fbr34ker-qemu-loader.elf build-loader/fbr34ker-qemu-loader.bin
+/opt/homebrew/opt/llvm/bin/llvm-objcopy -O binary build-generic/fbr34ker-generic.elf build-generic/fbr34ker-generic.bin
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/main.d -c kernel/main.c -o build-hardware-probe/kernel/main.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/module.d -c kernel/module.c -o build-hardware-probe/kernel/module.o
 rm -rf build-apple
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/mmio.d -c kernel/mmio.c -o build-hardware-probe/kernel/mmio.o
 python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
 		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/handoff/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/a12/boot.img \
 		--raw-output build-apple/a12/boot.raw
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/physical_memory.d -c kernel/physical_memory.c -o build-hardware-probe/kernel/physical_memory.o
 {
   "component_count": 3,
   "family": "a12",
@@ -27,7 +223,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "b3726de239161e7058df1fcb2439c0034edccd88db7b8660f3693b933e592d12",
+        "sha256": "2c8fcbd9fc335f5e334a949c11314150585dabfd3ea9306b5c183ace6e3872db",
         "size": 219872
       },
       {
@@ -45,7 +241,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 245760,
         "role": "module",
-        "sha256": "85797b4fadb7092ad43a7796ac42df3479dbebf4163c447da72d3769bd47a1e9",
+        "sha256": "35f5b20a8fca399bb1fc7208f557c27a2d9759fc59d2e8757974f2cb037d3e64",
         "size": 299
       }
     ],
@@ -59,16 +255,22 @@ python3 host/boot_image.py build --profile profiles/apple-a12-recovery.json \
     "image_size": 249856,
     "profile_id": "apple-a12-recovery",
     "project": "FBR34KER",
-    "release_version": "0.6.1b",
+    "release_version": "0.6.2b",
     "schema_version": 1
   },
   "path": "build-apple/a12/boot.img",
-  "sha256": "f2032bfc4ad6281229795925272875723d3b3f7442b43d150fcdf9be78ebc169",
+  "sha256": "d0df820d333951e3e85dbb4f164a321797252209f94a2def21f810a1a731d8dd",
   "size": 249856
 }
 python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
 		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/handoff/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/a12x/boot.img \
 		--raw-output build-apple/a12x/boot.raw
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/protocol.d -c kernel/protocol.c -o build-hardware-probe/kernel/protocol.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/sha256.d -c kernel/sha256.c -o build-hardware-probe/kernel/sha256.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/service_guard.d -c kernel/service_guard.c -o build-hardware-probe/kernel/service_guard.o
 {
   "component_count": 3,
   "family": "a12x",
@@ -81,7 +283,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "b3726de239161e7058df1fcb2439c0034edccd88db7b8660f3693b933e592d12",
+        "sha256": "2c8fcbd9fc335f5e334a949c11314150585dabfd3ea9306b5c183ace6e3872db",
         "size": 219872
       },
       {
@@ -99,7 +301,7 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 245760,
         "role": "module",
-        "sha256": "85797b4fadb7092ad43a7796ac42df3479dbebf4163c447da72d3769bd47a1e9",
+        "sha256": "35f5b20a8fca399bb1fc7208f557c27a2d9759fc59d2e8757974f2cb037d3e64",
         "size": 299
       }
     ],
@@ -114,16 +316,22 @@ python3 host/boot_image.py build --profile profiles/apple-a12x-recovery.json \
     "image_size": 249856,
     "profile_id": "apple-a12x-a12z-recovery-experimental",
     "project": "FBR34KER",
-    "release_version": "0.6.1b",
+    "release_version": "0.6.2b",
     "schema_version": 1
   },
   "path": "build-apple/a12x/boot.img",
-  "sha256": "75ad7e1030f8c6390fd01b2d4e8b94f89a910e8cfae99e58754c50392db15285",
+  "sha256": "9f2473711bf0b89b3bde6c1bdf9d1e27021a6fa3c4e8524984389c4978951467",
   "size": 249856
 }
 python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
 		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/handoff/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/a13/boot.img \
 		--raw-output build-apple/a13/boot.raw
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/service_registry.d -c kernel/service_registry.c -o build-hardware-probe/kernel/service_registry.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/stack_guard.d -c kernel/stack_guard.c -o build-hardware-probe/kernel/stack_guard.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/string.d -c kernel/string.c -o build-hardware-probe/kernel/string.o
 {
   "component_count": 3,
   "family": "a13",
@@ -136,7 +344,7 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "b3726de239161e7058df1fcb2439c0034edccd88db7b8660f3693b933e592d12",
+        "sha256": "2c8fcbd9fc335f5e334a949c11314150585dabfd3ea9306b5c183ace6e3872db",
         "size": 219872
       },
       {
@@ -154,7 +362,7 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 245760,
         "role": "module",
-        "sha256": "85797b4fadb7092ad43a7796ac42df3479dbebf4163c447da72d3769bd47a1e9",
+        "sha256": "35f5b20a8fca399bb1fc7208f557c27a2d9759fc59d2e8757974f2cb037d3e64",
         "size": 299
       }
     ],
@@ -168,16 +376,22 @@ python3 host/boot_image.py build --profile profiles/apple-a13-recovery.json \
     "image_size": 249856,
     "profile_id": "apple-a13-recovery",
     "project": "FBR34KER",
-    "release_version": "0.6.1b",
+    "release_version": "0.6.2b",
     "schema_version": 1
   },
   "path": "build-apple/a13/boot.img",
-  "sha256": "37d9554fb5e21f9e617fb9c3ba7286fe44d816b4d95fb16466c9d8a5591c0a83",
+  "sha256": "2972eb736fe70550964b211f80a2f131c1f10a3168ba5af1f3fe4c7b93eff4c1",
   "size": 249856
 }
 python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
 		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/handoff/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/a14/boot.img \
 		--raw-output build-apple/a14/boot.raw
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/trace.d -c kernel/trace.c -o build-hardware-probe/kernel/trace.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/watchdog.d -c kernel/watchdog.c -o build-hardware-probe/kernel/watchdog.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/apple_platform.d -c kernel/apple_platform.c -o build-hardware-probe/kernel/apple_platform.o
 {
   "component_count": 3,
   "family": "a14",
@@ -190,7 +404,7 @@ python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "b3726de239161e7058df1fcb2439c0034edccd88db7b8660f3693b933e592d12",
+        "sha256": "2c8fcbd9fc335f5e334a949c11314150585dabfd3ea9306b5c183ace6e3872db",
         "size": 219872
       },
       {
@@ -208,7 +422,7 @@ python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 245760,
         "role": "module",
-        "sha256": "85797b4fadb7092ad43a7796ac42df3479dbebf4163c447da72d3769bd47a1e9",
+        "sha256": "35f5b20a8fca399bb1fc7208f557c27a2d9759fc59d2e8757974f2cb037d3e64",
         "size": 299
       }
     ],
@@ -222,16 +436,22 @@ python3 host/boot_image.py build --profile profiles/apple-a14-recovery.json \
     "image_size": 249856,
     "profile_id": "apple-a14-recovery",
     "project": "FBR34KER",
-    "release_version": "0.6.1b",
+    "release_version": "0.6.2b",
     "schema_version": 1
   },
   "path": "build-apple/a14/boot.img",
-  "sha256": "dbb43225889600a11de1ff4531e3dd0405bc5d99c9b058bfa368fd875a52bb85",
+  "sha256": "046968f49a7c9b31f1a5789d897f6eef1db6d9332aaa96bff5eadcb8a50a062e",
   "size": 249856
 }
 python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
 		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/handoff/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/a15/boot.img \
 		--raw-output build-apple/a15/boot.raw
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/usb.d -c kernel/usb.c -o build-hardware-probe/kernel/usb.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/usbliter8_exploit.d -c kernel/usbliter8_exploit.c -o build-hardware-probe/kernel/usbliter8_exploit.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/trust_cache.d -c kernel/trust_cache.c -o build-hardware-probe/kernel/trust_cache.o
 {
   "component_count": 3,
   "family": "a15",
@@ -244,7 +464,7 @@ python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "b3726de239161e7058df1fcb2439c0034edccd88db7b8660f3693b933e592d12",
+        "sha256": "2c8fcbd9fc335f5e334a949c11314150585dabfd3ea9306b5c183ace6e3872db",
         "size": 219872
       },
       {
@@ -262,7 +482,7 @@ python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 245760,
         "role": "module",
-        "sha256": "85797b4fadb7092ad43a7796ac42df3479dbebf4163c447da72d3769bd47a1e9",
+        "sha256": "35f5b20a8fca399bb1fc7208f557c27a2d9759fc59d2e8757974f2cb037d3e64",
         "size": 299
       }
     ],
@@ -276,16 +496,20 @@ python3 host/boot_image.py build --profile profiles/apple-a15-recovery.json \
     "image_size": 249856,
     "profile_id": "apple-a15-recovery",
     "project": "FBR34KER",
-    "release_version": "0.6.1b",
+    "release_version": "0.6.2b",
     "schema_version": 1
   },
   "path": "build-apple/a15/boot.img",
-  "sha256": "e80b98769bcabcce8f32fe3133ef08a6060b6a2005d57924f7b2078247504e0c",
+  "sha256": "6f1a997c11402d4793b5d789e57a75f5f4f559c69072dcc918685d2651f8b2bf",
   "size": 249856
 }
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/jailbreak.d -c kernel/jailbreak.c -o build-hardware-probe/kernel/jailbreak.o
 python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
 		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/handoff/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/m1/boot.img \
 		--raw-output build-apple/m1/boot.raw
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/kernel/jbinit.d -c kernel/jbinit.c -o build-hardware-probe/kernel/jbinit.o
 {
   "component_count": 3,
   "family": "m1",
@@ -298,7 +522,7 @@ python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "b3726de239161e7058df1fcb2439c0034edccd88db7b8660f3693b933e592d12",
+        "sha256": "2c8fcbd9fc335f5e334a949c11314150585dabfd3ea9306b5c183ace6e3872db",
         "size": 219872
       },
       {
@@ -316,7 +540,7 @@ python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 245760,
         "role": "module",
-        "sha256": "85797b4fadb7092ad43a7796ac42df3479dbebf4163c447da72d3769bd47a1e9",
+        "sha256": "35f5b20a8fca399bb1fc7208f557c27a2d9759fc59d2e8757974f2cb037d3e64",
         "size": 299
       }
     ],
@@ -330,16 +554,24 @@ python3 host/boot_image.py build --profile profiles/apple-m1-recovery.json \
     "image_size": 249856,
     "profile_id": "apple-m1-recovery",
     "project": "FBR34KER",
-    "release_version": "0.6.1b",
+    "release_version": "0.6.2b",
     "schema_version": 1
   },
   "path": "build-apple/m1/boot.img",
-  "sha256": "9e75d588d0cd4aee3347468deb6fa72efa5d330d73ee266297821caccbcb6c12",
+  "sha256": "350ba62fd4c7990b587e5083dbbc87d2d2845c06617105ed104e4aa39797bdee",
   "size": 249856
 }
 python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
 		--monitor build-generic/fbr34ker-generic.bin --monitor-load 0x80000000 --monitor-entry 0x80000000 --handoff build/handoff/handoff-v4.fbhb --module build/modules/hello-dynamic.fmod --output build-apple/m2/boot.img \
 		--raw-output build-apple/m2/boot.raw
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/modules/hello/hello.d -c modules/hello/hello.c -o build-hardware-probe/modules/hello/hello.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/platform/gic.d -c platform/gic.c -o build-hardware-probe/platform/gic.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/platform/generic_arm64/platform.d -c platform/generic_arm64/platform.c -o build-hardware-probe/platform/generic_arm64/platform.o
+clang --target=aarch64-none-elf -std=c11 -ffreestanding -fno-builtin -fstack-protector-strong -mstack-protector-guard=global -fzero-call-used-regs=used-gpr -Wshadow -Wundef -Wmissing-prototypes -Wmissing-declarations -Wimplicit-fallthrough -Wnull-dereference -Wswitch-enum -Wformat=2 -Wno-format-nonliteral -fno-pic -fno-pie -fno-omit-frame-pointer -mgeneral-regs-only -mstrict-align -march=armv8-a -O2 -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -DFBR34KER_BUILD_TARGET=\"generic_arm64\" -DFBR34KER_SOURCE_ID=\"0.6.2b-beta\" -DFBR34KER_PHYSICAL_PROBE_IMAGE=1  -Wall -Wextra -Werror -Iinclude -ffunction-sections -fdata-sections \
+		-MMD -MP -MF build-hardware-probe/platform/generic_arm64/timer.d -c platform/generic_arm64/timer.c -o build-hardware-probe/platform/generic_arm64/timer.o
 {
   "component_count": 3,
   "family": "m2",
@@ -352,7 +584,7 @@ python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
         "name": "fbr34ker-generic.bin",
         "offset": 20480,
         "role": "monitor",
-        "sha256": "b3726de239161e7058df1fcb2439c0034edccd88db7b8660f3693b933e592d12",
+        "sha256": "2c8fcbd9fc335f5e334a949c11314150585dabfd3ea9306b5c183ace6e3872db",
         "size": 219872
       },
       {
@@ -370,7 +602,7 @@ python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
         "name": "hello-dynamic.fmod",
         "offset": 245760,
         "role": "module",
-        "sha256": "85797b4fadb7092ad43a7796ac42df3479dbebf4163c447da72d3769bd47a1e9",
+        "sha256": "35f5b20a8fca399bb1fc7208f557c27a2d9759fc59d2e8757974f2cb037d3e64",
         "size": 299
       }
     ],
@@ -384,15 +616,19 @@ python3 host/boot_image.py build --profile profiles/apple-m2-recovery.json \
     "image_size": 249856,
     "profile_id": "apple-m2-recovery",
     "project": "FBR34KER",
-    "release_version": "0.6.1b",
+    "release_version": "0.6.2b",
     "schema_version": 1
   },
   "path": "build-apple/m2/boot.img",
-  "sha256": "d16a91d52708bc98ec5cd83c2343e9cb84a749301c18b7f2916de7d3c807f36e",
+  "sha256": "cf3b656630a4ce851590ab615422a87da3ea3cd0bdaf0b83c1a9d13f06d26771",
   "size": 249856
 }
 python3 host/boot_image.py inspect build-apple/a12/boot.img --json >/dev/null
+clang --target=aarch64-none-elf -ffreestanding -fno-pic -fno-pie -march=armv8-a -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -Iinclude -c arch/arm64/start.S -o build-hardware-probe/arch/arm64/start.o
+clang --target=aarch64-none-elf -ffreestanding -fno-pic -fno-pie -march=armv8-a -g -ffile-prefix-map=.=. -fdebug-prefix-map=.=. -Iinclude -c arch/arm64/vectors.S -o build-hardware-probe/arch/arm64/vectors.o
+ld.lld -T linker/generic_arm64.ld -Map=build-hardware-probe/fbr34ker-hardware-probe.map --gc-sections --fatal-warnings -o build-hardware-probe/fbr34ker-hardware-probe.elf build-hardware-probe/arch/arm64/cpu.o build-hardware-probe/arch/arm64/mmu.o build-hardware-probe/kernel/allocator.o build-hardware-probe/kernel/architecture.o build-hardware-probe/kernel/board.o build-hardware-probe/kernel/boot_evidence.o build-hardware-probe/kernel/bringup_report.o build-hardware-probe/kernel/build_info.o build-hardware-probe/kernel/bringup.o build-hardware-probe/kernel/command.o build-hardware-probe/kernel/console.o build-hardware-probe/kernel/crash.o build-hardware-probe/kernel/crc32.o build-hardware-probe/kernel/device_tree.o build-hardware-probe/kernel/driver.o build-hardware-probe/kernel/event.o build-hardware-probe/kernel/exception.o build-hardware-probe/kernel/fault.o build-hardware-probe/kernel/framebuffer_console.o build-hardware-probe/kernel/format.o build-hardware-probe/kernel/handoff.o build-hardware-probe/kernel/hardware_probe.o build-hardware-probe/kernel/kernel_patches.o build-hardware-probe/kernel/secure_boot_bypass.o build-hardware-probe/kernel/persistence.o build-hardware-probe/kernel/hal_sim.o build-hardware-probe/kernel/interrupt.o build-hardware-probe/kernel/lifecycle.o build-hardware-probe/kernel/log.o build-hardware-probe/kernel/main.o build-hardware-probe/kernel/module.o build-hardware-probe/kernel/mmio.o build-hardware-probe/kernel/physical_memory.o build-hardware-probe/kernel/protocol.o build-hardware-probe/kernel/sha256.o build-hardware-probe/kernel/service_guard.o build-hardware-probe/kernel/service_registry.o build-hardware-probe/kernel/stack_guard.o build-hardware-probe/kernel/string.o build-hardware-probe/kernel/trace.o build-hardware-probe/kernel/watchdog.o build-hardware-probe/kernel/apple_platform.o build-hardware-probe/kernel/usb.o build-hardware-probe/kernel/usbliter8_exploit.o build-hardware-probe/kernel/trust_cache.o build-hardware-probe/kernel/jailbreak.o build-hardware-probe/kernel/jbinit.o build-hardware-probe/modules/hello/hello.o build-hardware-probe/platform/gic.o build-hardware-probe/platform/generic_arm64/platform.o build-hardware-probe/platform/generic_arm64/timer.o build-hardware-probe/arch/arm64/start.o build-hardware-probe/arch/arm64/vectors.o
 python3 host/boot_image.py inspect build-apple/a12x/boot.img --json >/dev/null
+/opt/homebrew/opt/llvm/bin/llvm-objcopy -O binary build-hardware-probe/fbr34ker-hardware-probe.elf build-hardware-probe/fbr34ker-hardware-probe.bin
 python3 host/boot_image.py inspect build-apple/a13/boot.img --json >/dev/null
 python3 host/boot_image.py inspect build-apple/a14/boot.img --json >/dev/null
 python3 host/boot_image.py inspect build-apple/a15/boot.img --json >/dev/null

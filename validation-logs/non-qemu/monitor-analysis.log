@@ -1,10 +1,10 @@
 python3 scripts/run_static_analysis.py --clang clang --timeout 45 \
-		--jobs 4 --include-dir include --source-id 0.6.1b-analysis arch/arm64/cpu.c arch/arm64/mmu.c kernel/allocator.c kernel/architecture.c kernel/board.c kernel/boot_evidence.c kernel/bringup_report.c kernel/build_info.c kernel/bringup.c kernel/command.c kernel/console.c kernel/crash.c kernel/crc32.c kernel/device_tree.c kernel/driver.c kernel/event.c kernel/exception.c kernel/fault.c kernel/framebuffer_console.c kernel/format.c kernel/handoff.c kernel/hardware_probe.c kernel/kernel_patches.c kernel/secure_boot_bypass.c kernel/persistence.c kernel/hal_sim.c kernel/interrupt.c kernel/lifecycle.c kernel/log.c kernel/main.c kernel/module.c kernel/mmio.c kernel/physical_memory.c kernel/protocol.c kernel/sha256.c kernel/service_guard.c kernel/service_registry.c kernel/stack_guard.c kernel/string.c kernel/trace.c kernel/watchdog.c kernel/apple_platform.c kernel/usb.c kernel/usbliter8_exploit.c kernel/trust_cache.c kernel/jailbreak.c kernel/jbinit.c modules/hello/hello.c platform/gic.c platform/qemu_virt/platform.c platform/qemu_virt/timer.c platform/qemu_virt/uart.c platform/qemu_virt/semihosting.c platform/generic_arm64/platform.c platform/generic_arm64/timer.c examples/generic_loader/loader_adapter.c loader/qemu_handoff/loader.c
+		--jobs 4 --include-dir include --source-id 0.6.2b-analysis arch/arm64/cpu.c arch/arm64/mmu.c kernel/allocator.c kernel/architecture.c kernel/board.c kernel/boot_evidence.c kernel/bringup_report.c kernel/build_info.c kernel/bringup.c kernel/command.c kernel/console.c kernel/crash.c kernel/crc32.c kernel/device_tree.c kernel/driver.c kernel/event.c kernel/exception.c kernel/fault.c kernel/framebuffer_console.c kernel/format.c kernel/handoff.c kernel/hardware_probe.c kernel/kernel_patches.c kernel/secure_boot_bypass.c kernel/persistence.c kernel/hal_sim.c kernel/interrupt.c kernel/lifecycle.c kernel/log.c kernel/main.c kernel/module.c kernel/mmio.c kernel/physical_memory.c kernel/protocol.c kernel/sha256.c kernel/service_guard.c kernel/service_registry.c kernel/stack_guard.c kernel/string.c kernel/trace.c kernel/watchdog.c kernel/apple_platform.c kernel/usb.c kernel/usbliter8_exploit.c kernel/trust_cache.c kernel/jailbreak.c kernel/jbinit.c modules/hello/hello.c platform/gic.c platform/qemu_virt/platform.c platform/qemu_virt/timer.c platform/qemu_virt/uart.c platform/qemu_virt/semihosting.c platform/generic_arm64/platform.c platform/generic_arm64/timer.c examples/generic_loader/loader_adapter.c loader/qemu_handoff/loader.c
 starting bounded static analysis (57 files, 4 workers)
   [0/57] cpu.c: OK
   [2/57] allocator.c: OK
-  [4/57] board.c: OK
   [5/57] boot_evidence.c: OK
+  [4/57] board.c: OK
   [7/57] build_info.c: OK
   [8/57] bringup.c: OK
   [6/57] bringup_report.c: OK
@@ -12,17 +12,17 @@ starting bounded static analysis (57 files, 4 workers)
   [11/57] crash.c: OK
   [12/57] crc32.c: OK
   [13/57] device_tree.c: OK
-  [10/57] console.c: OK
-  [15/57] event.c: OK
   [1/57] mmu.c: OK
+  [15/57] event.c: OK
   [16/57] exception.c: OK
   [17/57] fault.c: OK
+  [10/57] console.c: OK
   [18/57] framebuffer_console.c: OK
   [14/57] driver.c: OK
   [21/57] hardware_probe.c: OK
+  [19/57] format.c: OK
   [9/57] command.c: OK
   [23/57] secure_boot_bypass.c: OK
-  [19/57] format.c: OK
   [24/57] persistence.c: OK
   [25/57] hal_sim.c: OK
   [26/57] interrupt.c: OK
@@ -34,24 +34,24 @@ starting bounded static analysis (57 files, 4 workers)
   [31/57] mmio.c: OK
   [34/57] sha256.c: OK
   [35/57] service_guard.c: OK
-  [36/57] service_registry.c: OK
+  [33/57] protocol.c: OK
   [37/57] stack_guard.c: OK
+  [36/57] service_registry.c: OK
   [38/57] string.c: OK
   [39/57] trace.c: OK
   [40/57] watchdog.c: OK
   [41/57] apple_platform.c: OK
-  [33/57] protocol.c: OK
   [43/57] usbliter8_exploit.c: OK
   [44/57] trust_cache.c: OK
   [30/57] module.c: OK
+  [46/57] jbinit.c: OK
   [45/57] jailbreak.c: OK
   [47/57] hello.c: OK
-  [46/57] jbinit.c: OK
-  [49/57] platform.c: OK
   [48/57] gic.c: OK
+  [49/57] platform.c: OK
   [50/57] timer.c: OK
-  [52/57] semihosting.c: OK
   [51/57] uart.c: OK
+  [52/57] semihosting.c: OK
   [54/57] timer.c: OK
   [42/57] usb.c: OK
   [56/57] loader.c: OK

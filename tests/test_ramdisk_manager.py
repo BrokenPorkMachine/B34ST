@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import pathlib
+import plistlib
 import tempfile
 import unittest
 import warnings
@@ -174,6 +175,101 @@ class RamdiskManagerTests(unittest.TestCase):
                 ramdisk_manager.RamdiskError, "owner-authorization"
             ):
                 ramdisk_manager.load_bundle(args)
+
+
+class RamdiskIPSWTests(unittest.TestCase):
+    def _make_ipsw(self, root: pathlib.Path, product: str = "iPhone12,1") -> pathlib.Path:
+        path = root / "iPhone12,1_18.5_22F76_Restore.ipsw"
+        restore = {
+            "ProductVersion": "18.5",
+            "ProductBuildVersion": "22F76",
+            "SupportedProductTypes": [product],
+        }
+        manifest = {
+            "ProductVersion": "18.5",
+            "ProductBuildVersion": "22F76",
+            "SupportedProductTypes": [product],
+            "BuildIdentities": [
+                {
+                    "Info": {
+                        "Variant": "RELEASE",
+                        "SupportedProductTypes": [product],
+                    },
+                    "Manifest": {
+                        "RestoreRamDisk": {
+                            "Info": {"Path": "038-12345-001.dmg"},
+                        },
+                        "KernelCache": {
+                            "Info": {"Path": "kernelcache.release.iphone12"},
+                        },
+                        "DeviceTree": {
+                            "Info": {"Path": "DeviceTree.iphone12.im4p"},
+                        },
+                        "TrustCache": {
+                            "Info": {"Path": "trustcache.iphone12"},
+                        },
+                    },
+                },
+            ],
+        }
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("Restore.plist", plistlib.dumps(restore))
+            archive.writestr("BuildManifest.plist", plistlib.dumps(manifest))
+            archive.writestr("038-12345-001.dmg", b"fake-ramdisk-data")
+            archive.writestr("kernelcache.release.iphone12", b"fake-kernelcache-data")
+            archive.writestr("DeviceTree.iphone12.im4p", b"fake-devicetree-data")
+            archive.writestr("trustcache.iphone12", b"fake-trustcache-data")
+        return path
+
+    def test_extract_ipsw_components_returns_mandatory_roles(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            ipsw = self._make_ipsw(root)
+            output_dir = root / "extracted"
+            extracted = ramdisk_manager.extract_ipsw_components(ipsw, "iPhone12,1", output_dir)
+            self.assertIn("ramdisk", extracted)
+            self.assertIn("kernelcache", extracted)
+            self.assertIn("devicetree", extracted)
+            self.assertIn("trustcache", extracted)
+            self.assertTrue(extracted["ramdisk"].is_file())
+            self.assertEqual(extracted["ramdisk"].read_bytes(), b"fake-ramdisk-data")
+
+    def test_extract_ipsw_rejects_missing_build_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            path = root / "bad.ipsw"
+            with zipfile.ZipFile(path, "w") as archive:
+                archive.writestr("Restore.plist", plistlib.dumps({}))
+            with self.assertRaisesRegex(ramdisk_manager.RamdiskError, "BuildManifest"):
+                ramdisk_manager.extract_ipsw_components(path, "iPhone12,1", root / "out")
+
+    def test_extract_ipsw_manifest_key_role_mapping(self) -> None:
+        role_map = ramdisk_manager.IPSW_ROLE_MAP
+        self.assertIn("RestoreRamDisk", role_map)
+        self.assertIn("KernelCache", role_map)
+        self.assertIn("DeviceTree", role_map)
+        self.assertIn("TrustCache", role_map)
+        self.assertIn("iBSS", role_map)
+        self.assertIn("iBEC", role_map)
+        self.assertIn("iBoot", role_map)
+        self.assertIn("AppleLogo", role_map)
+        self.assertIn("RestoreDeviceTree", role_map)
+
+    def test_ipsw_extract_command_via_parser(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            ipsw = self._make_ipsw(root)
+            output_dir = root / "out"
+            args = argparse.Namespace(
+                ipsw=ipsw,
+                product="iPhone12,1",
+                output_dir=output_dir,
+                json=False,
+            )
+            result = ramdisk_manager.ipsw_extract_command(args)
+            self.assertEqual(result["operation"], "ramdisk-ipsw-extract")
+            self.assertEqual(result["product"], "iPhone12,1")
+            self.assertIn("ramdisk", result["components"])
 
 
 if __name__ == "__main__":

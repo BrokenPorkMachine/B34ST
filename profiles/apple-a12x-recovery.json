@@ -62,7 +62,7 @@
   "requires_exact_product": false,
   "requires_runtime_memory_map": true,
   "schema_version": 1,
-  "soc": "T8028 / A12Z Bionic",
+  "soc": "T8027 / A12X and T8028 / A12Z Bionic",
   "transport": "irecovery",
   "validation_candidate": true,
   "validation_requirements": [

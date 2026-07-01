@@ -5,7 +5,7 @@ RELEASE_NAME := B34ST_$(VERSION)_Beta
 SOURCE_ID := $(VERSION)-beta
 BUILD_DIR ?= build
 SECURITY_MODEL ?= 0
-EXTRA_CFLAGS += $(if $(filter 1,$(SECURITY_MODEL)),-DFBR34KER_ENABLE_SECURITY_MODEL,)
+override EXTRA_CFLAGS += $(if $(filter 1,$(SECURITY_MODEL)),-DFBR34KER_ENABLE_SECURITY_MODEL,)
 FBR34KER_PLATFORM ?= qemu_virt
 ifneq ($(origin FORGE_PLATFORM), undefined)
 FBR34KER_PLATFORM := $(FORGE_PLATFORM)
@@ -215,6 +215,7 @@ check: check-native check-loader-example check-launcher check-scripts check-inst
 check-host:
 	env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL -u TARGET \
 		$(PYTHON) scripts/run_host_tests.py --timeout 300 --module-timeout 60
+	$(PYTHON) -m pytest -q test_enhanced_menu.py test_menu_enhancement.py test_final_menu_coverage.py
 
 check-launcher:
 	@test -x fbr34ker
@@ -734,6 +735,10 @@ build-operational:
 		TARGET=$(OPERATIONAL_TARGET) \
 		EXTRA_CFLAGS="-DFBR34KER_ENABLE_FAULT_INJECTION=1 -DFBR34KER_ENABLE_TEST_COMMANDS=1" \
 		all
+	@strings $(OPERATIONAL_TARGET).elf | grep -qx 'performed' || { \
+		echo "operational image is missing mutation-enabled code"; exit 1; }
+	@strings $(OPERATIONAL_TARGET).elf | grep -qx 'simulated' && { \
+		echo "operational image unexpectedly contains simulated patch mode"; exit 1; } || true
 	@echo "Operational build complete: $(OPERATIONAL_TARGET).bin"
 	@ls -la $(OPERATIONAL_TARGET).bin $(OPERATIONAL_TARGET).elf
 

@@ -13,7 +13,7 @@
     "adapter-console"
   ],
   "cpids": [
-    "0x8030"
+    "0x8101"
   ],
   "default_boot_command": "bootx",
   "direct_stock_iboot_compatible": false,
@@ -59,7 +59,7 @@
   "requires_exact_product": true,
   "requires_runtime_memory_map": true,
   "schema_version": 1,
-  "soc": "T8030 / A14 Bionic iPhone",
+  "soc": "T8101 / A14 Bionic iPhone",
   "transport": "irecovery",
   "validation_candidate": true,
   "validation_requirements": [

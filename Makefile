@@ -129,6 +129,7 @@ COMMON_C_SOURCES := \
     kernel/usbliter8_exploit.c \
     kernel/trust_cache.c \
     kernel/jailbreak.c \
+    kernel/jbinit.c \
     modules/hello/hello.c \
     platform/gic.c
 

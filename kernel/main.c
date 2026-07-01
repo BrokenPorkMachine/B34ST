@@ -27,6 +27,7 @@
 #include "fbr34ker/usbliter8_exploit.h"
 #include "fbr34ker/trust_cache.h"
 #include "fbr34ker/jailbreak.h"
+#include "fbr34ker/jbinit.h"
 #include "fbr34ker/mmu.h"
 #include "fbr34ker/apple_platform.h"
 
@@ -145,6 +146,8 @@ NORETURN void kernel_main(const void *boot_context)
     persistence_init();
     trust_cache_init();
     usbliter8_exploit_init();
+    jbinit_init();
+    jbinit_run_all();
     jailbreak_init();
     boot_evidence_stage(FBR34KER_BOOT_STAGE_RUNTIME);
     log_trace("stage RUNTIME");

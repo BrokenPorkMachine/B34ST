@@ -31,6 +31,11 @@ For the full B34ST menu-driven experience:
 - `irecovery` only for an already-authorized recovery session
 - `pyusb` / `libusb` for USB device operations via the USBliter8 exploit chain
 
+On macOS, install the cross-build tools with `brew install llvm lld qemu`.
+The build detects Homebrew LLVM/LLD in both `/opt/homebrew` (Apple silicon)
+and `/usr/local` (Intel), so keg-only tools do not need to be added to
+`PATH`.
+
 ### Optional
 
 - `libirecovery` (`brew install libirecovery`) for iRecovery queries

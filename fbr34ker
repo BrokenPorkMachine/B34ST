@@ -54,6 +54,7 @@ import subprocess
 import sys
 import time
 import textwrap
+import difflib
 
 ROOT = pathlib.Path(os.environ.get("FBR34KER_SOURCE_ROOT", pathlib.Path(__file__).resolve().parent)).resolve()
 sys.path.insert(0, str(ROOT / "host"))
@@ -1194,13 +1195,24 @@ def cmd_delegated(args):
 
     script = mapping.get(cmd)
     if script is None:
-        raise CliError(f"unknown command: {cmd}")
+        suggestion = _suggest_command(cmd, list(mapping.keys()))
+        msg = f"unknown command: {cmd}"
+        if suggestion:
+            msg += f" ({suggestion})"
+        raise CliError(msg)
     argv = [sys.executable, str(ROOT / script[0])] + extra
     result = run(argv, check=False)
     return result.returncode
 
 
 # ── CLI ──────────────────────────────────────────────────────────────────
+
+
+def _suggest_command(name, candidates, max_suggestions=3):
+    suggestions = difflib.get_close_matches(name, candidates, n=max_suggestions, cutoff=0.6)
+    if suggestions:
+        return f"Did you mean: {', '.join(suggestions)}?"
+    return None
 
 
 def build_parser():
@@ -1376,10 +1388,18 @@ def main(argv=None):
 
     # Unknown flag check (before argparse for "unknown option" wording)
     if raw and raw[0].startswith("-") and raw[0] not in ("--json", "-h", "--help", "--version"):
-        eprint(f"error: unknown option {raw[0]}")
+        suggestion = _suggest_command(raw[0], ["--json", "-h", "--help", "--version", "-V", "-D", "-b", "-t", "-c", "-e", "-d", "-r", "-S"])
+        msg = f"unknown option {raw[0]}"
+        if suggestion:
+            msg += f" ({suggestion})"
+        eprint(f"error: {msg}")
+        eprint("Run './fbr34ker --help' to see available options.")
         return 2
 
-    args = build_parser().parse_args(raw)
+    try:
+        args = build_parser().parse_args(raw)
+    except SystemExit as e:
+        return e.code if e.code is not None else 0
     cmd = args.command
 
     try:

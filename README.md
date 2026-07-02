@@ -1,19 +1,21 @@
 # B34ST - FBR34KER 0.6.2b
 
-FBR34KER is a freestanding ARM64 preboot monitor and authorized loader-integration research toolkit. Version 0.6.2b provides deterministic QEMU simulation, bridge validation, experimental DWC3 control-transfer research, kernel-patch state models, boot-policy and persistence modeling, evidence collection, and the B34ST unified multi-tool control panel.
+FBR34KER is a freestanding ARM64 preboot monitor and authorized loader-integration research toolkit for A12+ devices. This repo provides deterministic QEMU simulation, device detection, exploit-chain research, kernel-patch state models, evidence collection, and the B34ST unified control panel.
 
-The tree contains experimental USB transfer planners for A12+ (T8020/T8027/T8028/T8030/T8101/T8103/T8110/T8112), kernel-patch engines with per-SoC research tables, secure-boot and persistence state models, a CVE database and chain planner, forensics acquisition, and an evidence-gated research runtime. USB transfer completion is never treated as exploitation proof: physical workflows require positive PWNDFU or vendor-request evidence. Mutation paths are compile-time gated by `FBR34KER_ENABLE_SECURITY_MODEL`; the default build keeps writes disabled.
+**New to B34ST?** Start with ["First run"](#first-run) below.
 
 ---
 
-## Quick start / TLDR
+## Quick start
 
 ```sh
-make                # build QEMU monitor
-./fbr34ker run direct  # boot in QEMU
+git clone <url> && cd B34ST
+./fbr34ker doctor   # verify toolchain
+./fbr34ker build     # build default monitor (safe, mutation-disabled)
+./fbr34ker run direct # run in QEMU
 ```
 
-For the full B34ST menu-driven experience:
+For the guided interactive menus:
 
 ```sh
 ./scripts/B34ST
@@ -43,13 +45,27 @@ and `/usr/local` (Intel), so keg-only tools do not need to be added to
 
 ---
 
+## First run
+
+Run these three commands to verify your host and build the safe default image:
+
+```sh
+./fbr34ker doctor
+./fbr34ker build
+./fbr34ker run direct
+```
+
+If `doctor` reports missing tools, install them before building. If you're on macOS, most requirements are covered by Homebrew.
+
+---
+
 ## Installation / setup
 
 ```sh
 git clone https://github.com/BrokenPorkMachine/B34ST.git
 cd B34ST
 ./fbr34ker doctor   # verify toolchain
-./fbr34ker build     # build and validate all release targets
+./fbr34ker build     # build default target
 ```
 
 Install to system path (optional):
@@ -59,6 +75,20 @@ sudo ./scripts/install.sh
 ```
 
 After installation, `B34ST` is available as a system command.
+
+---
+
+## Which entry point should I use?
+
+| Goal | Command |
+|------|---------|
+| Guided menus | `./scripts/B34ST` |
+| One-off automation or scripts | `./fbr34ker <command>` |
+| Quick setup + validation | `./scripts/automate.sh build-and-validate` |
+| Evidence collection | `python3 scripts/collect-evidence.py <operation>` |
+| Smoke tests | `./scripts/smoke-test-runner.sh` |
+
+`./scripts/B34ST --help` shows the quick-reference menu. `./fbr34ker --help` lists every CLI subcommand.
 
 ---
 

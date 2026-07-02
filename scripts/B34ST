@@ -18,6 +18,7 @@ case "${1:-}" in
         echo "B34ST - Unified multi-tool for FBR34KER"
         echo "Usage:"
         echo "  ${0##*/}              Launch interactive control panel"
+        echo "  ${0##*/} neo          Launch FBR34KER guided console directly"
         echo "  ${0##*/} --help       Show this help"
         echo "  ${0##*/} <category>  Run a menu category non-interactively"
         echo ""

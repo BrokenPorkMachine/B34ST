@@ -27,6 +27,21 @@ from b34st.forensics import _check_security_boundary
 from b34st.version import __version__, __release_name__
 from b34st.control_panel import AUTHORIZATION_TEXT
 
+
+class Colors:
+    if sys.stdout.isatty():
+        BOLD = "\033[1m"
+        DIM = "\033[2m"
+        RED = "\033[31m"
+        GREEN = "\033[32m"
+        YELLOW = "\033[33m"
+        BLUE = "\033[34m"
+        CYAN = "\033[36m"
+        RESET = "\033[0m"
+    else:
+        BOLD = DIM = RED = GREEN = YELLOW = BLUE = CYAN = RESET = ""
+
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
@@ -58,7 +73,13 @@ class B34STCLI:
             return 0
 
         try:
-            if command in {"control-panel", "menu"}:
+            if command in {"control-panel", "menu", "console"}:
+                from b34st.control_panel import run_control_panel
+
+                return run_control_panel()
+            elif command == "neo":
+                # Launch FBR34KER guided console directly
+                print(f"{Colors.BOLD}Launching FBR34KER guided console {Colors.RESET}")
                 from b34st.control_panel import run_control_panel
 
                 return run_control_panel()

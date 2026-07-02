@@ -12,4 +12,29 @@ if [ -z "${FBR34KER_SOURCE_ROOT:-}" ]; then
     export FBR34KER_SOURCE_ROOT
 fi
 cd "$FBR34KER_SOURCE_ROOT"
+
+case "${1:-}" in
+    -h|--help|help)
+        echo "B34ST - Unified multi-tool for FBR34KER"
+        echo "Usage:"
+        echo "  ${0##*/}              Launch interactive control panel"
+        echo "  ${0##*/} --help       Show this help"
+        echo "  ${0##*/} <category>  Run a menu category non-interactively"
+        echo ""
+        echo "Common shortcuts:"
+        echo "  ./scripts/automate.sh build-and-validate"
+        echo "  ./scripts/automate.sh run-exploit-chain"
+        echo "  ./scripts/automate.sh collect-evidence <operation>"
+        echo ""
+        echo "Direct CLI:"
+        echo "  ./fbr34ker <command> [options]     Evidence-gated command interface"
+        echo "  ./fbr34ker --help                  Show all fbr34ker commands"
+        echo ""
+        echo "Documentation:"
+        echo "  README.md                           Project overview and workflows"
+        echo "  docs/                               In-depth guides and references"
+        exit 0
+        ;;
+esac
+
 exec python3 -m b34st.b34st "$@"

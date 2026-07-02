@@ -15,6 +15,7 @@ import json
 import pathlib
 import sys
 from typing import Any
+import difflib
 
 from b34st.environment import (
     EnvironmentPlanError,
@@ -94,7 +95,30 @@ class B34STCLI:
                     check=False,
                 ).returncode
             else:
-                self.log(f"Unknown command: {command}", "ERROR")
+                suggestions = difflib.get_close_matches(
+                    command,
+                    [
+                        "control-panel",
+                        "research-runtime",
+                        "validate-session",
+                        "physical-validation",
+                        "hardware-prepare",
+                        "environment-plan",
+                        "environment-validate",
+                        "usbliter8",
+                        "forensics",
+                        "sep-fuzz",
+                        "sep-research",
+                        "cve",
+                        "fbr34ker",
+                    ],
+                    n=3,
+                    cutoff=0.4,
+                )
+                msg = f"Unknown command: {command}"
+                if suggestions:
+                    msg += f" (did you mean: {', '.join(suggestions)}?)"
+                self.log(msg, "ERROR")
                 self._show_help()
                 return 1
 
@@ -115,11 +139,7 @@ class B34STCLI:
             return
 
         prefix = (
-            "INFO:"
-            if level not in ["ERROR", "WARN"]
-            else "ERROR:"
-            if level == "ERROR"
-            else "WARN:"
+            "INFO:" if level not in ["ERROR", "WARN"] else "ERROR:" if level == "ERROR" else "WARN:"
         )
         print(f"{prefix} {message}", file=sys.stderr if level != "INFO" else sys.stdout)
 
@@ -151,13 +171,9 @@ class B34STCLI:
         )
         print("\nAvailable commands:")
         print("  b34st control-panel           Open the operator control panel")
-        print(
-            "  b34st research-runtime        Run the evidence-gated runtime orchestrator"
-        )
+        print("  b34st research-runtime        Run the evidence-gated runtime orchestrator")
         print("  b34st validate-session         Validate a session bundle")
-        print(
-            "  b34st physical-validation       Perform physical validation operations"
-        )
+        print("  b34st physical-validation       Perform physical validation operations")
         print("  b34st hardware-prepare         Read-only hardware preparation")
         print("  b34st environment-plan         Plan an iOS 17+ research environment")
         print("  b34st environment-validate     Validate an environment manifest")
@@ -166,13 +182,9 @@ class B34STCLI:
         print("    forensics secrets             iCloud/Keychain/Keybag extraction")
         print("    forensics activation          Activation bypass & FMI control")
         print("    forensics passcode            Passcode on/off/change/bypass")
-        print(
-            "  b34st sep-fuzz                SEP Key Fuzzer — differential wrapper testing"
-        )
+        print("  b34st sep-fuzz                SEP Key Fuzzer — differential wrapper testing")
         print("    sep-fuzz run                   Run a full fuzzing campaign")
-        print(
-            "      --transport <type>             Device transport: simulator|usb|serial"
-        )
+        print("      --transport <type>             Device transport: simulator|usb|serial")
         print("    sep-fuzz list-variations       List all fuzz variations")
         print("    sep-fuzz list-categories       List fuzz categories")
         print("    sep-fuzz generate-harness      Generate baseline Swift harness")
@@ -180,9 +192,7 @@ class B34STCLI:
             "  b34st sep-research             SEP Research Pipeline — automated SEP/sepOS fuzzing"
         )
         print("    sep-research run               Run the full research pipeline")
-        print(
-            "      --transport <type>             Device transport: simulator|usb|serial|tcp"
-        )
+        print("      --transport <type>             Device transport: simulator|usb|serial|tcp")
         print("    sep-research list-stages       List pipeline stages")
         print("    sep-research info              Show pipeline information")
         print("  b34st cve                     CVE database & exploit chain planner")
@@ -242,9 +252,7 @@ class B34STCLI:
 
             # Execute FBR34KER command
             self.log(f"Running: {' '.join(cmd)}")
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, cwd=".", check=False
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, cwd=".", check=False)
 
             if result.returncode == 0:
                 print(result.stdout)
@@ -303,9 +311,7 @@ class B34STCLI:
             import json
 
             self.log(f"Running: {' '.join(cmd)}")
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, cwd=".", check=False
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, cwd=".", check=False)
 
             if result.returncode == 0:
                 if args.output and pathlib.Path(args.output).exists():
@@ -313,18 +319,14 @@ class B34STCLI:
                     # Display first part of report
                     with open(args.output, "r") as f:
                         report = json.load(f)
-                        self.log(
-                            f"Candidate ready: {report.get('candidate_ready', 'unknown')}"
-                        )
+                        self.log(f"Candidate ready: {report.get('candidate_ready', 'unknown')}")
                         self.log(
                             f"Physical validation complete: {report.get('physical_validation_complete', 'unknown')}"
                         )
                 print(result.stdout)
                 return result.returncode
             else:
-                self.log(
-                    f"FBR34KER physical-validation failed: {result.stderr}", "ERROR"
-                )
+                self.log(f"FBR34KER physical-validation failed: {result.stderr}", "ERROR")
                 return result.returncode
 
         except ImportError as e:
@@ -356,11 +358,7 @@ class B34STCLI:
         except SystemExit as e:
             return e.code
 
-        if (
-            not args.list_categories
-            and not args.save_checklists
-            and not args.validate_bundle
-        ):
+        if not args.list_categories and not args.save_checklists and not args.validate_bundle:
             self.log("hardware-prepare: no valid action specified", "WARN")
             self._show_hardware_categories()
             return 1
@@ -385,17 +383,13 @@ class B34STCLI:
                 ]
 
                 self.log(f"Running: {' '.join(cmd)}")
-                result = subprocess.run(
-                    cmd, capture_output=True, text=True, cwd=".", check=False
-                )
+                result = subprocess.run(cmd, capture_output=True, text=True, cwd=".", check=False)
 
                 if result.returncode == 0:
                     print(result.stdout)
                     return 0
                 else:
-                    self.log(
-                        f"FBR34KER hardware-prepare failed: {result.stderr}", "ERROR"
-                    )
+                    self.log(f"FBR34KER hardware-prepare failed: {result.stderr}", "ERROR")
                     return result.returncode
 
             except (OSError, subprocess.SubprocessError) as e:
@@ -412,9 +406,7 @@ class B34STCLI:
                     args.validate_bundle,
                 ]
                 self.log(f"Running: {' '.join(cmd)}")
-                result = subprocess.run(
-                    cmd, capture_output=True, text=True, cwd=".", check=False
-                )
+                result = subprocess.run(cmd, capture_output=True, text=True, cwd=".", check=False)
                 if result.returncode == 0:
                     print(result.stdout)
                     return 0
@@ -545,9 +537,7 @@ class B34STCLI:
             ],
             help="Acquisition profile to use",
         )
-        acq.add_argument(
-            "--device-id", default="unknown", help="Target device identifier"
-        )
+        acq.add_argument("--device-id", default="unknown", help="Target device identifier")
         acq.add_argument("--operator", default="", help="Operator name")
         acq.add_argument("--product", default="", help="Target product type")
         acq.add_argument("--model", default="", help="Target model identifier")
@@ -560,9 +550,7 @@ class B34STCLI:
             default=ROOT / "runtime-artifacts" / "b34st" / "forensics",
             help="Output directory",
         )
-        acq.add_argument(
-            "--bundle", type=pathlib.Path, help="Output evidence bundle path"
-        )
+        acq.add_argument("--bundle", type=pathlib.Path, help="Output evidence bundle path")
         acq.add_argument(
             "--capabilities",
             action="append",
@@ -574,9 +562,7 @@ class B34STCLI:
         verify.add_argument("bundle", type=pathlib.Path, help="Path to evidence bundle")
 
         secrets_p = sub.add_parser("secrets", help="iCloud/Keychain/Keybag acquisition")
-        secrets_p.add_argument(
-            "--passcode", default="", help="Device passcode for SEP unlock"
-        )
+        secrets_p.add_argument("--passcode", default="", help="Device passcode for SEP unlock")
         secrets_p.add_argument(
             "--sep-exploit", action="store_true", help="Use SEP exploit for unlock"
         )
@@ -596,9 +582,7 @@ class B34STCLI:
         activation_p = sub.add_parser(
             "activation", help="Activation bypass, Baseband, FMI operations"
         )
-        activation_sub = activation_p.add_subparsers(
-            dest="activation_command", required=True
-        )
+        activation_sub = activation_p.add_subparsers(dest="activation_command", required=True)
 
         act_status = activation_sub.add_parser("status", help="Query activation state")
         act_status.add_argument(
@@ -684,9 +668,7 @@ class B34STCLI:
         baseband_sub.add_parser("imei", help="Read IMEI numbers")
         baseband_sub.add_parser("iccid", help="Read ICCID numbers")
         baseband_sub.add_parser("tickets", help="List activation tickets")
-        baseband_sub.add_parser(
-            "clear-tickets", help="Clear baseband activation tickets"
-        )
+        baseband_sub.add_parser("clear-tickets", help="Clear baseband activation tickets")
         baseband_sub.add_parser("unlock", help="Unlock baseband (SIM lock bypass)")
 
         fmi_p = activation_sub.add_parser("fmi", help="Find My iPhone operations")
@@ -723,20 +705,14 @@ class B34STCLI:
             choices=["credential-extraction", "protected-data-access"],
             help="Requested security capabilities",
         )
-        mobileact_sub = mobileact_p.add_subparsers(
-            dest="mobileact_command", required=True
-        )
+        mobileact_sub = mobileact_p.add_subparsers(dest="mobileact_command", required=True)
         mobileact_sub.add_parser("status", help="Query mobileactivationd state")
         mobileact_sub.add_parser("info", help="Query activation info")
-        mobileact_sub.add_parser(
-            "patch", help="Patch mobileactivationd activation check"
-        )
+        mobileact_sub.add_parser("patch", help="Patch mobileactivationd activation check")
         mobileact_sub.add_parser("restart", help="Restart mobileactivationd")
         mobileact_sub.add_parser("inject", help="Inject activation record")
 
-        passcode_p = sub.add_parser(
-            "passcode", help="Passcode management (on/off/change)"
-        )
+        passcode_p = sub.add_parser("passcode", help="Passcode management (on/off/change)")
         passcode_p.add_argument(
             "--output",
             type=pathlib.Path,
@@ -746,9 +722,7 @@ class B34STCLI:
         passcode_sub = passcode_p.add_subparsers(dest="passcode_command", required=True)
         passcode_sub.add_parser("status", help="Query passcode state")
         passcode_sub.add_parser("policy", help="Query passcode policy")
-        passcode_remove = passcode_sub.add_parser(
-            "remove", help="Remove device passcode"
-        )
+        passcode_remove = passcode_sub.add_parser("remove", help="Remove device passcode")
         passcode_remove.add_argument("--passcode", default="", help="Current passcode")
         passcode_remove.add_argument(
             "--exploit",
@@ -781,9 +755,7 @@ class B34STCLI:
             choices=["credential-extraction", "protected-data-access"],
             help="Requested security capabilities",
         )
-        passcode_change = passcode_sub.add_parser(
-            "change", help="Change device passcode"
-        )
+        passcode_change = passcode_sub.add_parser("change", help="Change device passcode")
         passcode_change.add_argument("current", help="Current passcode")
         passcode_change.add_argument("new", help="New passcode (min 4 chars)")
         passcode_change.add_argument(
@@ -798,9 +770,7 @@ class B34STCLI:
             choices=["credential-extraction", "protected-data-access"],
             help="Requested security capabilities",
         )
-        passcode_bypass = passcode_sub.add_parser(
-            "bypass", help="Attempt passcode bypass"
-        )
+        passcode_bypass = passcode_sub.add_parser("bypass", help="Attempt passcode bypass")
         passcode_bypass.add_argument(
             "--output",
             type=pathlib.Path,
@@ -840,9 +810,7 @@ class B34STCLI:
             profiles = builtin_profiles()
             profile = profiles.get(args.profile, profiles["quick"])
 
-            blockers = _check_security_boundary(
-                args.profile, getattr(args, "capabilities", [])
-            )
+            blockers = _check_security_boundary(args.profile, getattr(args, "capabilities", []))
             if blockers and not getattr(args, "capabilities", []):
                 print(
                     "Security boundary blockers for this acquisition type:",
@@ -923,9 +891,7 @@ class B34STCLI:
         from host.forensics.secrets import SecretsAcquisitor
         from host.forensics.chain_of_custody import CustodyLog
 
-        blockers = _check_security_boundary(
-            "keychain", getattr(args, "capabilities", [])
-        )
+        blockers = _check_security_boundary("keychain", getattr(args, "capabilities", []))
         if blockers and not getattr(args, "capabilities", []):
             print(
                 "Security boundary blockers for this acquisition type:",
@@ -1044,9 +1010,7 @@ class B34STCLI:
             self.log(f"Unknown activation command: {args.activation_command}", "ERROR")
             status_code = 1
 
-        output = getattr(
-            args, "output", ROOT / "runtime-artifacts" / "b34st" / "activation"
-        )
+        output = getattr(args, "output", ROOT / "runtime-artifacts" / "b34st" / "activation")
         if output:
             output.mkdir(parents=True, exist_ok=True)
             custody.write(output / "chain-of-custody.json")
@@ -1238,9 +1202,7 @@ class B34STCLI:
             self.log(f"Unknown passcode command: {cmd}", "ERROR")
             return 1
 
-        output = getattr(
-            args, "output", ROOT / "runtime-artifacts" / "b34st" / "passcode"
-        )
+        output = getattr(args, "output", ROOT / "runtime-artifacts" / "b34st" / "passcode")
         output.mkdir(parents=True, exist_ok=True)
         custody.write(output / "chain-of-custody.json")
 
@@ -1259,9 +1221,7 @@ class B34STCLI:
         sub = parser.add_subparsers(dest="sep_fuzz_command", required=True)
 
         run_p = sub.add_parser("run", help="Run a full SEP key fuzzing campaign")
-        run_p.add_argument(
-            "--device-model", default="iPhone14,2", help="Device model identifier"
-        )
+        run_p.add_argument("--device-model", default="iPhone14,2", help="Device model identifier")
         run_p.add_argument("--os-build", default="21A123", help="iOS build number")
         run_p.add_argument("--chipset", default="A15", help="SoC chipset identifier")
         run_p.add_argument(
@@ -1300,9 +1260,7 @@ class B34STCLI:
             help='JSON dict of transport arguments (e.g. \'{"port": "/dev/ttyUSB0"}\')',
         )
 
-        list_p = sub.add_parser(
-            "list-variations", help="List all fuzz variations defined"
-        )
+        list_p = sub.add_parser("list-variations", help="List all fuzz variations defined")
         list_p.add_argument(
             "--category",
             choices=["device_lifecycle", "access_control", "wrapper_integrity"],
@@ -1312,9 +1270,7 @@ class B34STCLI:
 
         sub.add_parser("list-categories", help="List fuzz categories")
 
-        generate_p = sub.add_parser(
-            "generate-harness", help="Generate the baseline Swift harness"
-        )
+        generate_p = sub.add_parser("generate-harness", help="Generate the baseline Swift harness")
         generate_p.add_argument(
             "--output",
             type=pathlib.Path,
@@ -1391,9 +1347,7 @@ class B34STCLI:
             # Build submit function from transport backend
             if args.transport == "simulator":
 
-                def _simulated_submit(
-                    wrapper: bytes, metadata: dict[str, Any]
-                ) -> dict[str, Any]:
+                def _simulated_submit(wrapper: bytes, metadata: dict[str, Any]) -> dict[str, Any]:
                     return {
                         "accepted": False,
                         "public_key_hex": "",
@@ -1436,9 +1390,7 @@ class B34STCLI:
         sub = parser.add_subparsers(dest="pipeline_command", required=True)
 
         run_p = sub.add_parser("run", help="Run the full research pipeline")
-        run_p.add_argument(
-            "--device-model", default="iPhone14,2", help="Device model identifier"
-        )
+        run_p.add_argument("--device-model", default="iPhone14,2", help="Device model identifier")
         run_p.add_argument("--os-build", default="21A123", help="iOS build number")
         run_p.add_argument("--chipset", default="A15", help="SoC chipset identifier")
         run_p.add_argument(
@@ -1506,9 +1458,7 @@ class B34STCLI:
             print("                             one variable")
             print("  4. structural_fuzzing   — Length errors, integer overflow,")
             print("                             type confusion mutations")
-            print(
-                "  5. stateful_fuzzing     — Sequence mutations (create→use→delete→use)"
-            )
+            print("  5. stateful_fuzzing     — Sequence mutations (create→use→delete→use)")
             print("  6. concurrency_fuzzing  — Race conditions (delete vs sign,")
             print("                             cancel vs complete)")
             print("  7. crash_triage         — Classify fault layer")
@@ -1568,9 +1518,7 @@ class B34STCLI:
         search_p = sub.add_parser("search", help="Search CVEs by ID or description")
         search_p.add_argument("query", help="Search query")
 
-        query_p = sub.add_parser(
-            "query", help="Get all CVEs for a specific iOS version"
-        )
+        query_p = sub.add_parser("query", help="Get all CVEs for a specific iOS version")
         query_p.add_argument("version", help="iOS version (e.g., 16.5)")
 
         filter_p = sub.add_parser("filter", help="Filter CVEs by multiple criteria")
@@ -1593,9 +1541,7 @@ class B34STCLI:
 
         sub.add_parser("stats", help="Show CVE database statistics")
 
-        chain_p = sub.add_parser(
-            "chain", help="Plan an exploit chain to achieve a goal"
-        )
+        chain_p = sub.add_parser("chain", help="Plan an exploit chain to achieve a goal")
         chain_p.add_argument("goal", help="Exploit goal name (use 'goals' to list)")
         chain_p.add_argument("version", help="Target iOS version")
 
@@ -1606,9 +1552,7 @@ class B34STCLI:
         device_chain_p.add_argument("version", help="Target iOS version")
         device_chain_p.add_argument("device", help="Device model (e.g., iPhone10,1)")
 
-        device_info_p = sub.add_parser(
-            "device-info", help="Show device/SoC information"
-        )
+        device_info_p = sub.add_parser("device-info", help="Show device/SoC information")
         device_info_p.add_argument(
             "identifier",
             nargs="?",
@@ -1616,9 +1560,7 @@ class B34STCLI:
         )
         device_info_p.add_argument("--version", help="Filter devices by iOS version")
 
-        suggest_p = sub.add_parser(
-            "suggest", help="Suggest achievable goals for a version"
-        )
+        suggest_p = sub.add_parser("suggest", help="Suggest achievable goals for a version")
         suggest_p.add_argument("version", help="Target iOS version")
 
         sub.add_parser("goals", help="List all available exploit goals")
@@ -1666,9 +1608,7 @@ class B34STCLI:
             for cve in sorted(
                 results,
                 key=lambda c: (
-                    {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(
-                        c.severity, 99
-                    ),
+                    {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(c.severity, 99),
                     c.id,
                 ),
             ):
@@ -1701,9 +1641,7 @@ class B34STCLI:
             for cve in sorted(
                 results,
                 key=lambda c: (
-                    {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(
-                        c.severity, 99
-                    ),
+                    {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(c.severity, 99),
                     c.id,
                 ),
             ):
@@ -1730,19 +1668,13 @@ class B34STCLI:
                 return 1
 
             if not chains:
-                print(
-                    f"No exploit chains found for goal '{args.goal}' on iOS {args.version}"
-                )
-                print(
-                    "Try a different goal or version, or check the CVE database coverage."
-                )
+                print(f"No exploit chains found for goal '{args.goal}' on iOS {args.version}")
+                print("Try a different goal or version, or check the CVE database coverage.")
                 return 0
 
             print(f"Exploit chains for goal '{args.goal}' on iOS {args.version}:\n")
             for i, chain in enumerate(chains[:5], 1):
-                status = (
-                    "COMPLETE" if chain.complete else f"PARTIAL ({chain.coverage:.0%})"
-                )
+                status = "COMPLETE" if chain.complete else f"PARTIAL ({chain.coverage:.0%})"
                 print(
                     f"  Chain #{i} [{status}] — {chain.estimate_difficulty}, ~{chain.estimated_success_rate}"
                 )
@@ -1805,16 +1737,10 @@ class B34STCLI:
                         print(f"  Arch:  {soc.arch}")
                         print(f"  Bootrom: {soc.bootrom_exploit}")
                         print(f"  SEP: {'yes' if soc.sep_present else 'no'}")
-                        print(
-                            f"  Persistent JB: {'yes' if soc.persistent_jailbreak else 'no'}"
-                        )
+                        print(f"  Persistent JB: {'yes' if soc.persistent_jailbreak else 'no'}")
                         print(f"  iOS:   {soc.min_ios} - {soc.max_ios}")
                         print(f"  {soc.description}")
-                        devices = [
-                            (m, d)
-                            for m, d in DEVICE_DATABASE.items()
-                            if d.soc == soc.name
-                        ]
+                        devices = [(m, d) for m, d in DEVICE_DATABASE.items() if d.soc == soc.name]
                         if devices:
                             print(f"\nDevices with {soc.name}:")
                             for model, info in sorted(devices):
@@ -1826,9 +1752,7 @@ class B34STCLI:
             else:
                 print("Known SoCs:\n")
                 for name, soc in sorted(SOC_DATABASE.items()):
-                    dev_count = sum(
-                        1 for d in DEVICE_DATABASE.values() if d.soc == name
-                    )
+                    dev_count = sum(1 for d in DEVICE_DATABASE.values() if d.soc == name)
                     print(
                         f"  {name:5s} {soc.description:40s} bootrom={soc.bootrom_exploit:10s} {dev_count} devices"
                     )
@@ -1850,9 +1774,7 @@ class B34STCLI:
             soc = SOC_DATABASE.get(dev.soc)
             planner = ChainPlanner(db)
             try:
-                chains = planner.find_chains_for_device(
-                    args.goal, args.version, args.device
-                )
+                chains = planner.find_chains_for_device(args.goal, args.version, args.device)
             except (RuntimeError, OSError, ValueError) as exc:
                 self.log(f"Chain planning failed: {exc}", "ERROR")
                 return 1
@@ -1870,9 +1792,7 @@ class B34STCLI:
                 f"Exploit chains for '{args.goal}' on {args.device} ({dev.marketing}, {dev.soc}):\n"
             )
             for i, chain in enumerate(chains[:5], 1):
-                status = (
-                    "COMPLETE" if chain.complete else f"PARTIAL ({chain.coverage:.0%})"
-                )
+                status = "COMPLETE" if chain.complete else f"PARTIAL ({chain.coverage:.0%})"
                 print(
                     f"  Chain #{i} [{status}] — {chain.estimate_difficulty}, ~{chain.estimated_success_rate}"
                 )
@@ -1898,11 +1818,7 @@ class B34STCLI:
 
             print(f"Achievable goals for iOS {args.version}:\n")
             for s in suggestions:
-                status = (
-                    "✓ ACHIEVABLE"
-                    if s["achievable"]
-                    else f"~ Partial ({s['coverage']:.0%})"
-                )
+                status = "✓ ACHIEVABLE" if s["achievable"] else f"~ Partial ({s['coverage']:.0%})"
                 print(
                     f"  [{status}] {s['goal']:25s} difficulty={s['difficulty']:7s} rate={s['success_rate']:4s} steps={s['steps']}"
                 )
@@ -1918,16 +1834,14 @@ class B34STCLI:
                 print("Available fuzz targets:\n")
                 for name, desc in targets.items():
                     print(f"  {name:25s} {desc}")
-                print(
-                    "\nUse `b34st cve fuzz run <target>` to execute (requires harness build)"
-                )
+                print("\nUse `b34st cve fuzz run <target>` to execute (requires harness build)")
             return 0
 
         return 0
 
     def _prepare_waveshare_rp2350(self, target_chipset: str = "A14") -> None:
         """Prepare Waveshare RP2350 USB-A device for USBliter8 exploit v2.
-        
+
         Complete preparation flow for A14/A15/M1/M2 devices including:
         1. Waveshare RP2350 USB-A device detection and identification
         2. Firmware flashing (UF2 file to the device)
@@ -1935,7 +1849,7 @@ class B34STCLI:
         4. Power setup
         5. USB controller verification
         6. Device connection verification for target chipset
-        
+
         Args:
             target_chipset: Target iPhone chipset (A14, A15, M1, or M2)
         """
@@ -1944,34 +1858,32 @@ class B34STCLI:
         from pathlib import Path
 
         self.log(f"Waveshare RP2350 USB-A preparation for {target_chipset} (v2)")
-        
+
         # Display target information
         print(f"\n[*] Targeting {target_chipset} device")
         if target_chipset == "A15":
             print("  CPIDs: 0x8015, 0x8017, 0x8019, 0x801B, 0x801D")
         elif target_chipset == "M1":
-            print("  CPIDs: 0x8103 (iPhone 12 Mini/Pro), 0x8104 (iPhone 12 Max), 0x8105 (iPhone 12 Pro Max)")
+            print(
+                "  CPIDs: 0x8103 (iPhone 12 Mini/Pro), 0x8104 (iPhone 12 Max), 0x8105 (iPhone 12 Pro Max)"
+            )
         elif target_chipset == "M2":
-            print("  CPIDs: 0x8106 (iPhone 13 Mini), 0x8107 (iPhone 13/Pro), 0x8109 (iPhone 13 Pro Max)")
+            print(
+                "  CPIDs: 0x8106 (iPhone 13 Mini), 0x8107 (iPhone 13/Pro), 0x8109 (iPhone 13 Pro Max)"
+            )
         elif target_chipset == "A14":
             print("  CPIDs: 0x8002 (iPhone 11 Pro), 0x8008, 0x800A, 0x800C, 0x800E")
-        
+
         print("\n[*] Waveshare RP2350 USB-A Hardware Preparation (v2)")
         print("=" * 60)
-        
+
         # Step 1: Device identification
         print("\n1. Device Identification:")
         print("   - Verify Waveshare RP2350 is connected with power")
         print("   - Target chipset: ", end="")
-        
+
         # Check for Waveshare RP2350 device
-        result = subprocess.run(
-            ["lsusb"],
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=10
-        )
+        result = subprocess.run(["lsusb"], capture_output=True, text=True, check=False, timeout=10)
         if "PID 2050" in result.stdout:
             print("✓ RP2350 detected (PID 2050)")
             print("\n   RP2350 Specs:")
@@ -1995,7 +1907,7 @@ class B34STCLI:
         print("   - Drive 'RPI-RP2' should appear")
         print("   - Copy waveshare_rp2350_usb_a.uf2 to drive")
         print("   - Device will reboot automatically")
-        
+
         firmware_path = ROOT / "build-exploit" / "waveshare_rp2350_usb_a.uf2"
         if firmware_path.is_file():
             print(f"   ✓ Firmware available: {firmware_path.name}")
@@ -2025,11 +1937,11 @@ class B34STCLI:
         print(f"   - Target: {target_chipset} (see CPIDs above)")
         print("   - Put device in DFU mode (hold volume down + connect)")
         print("   - Verify device appears in lsusb with DFU interface")
-        
+
         # Check current USB devices
         print("\n   Current USB devices (lsusb):")
-        for line in result.stdout.strip().split('\n'):
-            if line and ('Apple' in line or 'iPhone' in line or 'DFU' in line):
+        for line in result.stdout.strip().split("\n"):
+            if line and ("Apple" in line or "iPhone" in line or "DFU" in line):
                 print(f"     - {line}")
 
         # Step 6: Verification checklist
@@ -2046,9 +1958,9 @@ class B34STCLI:
         try:
             import pyusb
             from usb import USBContext
-            
+
             print("   - pyusb library: ✓ Installed")
-            
+
             with USBContext() as ctx:
                 devices = ctx.list_devices()
                 if devices:
@@ -2154,7 +2066,7 @@ class B34STCLI:
         if not args.skip_hardware_prep:
             self.log("USBliter8 hardware preparation")
             self._show_hardware_categories()
-            
+
             # Waveshare RP2350 USB-A Preparation Flow
             if not args.skip_rp2350_prep:
                 self._prepare_waveshare_rp2350(args.chipset)
@@ -2181,9 +2093,7 @@ class B34STCLI:
                             "schema_version": 1,
                             "stage": "hardware_preparation",
                             "status": "verified",
-                            "items": [
-                                {"item": item, "status": "done"} for item, _ in items
-                            ],
+                            "items": [{"item": item, "status": "done"} for item, _ in items],
                         },
                         indent=2,
                     )
@@ -2193,9 +2103,7 @@ class B34STCLI:
         operational_bin = ROOT / "build-exploit" / "fbr34ker-operational.bin"
         if args.force_rebuild or not operational_bin.is_file():
             if operational_bin.is_file():
-                self.log(
-                    "Found existing operational image, rebuilding (--force-rebuild)"
-                )
+                self.log("Found existing operational image, rebuilding (--force-rebuild)")
             else:
                 self.log("Operational image not found, building now")
             if args.skip_build:
@@ -2258,94 +2166,7 @@ class B34STCLI:
             self.log("USBliter8 exploit chain completed successfully")
 
             if not args.no_console:
-                connect = input(
-                    "\nConnect to FBR34KER console for live exploration? (y/N): "
-                )
-                if connect.lower() in ("y", "yes"):
-                    console_cmd = [
-                        sys.executable,
-                        "-c",
-                        "from host.usb_serial import USBConsole; "
-                        "c = USBConsole(); c.open(); "
-                        "print(c.read_until_prompt(timeout=10.0))",
-                    ]
-                    subprocess.run(console_cmd, cwd=ROOT, check=False)
-
-            if args.return_to_b34st and not args.no_return:
-                print("\nReturning to B34ST...")
-                from b34st.control_panel import run_control_panel
-
-        operational_bin = ROOT / "build-exploit" / "fbr34ker-operational.bin"
-        if args.force_rebuild or not operational_bin.is_file():
-            if operational_bin.is_file():
-                self.log(
-                    "Found existing operational image, rebuilding (--force-rebuild)"
-                )
-            else:
-                self.log("Operational image not found, building now")
-            if args.skip_build:
-                self.log("Operational image missing but build was skipped", "ERROR")
-                print("Operational image not found and --skip-build was requested.")
-                return 1
-            if not args.skip_build:
-                result = subprocess.run(
-                    ["make", "build-operational"],
-                    cwd=ROOT,
-                    capture_output=True,
-                    text=True,
-                    timeout=120,
-                    check=False,
-                )
-                if result.returncode != 0:
-                    self.log(f"Build failed: {result.stderr}", "ERROR")
-                    return 1
-                self.log("Operational build complete")
-        else:
-            self.log(f"Found existing operational image: {operational_bin}")
-            self.log("Skipping build (use --force-rebuild to override)")
-
-        print("\n--- USBliter8 execution ---")
-        print("This will exploit the A12+ device via DWC3 and run the chain.\n")
-
-        owner = input(f'Type "{AUTHORIZATION_TEXT}" to continue: ')
-        if owner != AUTHORIZATION_TEXT:
-            print("Authorization not confirmed. Aborting.")
-            return 1
-
-        exploit_script = ROOT / "scripts" / "run_exploit.py"
-        if not exploit_script.is_file():
-            self.log(f"Exploit script not found: {exploit_script}", "ERROR")
-            return 1
-
-        evidence = (
-            None
-            if args.skip_evidence
-            else (args.evidence or evidence_dir / "usbliter8-jailbreak.json")
-        )
-        cmd = [
-            sys.executable,
-            str(exploit_script),
-            "--monitor",
-            str(operational_bin),
-            "--timeout",
-            str(args.timeout),
-        ]
-        if evidence is not None:
-            cmd.extend(["--evidence", str(evidence)])
-        if args.no_dfu_wait:
-            cmd.append("--no-dfu-wait")
-
-        print(f"\nRunning: {' '.join(cmd)}\n")
-        result = subprocess.run(cmd, cwd=ROOT, text=True, check=False)
-        return_code = result.returncode
-
-        if return_code == 0:
-            self.log("USBliter8 exploit chain completed successfully")
-
-            if not args.no_console:
-                connect = input(
-                    "\nConnect to FBR34KER console for live exploration? (y/N): "
-                )
+                connect = input("\nConnect to FBR34KER console for live exploration? (y/N): ")
                 if connect.lower() in ("y", "yes"):
                     console_cmd = [
                         sys.executable,
@@ -2361,14 +2182,6 @@ class B34STCLI:
                 from b34st.control_panel import run_control_panel
 
                 return run_control_panel()
-
-        else:
-            self.log(f"USBliter8 exploit failed (exit {return_code})", "ERROR")
-            print("Troubleshooting:")
-            print("  - Ensure device is in DFU mode")
-            print("  - Confirm the exact CPID is in the reviewed target table")
-            print("  - Check USB cable and host port")
-            print(f"  - Review evidence: {evidence}")
 
         return return_code
 
@@ -2392,12 +2205,8 @@ providing a streamlined interface for common operations.
         """,
     )
 
-    parser.add_argument(
-        "--version", action="store_true", help="Show B34ST version and exit"
-    )
-    parser.add_argument(
-        "--quiet", action="store_true", help="Suppress non-essential output"
-    )
+    parser.add_argument("--version", action="store_true", help="Show B34ST version and exit")
+    parser.add_argument("--quiet", action="store_true", help="Suppress non-essential output")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
 
     if len(sys.argv) == 1:
@@ -2406,15 +2215,11 @@ providing a streamlined interface for common operations.
         print(f"\nB34ST v{__version__} is a lightweight CLI wrapper for FBR34KER")
         print("\nAvailable commands:")
         print("  b34st validate-session         Validate a session bundle")
-        print(
-            "  b34st physical-validation       Perform physical validation operations"
-        )
+        print("  b34st physical-validation       Perform physical validation operations")
         print("  b34st hardware-prepare         Read-only hardware preparation")
         print("  b34st forensics                Forensics and data acquisition")
         print("  b34st cve                      CVE database & exploit chain planner")
-        print(
-            "  b34st cve device-info          Device/SoC database for iPhone 4-15, T2, M1/M2"
-        )
+        print("  b34st cve device-info          Device/SoC database for iPhone 4-15, T2, M1/M2")
         print("  b34st cve device-chain         Device-aware exploit chain planning")
         print(
             "  b34st usbliter8                USBliter8 exploit workflow (hardware prep + execution)"

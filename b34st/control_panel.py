@@ -3018,7 +3018,23 @@ def run_control_panel() -> int:
         print("\n  What are you trying to achieve? (Choose a workflow)")
         print("\n" + "-" * 64)
 
-        main_menu_options = _main_menu_options()
+        main_menu_options = [
+            ("1", "Hardware Setup", "Connect, detect, and prepare devices"),
+            ("2", "Next Stages", "Progress through workflow phases"),
+            ("3", "Modifications", "Apply patches and security bypasses"),
+            ("4", "Build & Verify", "Compile and validate artifacts"),
+            ("5", "Runtime Console", "Interactive kernel/console access"),
+            ("6", "Evidence & Release", "Collect evidence and package releases"),
+            ("7", "IPSW Workflows", "Catalog, download, and manage iOS firmwares"),
+            ("8", "Environment Planning", "Plan and validate research environments"),
+            ("9", "🔧 FBR34KER Console", "Launch the FBR34KER guided CLI"),
+            ("10", "Session Logs", "View and manage session artifacts"),
+            ("11", "Forensics", "Data acquisition and decryption"),
+            ("12", "CVE Planning", "Exploit chain and target planning"),
+            ("13", "Fuzzing", "SEP key fuzzing campaigns"),
+            ("14", "Ramdisk", "Create and manage ramdisk images"),
+            ("0", "Exit", "End session and save evidence"),
+        ]
 
         print("  Main workflow selection:")
         for key, label, desc in main_menu_options:

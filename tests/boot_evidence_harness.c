@@ -1,5 +1,6 @@
 #include "fbr34ker/boot_evidence.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 int main(void)
 {
     boot_evidence_init();

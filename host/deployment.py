@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """Deployment orchestration, retry, resume, and evidence collection."""
 from __future__ import annotations
 

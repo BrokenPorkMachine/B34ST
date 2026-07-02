@@ -1,5 +1,6 @@
 """Network state acquisition for forensic capture of network configuration.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Captures interface information, active connections, routing tables,
 and network stack state via wire protocol or console commands.
 """

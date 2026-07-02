@@ -2,6 +2,7 @@
 #include "fbr34ker/string.h"
 #include "fbr34ker/trace.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static fbr34ker_fault_status_t status;
 static bool initialized;
 

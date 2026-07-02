@@ -1,6 +1,7 @@
 #include "fbr34ker/platform.h"
 #include "fbr34ker/timer.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 void platform_prepare(const void *boot_context) { (void)boot_context; }
 void platform_init(void) { timer_init(); }
 const char *platform_name(void) { return "{{NAME}}"; }

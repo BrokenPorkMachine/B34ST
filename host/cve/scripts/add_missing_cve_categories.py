@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Add missing CVE categories: FairPlay, IOReg, Keychain, SEP Keystore, DTrace, info leaks."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 import json

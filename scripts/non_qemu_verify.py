@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Run the complete non-QEMU FBR34KER gate as isolated bounded stages."""
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import argparse

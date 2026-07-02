@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Root script wrapper for the B34ST guided research-runtime orchestrator."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

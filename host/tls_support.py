@@ -1,5 +1,6 @@
 """Verified TLS client context and CA-bundle discovery."""
 
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import os

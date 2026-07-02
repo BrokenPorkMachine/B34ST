@@ -1,4 +1,5 @@
 """
+# SPDX-License-Identifier: BSD-2-Clause
 Device/SoC database for B34ST.
 Maps iPhone 4→15, iPad, T2, M1/M2 to their SoC, bootrom state, and iOS ranges.
 """

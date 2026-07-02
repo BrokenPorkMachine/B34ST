@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 
 typedef __UINT8_TYPE__  u8;
 typedef __UINT16_TYPE__ u16;

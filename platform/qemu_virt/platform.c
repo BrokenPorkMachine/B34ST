@@ -3,6 +3,7 @@
 #include "fbr34ker/timer.h"
 #include "fbr34ker/gic.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 extern void qemu_uart_init(void);
 extern u8 __image_start[];
 extern u8 __image_end[];

@@ -1,5 +1,6 @@
 #include "fbr34ker_sdk.h"
 #include <stdio.h>
+// SPDX-License-Identifier: BSD-2-Clause
 static size_t write_cb(const char *p, size_t n, void *ctx) { (void)ctx; return fwrite(p, 1, n, stdout); }
 int main(void) {
     fbr34ker_handoff_builder_t b; const fbr34ker_handoff_t *h = NULL;

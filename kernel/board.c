@@ -5,6 +5,7 @@
 #include "fbr34ker/string.h"
 #include <stdarg.h>
 
+// SPDX-License-Identifier: BSD-2-Clause
 static fbr34ker_board_descriptor_t active_board;
 static bool initialized;
 

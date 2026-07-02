@@ -4,6 +4,7 @@
 #include "fbr34ker/service_registry.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct {
     const fbr34ker_driver_descriptor_t *descriptor;
     fbr34ker_driver_info_t information;

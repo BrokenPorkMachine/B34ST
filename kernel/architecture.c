@@ -14,6 +14,7 @@
 #include "fbr34ker/service_registry.h"
 #include "fbr34ker/trace.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static bool ready;
 
 static bool start_trace(void)

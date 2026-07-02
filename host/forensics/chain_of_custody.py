@@ -1,5 +1,6 @@
 """Immutable chain-of-custody log for forensic acquisitions.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Each entry is cryptographically linked to the previous via SHA-256,
 providing tamper-evident provenance for all acquired evidence.
 """

@@ -2,6 +2,7 @@
 # Runtime Authentication Tool for FBR34KER
 
 """
+# SPDX-License-Identifier: BSD-2-Clause
 B34ST provides deterministic physical validation and bridge verification
 for A12+ iPhone/iPad hardware bring-up with evidence-based maturity enforcement.
 

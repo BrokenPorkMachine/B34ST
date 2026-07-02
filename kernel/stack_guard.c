@@ -5,6 +5,7 @@
 
 #define STACK_GUARD_PATTERN 0x6dU
 
+// SPDX-License-Identifier: BSD-2-Clause
 extern u8 __stack_guard_low_start[];
 extern u8 __stack_guard_low_end[];
 extern u8 __stack_guard_high_start[];

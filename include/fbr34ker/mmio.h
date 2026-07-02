@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/types.h"
 
 #define FBR34KER_MMIO_MAX_WINDOWS 32U

@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta:__legacy__"
+
+[project]
+name = "b34st"
+version = "0.6.2b"
+description = "FBR34KER preboot monitor and authorized loader-integration research toolkit"
+requires-python = ">=3.10"
+license = {text = "BSD-2-Clause"}
+readme = "README.md"
+keywords = ["ios", "security", "research", "bootrom", "firmware"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: System :: Operating System",
+]
+dependencies = [
+    "pyusb>=1.2",
+    "libusb1>=3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/fbr34ker/b34st"
+Repository = "https://github.com/fbr34ker/b34st.git"
+BugTracker = "https://github.com/fbr34ker/b34st/issues"
+Documentation = "https://github.com/fbr34ker/b34st#readme"
+
+[project.scripts]
+b34st = "b34st.b34st:main"
+fbr34ker = "b34st.api:main"
+b34stctl = "b34st.b34st:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.15"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "W",    # pycodestyle warnings
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "E501",  # line too long (relaxed)
+    "N818",  # exception names
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["N802", "N803", "N806", "E402"]
+"scripts/*" = ["INP001", "E402", "I001"]
+"b34st/*" = ["INP001"]
+"host/*" = ["INP001"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

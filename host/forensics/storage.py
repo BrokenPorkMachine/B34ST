@@ -1,5 +1,6 @@
 """Storage acquisition for forensic capture of NAND and partition data.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Supports partition enumeration and block-level imaging with integrity
 hashing via wire protocol commands.
 """

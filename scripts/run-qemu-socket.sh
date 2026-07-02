@@ -1,4 +1,6 @@
 #!/usr/bin/env sh
+
+# SPDX-License-Identifier: BSD-2-Clause
 set -eu
 cd "$(dirname "$0")/.."
 SOCKET_PATH="${FBR34KER_SOCKET:-build/fbr34ker.sock}"

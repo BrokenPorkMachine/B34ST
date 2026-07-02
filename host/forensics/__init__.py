@@ -1,5 +1,6 @@
 """Forensics and data acquisition package for FBR34KER.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Provides chain-of-custody evidence collection, memory/storage/filesystem
 acquisition, forensic imaging, iCloud/Keychain/Keybag extraction,
 activation/baseband/FMI operations, and passcode management integrated

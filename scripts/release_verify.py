@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Verify a FBR34KER release manifest, artifact hashes, and optional signature."""
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import argparse

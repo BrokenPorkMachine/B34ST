@@ -2,6 +2,7 @@
 #include "fbr34ker/string.h"
 #include <stdio.h>
 
+// SPDX-License-Identifier: BSD-2-Clause
 static int check(const char *message, const u8 expected[32])
 {
     u8 digest[32];

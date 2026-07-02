@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/types.h"
 
 #define JAILBREAK_KERNELCACHE_MAX_SIZE (128U * 1024U * 1024U)

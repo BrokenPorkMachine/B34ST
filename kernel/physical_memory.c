@@ -3,6 +3,7 @@
 #include "fbr34ker/platform.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct {
     fbr34ker_pmm_range_t range;
     bool active;

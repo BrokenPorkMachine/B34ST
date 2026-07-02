@@ -6,6 +6,7 @@
 #define WATCHDOG_MIN_TIMEOUT_MS 100U
 #define WATCHDOG_MAX_TIMEOUT_MS (10U * 60U * 1000U)
 
+// SPDX-License-Identifier: BSD-2-Clause
 static watchdog_status_t status;
 
 void watchdog_init(void)

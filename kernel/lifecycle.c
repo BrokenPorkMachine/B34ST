@@ -3,6 +3,7 @@
 #include "fbr34ker/string.h"
 #include "fbr34ker/trace.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct {
     const fbr34ker_component_descriptor_t *descriptor;
     fbr34ker_component_state_t state;

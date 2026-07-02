@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Safe iOS research-environment planning for B34ST.
+# SPDX-License-Identifier: BSD-2-Clause
 
 This module deliberately models and validates an operator-owned research
 environment.  It does not implement an exploit, a signature bypass, kernel

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Run Clang analysis in small fresh-process batches for host reliability."""
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import argparse

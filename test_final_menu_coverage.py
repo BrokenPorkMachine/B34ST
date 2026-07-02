@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """
 Final integration test for B34ST menu system with all capabilities exposed.
 This validates that the enhanced menu system provides comprehensive access

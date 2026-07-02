@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """File-backed development target for the FBR34KER deployment protocol."""
 
 from __future__ import annotations

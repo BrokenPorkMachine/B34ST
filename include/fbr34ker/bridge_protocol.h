@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 #include <stdint.h>
 
 #ifndef FBR34KER_BRIDGE_PROTOCOL_VERSION

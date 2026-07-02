@@ -6,6 +6,7 @@
 #include "fbr34ker/event.h"
 #include "fbr34ker/apple_platform.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static trust_cache_status_t state;
 
 static u32 trust_cache_entry_size(u32 version)

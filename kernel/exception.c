@@ -6,6 +6,7 @@
 #include "fbr34ker/protocol.h"
 #include "fbr34ker/framebuffer_console.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 extern u8 vectors[];
 
 static const char *vector_name(u64 vector)

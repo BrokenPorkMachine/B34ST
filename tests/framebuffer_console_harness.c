@@ -4,6 +4,7 @@
 #include "fbr34ker/platform.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 bool hardware_probe_framebuffer_writes_allowed(void) { return true; }
 
 static u8 storage[96U * 40U * 4U];

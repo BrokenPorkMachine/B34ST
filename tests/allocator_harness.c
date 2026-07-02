@@ -1,6 +1,7 @@
 #include "fbr34ker/allocator.h"
 #include "fbr34ker/types.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 u8 __heap_start[1];
 u8 __heap_end[1];
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """Deterministic physical-integration evidence bundle helpers."""
 
 from __future__ import annotations

@@ -1,6 +1,7 @@
 #include "fbr34ker/handoff.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static void putc_stub(char value, void *context) { UNUSED(value); UNUSED(context); }
 static int getc_stub(void *context) { UNUSED(context); return -1; }
 static u64 timer_stub(void *context) { UNUSED(context); return 1000U; }

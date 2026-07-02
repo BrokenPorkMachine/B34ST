@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/types.h"
 
 /* Stable numeric value retained for loader ABI compatibility. */

@@ -5,6 +5,7 @@
 
 #define INTERRUPT_HANDLER_CAPACITY 32U
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct {
     bool used;
     u32 interrupt_id;

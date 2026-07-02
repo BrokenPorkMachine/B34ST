@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """
 Test script for the enhanced B34ST menu system.
 Validates the new UX improvements, education features, and automation.

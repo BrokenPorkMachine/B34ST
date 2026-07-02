@@ -2,6 +2,7 @@
 #include "fbr34ker/handoff.h"
 #include "fbr34ker/service_guard.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static u64 boot_ticks;
 
 static const fbr34ker_handoff_t *active(void)

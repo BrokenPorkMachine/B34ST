@@ -1,5 +1,6 @@
 #include "fbr34ker_sdk.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 fbr34ker_sdk_result_t fbr34ker_profile_match_sdk(
     const fbr34ker_handoff_t *handoff, const fbr34ker_sdk_profile_t *profile) {
     fbr34ker_sdk_result_t base = fbr34ker_handoff_validate_sdk(handoff);

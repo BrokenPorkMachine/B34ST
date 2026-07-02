@@ -1,6 +1,7 @@
 #include <fbr34ker/abi.h>
 #include <fbr34ker/bridge_protocol.h>
 
+// SPDX-License-Identifier: BSD-2-Clause
 int main(void) {
     fbr34ker_bridge_limits_v1 limits = {
         FBR34KER_BRIDGE_PROTOCOL_VERSION,

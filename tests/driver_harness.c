@@ -3,6 +3,7 @@
 #include "fbr34ker/fault.h"
 #include "fbr34ker/service_registry.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static bool ok(void) { return true; }
 
 int main(void)

@@ -1,6 +1,7 @@
 #include "fbr34ker/sha256.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static const u32 round_constants[64] = {
     0x428a2f98U, 0x71374491U, 0xb5c0fbcfU, 0xe9b5dba5U,
     0x3956c25bU, 0x59f111f1U, 0x923f82a4U, 0xab1c5ed5U,

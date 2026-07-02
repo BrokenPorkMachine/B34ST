@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/boot_evidence.h"
 #include "fbr34ker/crc32.h"
 #include "fbr34ker/format.h"

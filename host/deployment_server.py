@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Reference local development receiver for FBDP transport testing.
+# SPDX-License-Identifier: BSD-2-Clause
 
 The server is intentionally a file-backed target.  It does not access USB,
 physical memory, or device boot mechanisms.

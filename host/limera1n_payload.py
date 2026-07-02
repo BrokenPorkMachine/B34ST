@@ -1,5 +1,6 @@
 """limera1n BootROM exploit payloads for A4–A5 devices.
 
+# SPDX-License-Identifier: BSD-2-Clause
 limera1n (CVE-2010-3830) is a BootROM vulnerability affecting Apple A4
 (s5l8930x) and A5 (s5l8940x/8942x/8945x) SoCs.  The exploit triggers a
 stack buffer overflow via a crafted USB control request in the BootROM USB

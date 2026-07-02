@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Validate Python and POSIX-shell source syntax without creating caches."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

@@ -1,4 +1,6 @@
 #!/usr/bin/env sh
+
+# SPDX-License-Identifier: BSD-2-Clause
 set -eu
 
 if [ "$#" -ne 3 ]; then

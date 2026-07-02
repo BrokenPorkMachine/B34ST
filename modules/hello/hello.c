@@ -1,5 +1,6 @@
 #include "fbr34ker/module.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static const fbr34ker_api_t *module_api;
 
 static int hello_initialize(const fbr34ker_api_t *api)

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Board-profile validation and FBR34KER hardware compatibility reporting."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

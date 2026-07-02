@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-2-Clause
 """Canonical FBR34KER release version for host-side tooling."""
 
 from __future__ import annotations

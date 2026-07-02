@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/types.h"
 
 #define FBR34KER_FAULT_SOURCE_CAPACITY 32U

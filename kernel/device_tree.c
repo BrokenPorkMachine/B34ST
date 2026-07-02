@@ -14,6 +14,7 @@
 #define FDT_MAX_DEPTH 64U
 #define FDT_MAX_PATH 512U
 
+// SPDX-License-Identifier: BSD-2-Clause
 static const u8 *active_blob;
 static usize active_size;
 static const u8 *structure_block;

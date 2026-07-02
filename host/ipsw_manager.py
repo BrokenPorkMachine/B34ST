@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Targeted IPSW discovery, download, verification, and restore orchestration."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

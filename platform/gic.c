@@ -12,6 +12,7 @@
 #define GICC_EOIR 0x0010U
 #define GIC_SPURIOUS_MIN 1020U
 
+// SPDX-License-Identifier: BSD-2-Clause
 static gic_info_t active;
 
 static volatile u32 *reg32(u64 base, u32 offset)

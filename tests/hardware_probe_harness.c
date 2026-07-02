@@ -4,6 +4,7 @@
 #include "fbr34ker/platform.h"
 #include "fbr34ker/timer.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static const fbr34ker_handoff_t handoff = {0};
 static const memory_region_t valid_regions[] = {
     { .base = 0x40000000ULL, .size = 0x00100000ULL, .type = MEMORY_REGION_RESERVED, .attributes = 0U, .name = "reserved" },

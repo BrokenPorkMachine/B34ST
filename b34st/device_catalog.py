@@ -1,5 +1,6 @@
 """Reviewed launch metadata for device families supported by this project."""
 
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 DEVICE_CATALOG = {

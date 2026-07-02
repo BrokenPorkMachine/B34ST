@@ -1,4 +1,6 @@
 #!/usr/bin/env sh
+
+# SPDX-License-Identifier: BSD-2-Clause
 set -eu
 
 usage() {
@@ -83,7 +85,7 @@ exec python3 -m b34st.b34st "$@"
 EOF_WRAPPER
 chmod 0755 "$BIN_DIR/B34ST"
 ln -sf B34ST "$BIN_DIR/b34stctl"
-chmod 0755 "$SHARE_DIR/fbr34ker" "$SHARE_DIR"/host/fbr34k* "$SHARE_DIR"/scripts/*.sh "$SHARE_DIR"/scripts/*.py "$SHARE_DIR/scripts/B34ST" 2>/dev/null || true
+chmod 0755 "$BIN_DIR/fbr34ker" "$BIN_DIR/B34ST" "$SHARE_DIR"/host/fbr34k* "$SHARE_DIR"/scripts/*.sh "$SHARE_DIR"/scripts/*.py "$SHARE_DIR/scripts/B34ST" 2>/dev/null || true
 install -m 0644 "$ROOT/man/fbr34ker.1" "$MAN_DIR/fbr34ker.1"
 install -m 0644 "$ROOT/man/B34ST.1" "$MAN_DIR/B34ST.1"
 install -m 0644 "$ROOT/completions/fbr34ker.bash" "$BASH_DIR/fbr34ker"

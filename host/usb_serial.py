@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """USB CDC ACM serial transport for FBR34KER monitor communication.
 
 Acts as the host-side counterpart to the monitor's USB gadget stack,

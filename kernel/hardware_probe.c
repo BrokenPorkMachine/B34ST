@@ -4,6 +4,7 @@
 #include "fbr34ker/platform.h"
 #include "fbr34ker/timer.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static hardware_probe_status_t status;
 static bool defensive_context;
 

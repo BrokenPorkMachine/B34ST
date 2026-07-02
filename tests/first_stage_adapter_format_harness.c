@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "fbr34ker/first_stage_adapter.h"
+// SPDX-License-Identifier: BSD-2-Clause
 int main(void) {
     fbr34ker_first_stage_adapter_descriptor_t descriptor = {0};
     descriptor.abi_version = FBR34KER_FIRST_STAGE_ADAPTER_ABI_VERSION;

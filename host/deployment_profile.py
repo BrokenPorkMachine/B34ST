@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Validation of declarative FBR34KER deployment profiles."""
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import dataclasses

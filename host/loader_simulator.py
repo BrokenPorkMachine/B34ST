@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Offline FBR34KER handoff-v4 loader simulator and conformance checker.
+# SPDX-License-Identifier: BSD-2-Clause
 
 The simulator parses the generic AArch64 ELF, validates a handoff design,
 constructs packed handoff tables in sparse simulated memory, and emits a

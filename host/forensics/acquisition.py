@@ -1,5 +1,6 @@
 """Core acquisition engine for forensic data capture.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Coordinates memory, storage, filesystem, and network acquisition
 with chain-of-custody logging and evidence bundle output.
 """

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Tests for B34ST forensics module."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

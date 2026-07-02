@@ -3,6 +3,7 @@
 
 #define FAILURE_LIMIT 3U
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct {
     service_guard_status_t public;
     u64 start_ticks;

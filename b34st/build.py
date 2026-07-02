@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Build script for B34ST artifacts.
+# SPDX-License-Identifier: BSD-2-Clause
 
 This script creates a Python launcher, validation artifacts, and release
 packages. B34ST is Python source and is not represented as a compiled binary.

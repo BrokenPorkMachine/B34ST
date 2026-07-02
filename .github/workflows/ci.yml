@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
@@ -26,7 +26,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            clang lld llvm make qemu-system-arm
+            clang lld llvm make qemu-system-aarch64
 
       - name: Restore executable permissions
         run: make permissions
@@ -40,7 +40,7 @@ jobs:
 
       - name: Upload release-gate evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: fbr34ker-${{ github.sha }}-beta
           if-no-files-found: warn

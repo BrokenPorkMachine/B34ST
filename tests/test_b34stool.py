@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import json
@@ -7,9 +8,9 @@ import sys
 import tempfile
 import unittest
 
-import b34stool
-
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+import b34stool
 
 
 class B34SToolTests(unittest.TestCase):

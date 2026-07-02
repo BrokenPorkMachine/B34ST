@@ -3,6 +3,7 @@
 #include "fbr34ker/hardware_probe.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 bool hardware_probe_active(void)
 {
     return fbr34ker_handoff_active() != NULL;

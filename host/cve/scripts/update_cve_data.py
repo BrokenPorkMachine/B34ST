@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """
+# SPDX-License-Identifier: BSD-2-Clause
 Expand CVE database with iOS 17, 18, and 19 CVEs.
 
 Reads existing database, adds hundreds of real Apple CVEs from security updates,

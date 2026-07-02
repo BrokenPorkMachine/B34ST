@@ -1,0 +1,37 @@
+# Auto-detect text files
+* text=auto
+
+# Source code
+*.c text diff=c
+*.h text diff=c
+*.py text diff=python
+*.sh text
+*.S text
+*.ld text
+
+# Documentation
+*.md text
+*.txt text
+*.1 text
+
+# Config
+*.json text
+*.toml text
+*.yml text
+*.yaml text
+Makefile text
+
+# Binary
+*.bin binary
+*.elf binary
+*.o binary
+*.a binary
+*.d binary
+*.map binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.zip binary
+*.gz binary
+*.sig binary
+*.dmg binary

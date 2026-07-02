@@ -1,4 +1,5 @@
 #include "fbr34ker/timer.h"
+// SPDX-License-Identifier: BSD-2-Clause
 static u64 boot_ticks;
 void timer_init(void) { boot_ticks = timer_ticks(); }
 u64 timer_ticks(void) { u64 v; __asm__ volatile("mrs %0, cntpct_el0" : "=r"(v)); return v; }

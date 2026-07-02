@@ -1,5 +1,6 @@
 #include "fbr34ker/boot_image.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 int main(void)
 {
     fbr34ker_boot_image_header_t header = {0};

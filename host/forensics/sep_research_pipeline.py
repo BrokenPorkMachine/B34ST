@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """SEP Research Pipeline — automated SEP/sepOS vulnerability discovery.
+# SPDX-License-Identifier: BSD-2-Clause
 
 This module implements a complete research workflow for finding security
 vulnerabilities in Apple's Secure Enclave Processor (SEP) and sepOS.

@@ -1,5 +1,6 @@
 """Acquisition evidence bundle reporting.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Generates deterministic ZIP-based evidence bundles from acquisition
 results, with SHA-256 checksums and chain-of-custody logs.
 """

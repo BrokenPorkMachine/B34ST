@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Run a bounded FBR34KER QEMU smoke test and capture diagnostics."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

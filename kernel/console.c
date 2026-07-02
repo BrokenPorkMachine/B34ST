@@ -3,6 +3,7 @@
 #include "fbr34ker/watchdog.h"
 #include "fbr34ker/framebuffer_console.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static char *capture_buffer;
 static usize capture_capacity;
 static usize capture_length;

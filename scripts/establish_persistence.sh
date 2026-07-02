@@ -1,4 +1,5 @@
 #!/bin/bash
+# SPDX-License-Identifier: BSD-2-Clause
 
 # FBR34KER persistence deployment plan generator.
 # Builds the persistence subsystem and generates the deployment inventory.

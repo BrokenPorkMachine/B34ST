@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/types.h"
 
 #define TRUST_CACHE_CDHASH_SIZE 20U

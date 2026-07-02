@@ -1,6 +1,7 @@
 #include "loader_adapter.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static bool range_valid(u64 base, u64 size)
 {
     return size != 0U && base <= U64_MAX_VALUE - size;

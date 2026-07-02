@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """B34ST Forensics - Data acquisition and forensic evidence capabilities.
+# SPDX-License-Identifier: BSD-2-Clause
 
 This module provides a B34ST CLI interface to the host.forensics package,
 providing read-only forensic data acquisition for authorized iOS research

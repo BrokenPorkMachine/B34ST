@@ -1,6 +1,7 @@
 #include "fbr34ker/mmio.h"
 #include "fbr34ker/types.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static u8 storage[256];
 
 static bool backend_read(u64 address, u32 width, u64 *value, void *context)

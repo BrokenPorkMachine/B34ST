@@ -81,6 +81,7 @@
 #define BOOT_MODE_PONGO   0x4U
 #define BOOT_MODE_RESTORE 0x5U
 
+// SPDX-License-Identifier: BSD-2-Clause
 static jbinit_status_t status;
 static bool initialized;
 

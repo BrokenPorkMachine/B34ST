@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Create deterministic FBR34KER artifact and checksum manifests."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

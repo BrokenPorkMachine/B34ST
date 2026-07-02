@@ -10,6 +10,7 @@
 #include "fbr34ker/timer.h"
 #include <stdarg.h>
 
+// SPDX-License-Identifier: BSD-2-Clause
 static fbr34ker_bringup_record_t records[FBR34KER_BRINGUP_MAX_RECORDS];
 static fbr34ker_bringup_summary_t summary;
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """FBR34KER bounded deployment, simulation, resume, and evidence utility."""
 
 from __future__ import annotations

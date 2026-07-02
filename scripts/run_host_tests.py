@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Run FBR34KER Python host tests as isolated bounded modules."""
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import argparse

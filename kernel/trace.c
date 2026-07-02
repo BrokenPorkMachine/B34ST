@@ -3,6 +3,7 @@
 #include "fbr34ker/string.h"
 #include <stdarg.h>
 
+// SPDX-License-Identifier: BSD-2-Clause
 static fbr34ker_trace_record_t records[FBR34KER_TRACE_CAPACITY];
 static fbr34ker_trace_stats_t statistics;
 static usize head;

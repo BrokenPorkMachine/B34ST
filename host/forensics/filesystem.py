@@ -1,5 +1,6 @@
 """Filesystem acquisition for capturing file listings and file contents.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Supports recursive directory enumeration and targeted file extraction
 via wire protocol or bridge commands.
 """

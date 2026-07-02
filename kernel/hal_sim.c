@@ -2,6 +2,7 @@
 #include "fbr34ker/platform.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 void hal_sim_init(fbr34ker_hal_sim_t *simulation, u64 features)
 {
     if (simulation == NULL) {

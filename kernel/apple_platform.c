@@ -6,6 +6,7 @@
 #include "fbr34ker/board.h"
 #include "fbr34ker/kernel_patches.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 const apple_soc_config_t apple_a12_config = {
     .cpid = APPLE_A12_CPID,
     .board_id = 0x0U,

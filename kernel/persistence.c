@@ -7,6 +7,7 @@
 #include "fbr34ker/kernel_patches.h"
 #include "fbr34ker/apple_platform.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static persistence_status_t state;
 static usize hidden_storage_used;
 

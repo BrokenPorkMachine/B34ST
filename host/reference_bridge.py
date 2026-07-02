@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Reference persistent first-stage bridge backed by the deterministic simulator."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

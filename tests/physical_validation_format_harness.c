@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "fbr34ker/physical_validation.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 _Static_assert(offsetof(fbr34ker_physical_validation_claim_t, size) == 0,
                "size offset drift");
 _Static_assert(offsetof(fbr34ker_physical_validation_claim_t, evidence_flags) == 8,

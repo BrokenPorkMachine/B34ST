@@ -18,6 +18,7 @@
 #define QEMU_RAM_END 0xC0000000ULL
 #define FDT_MAGIC 0xD00DFEEDU
 
+// SPDX-License-Identifier: BSD-2-Clause
 extern u8 __loader_start[];
 extern u8 __loader_end[];
 

@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/handoff.h"
 
 #define FBR34KER_LOADER_EXAMPLE_MAX_REGIONS 16U

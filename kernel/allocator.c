@@ -17,6 +17,7 @@
 #define FREED_BYTE 0xddU
 #define INITIAL_BYTE 0xccU
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct allocation_header {
     u64 magic;
     u64 canary;

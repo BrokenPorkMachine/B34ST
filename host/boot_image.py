@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Build and inspect deterministic FBR34KER recovery boot-image bundles."""
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import argparse
@@ -324,7 +326,12 @@ def inspect_image(path: pathlib.Path) -> dict[str, object]:
         raise BootImageError("invalid manifest JSON") from exc
     if not isinstance(manifest, dict) or manifest.get("format") != "fbri-v1":
         raise BootImageError("invalid embedded manifest")
-    required_manifest = {"schema_version", "format", "project", "release_version", "profile_id", "family", "cpids", "execution_contract", "direct_stock_iboot_compatible", "alignment", "image_size", "components"}
+    required_manifest = {
+        "schema_version", "format", "project", "release_version",
+        "profile_id", "family", "cpids", "execution_contract",
+        "direct_stock_iboot_compatible", "alignment", "image_size",
+        "components",
+    }
     if set(manifest) != required_manifest:
         raise BootImageError("manifest has missing or unknown fields")
     if manifest.get("schema_version") != 1 or manifest.get("project") != "FBR34KER":

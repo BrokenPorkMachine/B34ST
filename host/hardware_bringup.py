@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Run and collect authorized A12/A13 first-stage bring-up sessions."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

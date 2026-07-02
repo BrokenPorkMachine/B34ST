@@ -2,6 +2,7 @@
 #include "fbr34ker/timer.h"
 #include "fbr34ker/watchdog.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static u64 configured_timeout;
 static u64 configure_count;
 static u64 kicks;

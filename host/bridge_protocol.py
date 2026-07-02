@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Bounded persistent JSON-lines protocol for authorized first-stage bridges."""
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import json

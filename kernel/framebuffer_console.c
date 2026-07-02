@@ -8,6 +8,7 @@
 #define CELL_WIDTH 6U
 #define CELL_HEIGHT 8U
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct {
     platform_framebuffer_t framebuffer;
     bool available;

@@ -45,6 +45,7 @@
 #define SHELL_MAX_ARGUMENTS 10U
 #define MODULE_UPLOAD_IDLE_TIMEOUT_MS 30000ULL
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef int (*command_handler_t)(int argument_count, char **arguments);
 
 typedef struct {

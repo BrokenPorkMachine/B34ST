@@ -111,18 +111,21 @@ B34ST/
 │   ├── run_exploit.py        # USBliter8 exploit chain orchestrator
 │   ├── guided_research_runtime.py  # Wrapper for guided orchestrator
 │   ├── doctor.py             # Toolchain verification
+│   ├── run_exploit.py        # USBliter8 exploit chain orchestrator
+│   ├── guided_research_runtime.py  # Wrapper for guided orchestrator
+│   ├── doctor.py             # Toolchain verification
 │   └── ...                   # qemu_smoke.py, release_gate.py, etc.
-├── host/                     # Host-side tooling
+├── host/                     # Host-side tooling (Python)
+│   ├── boot_image.py         # FBRI boot image construction/inspection
+│   ├── device_jailbreak.py   # Device jailbreak orchestration
+│   ├── ipsw_manager.py       # IPSW catalog, download, management
+│   ├── ramdisk_manager.py    # Deterministic FBRD maker/inspector/adapter loader
+│   ├── hardware_bringup.py   # Hardware bring-up orchestration
+│   ├── hardware_workflow.py  # Hardware workflow orchestration
 │   ├── usb_serial.py         # USB CDC ACM console client
 │   ├── cve/                  # CVE database, chain planner, fuzzer, device DB
-│   │   ├── cve_db.py         # CVE database engine
-│   │   ├── exploit_chain.py  # Chain planner and exploit goals
-│   │   ├── fuzzer.py         # Fuzzer framework
-│   │   ├── devices.py        # Device and SoC database
-│   │   └── data/             # cve_database.json
 │   ├── forensics/            # Forensics acquisition, secrets, activation
-│   ├── ramdisk_manager.py    # Deterministic FBRD maker/inspector/adapter loader
-│   └── ...                   # hardware_bringup.py, boot_image.py, etc.
+│   └── usb_family/           # USB family fuzzing campaigns
 ├── kernel/                   # In-tree kernel subsystem
 │   ├── kernel_patches.c      # Kernel patching (per-SoC offset tables)
 │   ├── secure_boot_bypass.c  # Secure boot bypass engine
@@ -148,15 +151,18 @@ B34ST/
 │   ├── iokit/                # IOKit CVEs
 │   ├── webkit/               # WebKit CVEs
 │   └── ...                   # accounts, baseband, sep, sandbox, etc.
-├── docs/                     # 46 documentation files
-├── profiles/                 # Device recovery profiles
+├── docs/                     # 52 documentation files
+├── profiles/                 # Device recovery profiles (24 JSON)
 ├── modules/                  # FMBC bytecode modules
 ├── linker/                   # Linker scripts
-├── schemas/                  # JSON schemas (tether and ramdisk adapters, etc.)
-├── tests/                    # Test suite (30 C + 37 Python)
-├── fbr34ker                  # CLI entry point
-├── b34stctl                  # Compatibility entry point
-└── b34st/control_panel.py       # Python control panel
+├── schemas/                  # JSON schemas (tether, ramdisk, CVE, bridge)
+├── abi/                      # Public ABI interface definitions
+├── man/                      # Man pages (B34ST.1, fbr34ker.1)
+├── completions/              # Shell completions (bash, zsh)
+├── tests/                    # Test suite (31 C harnesses + 51 Python)
+├── fbr34ker                  # CLI entry point (Python)
+├── b34stctl                  # Compatibility entry point (shell)
+└── b34stol.py                # Legacy multi-tool entry point
 ```
 
 ---
@@ -171,7 +177,7 @@ B34ST is the unified control panel that wraps all FBR34KER operations. Launch it
 
 After installation, run `B34ST` from anywhere. Direct subcommands remain available through `./fbr34ker` for automation.
 
-### 14 menu categories
+### 16 menu categories
 
 | Category | Description |
 |----------|-------------|
@@ -1247,13 +1253,13 @@ make sdk-release
 
 Produces \`dist/B34ST_0.6.2b_Beta_operational.zip\` containing:
 
-- B34ST research runtime framework (`b34st/`, `b34stctl`, `control_panel.py`)
+- B34ST research runtime framework (`b34st/`, `b34stctl`, `b34stol.py`)
 - All build artifacts (`build/`, `build-generic/`, `build-exploit/`, `build-apple/`, `build-loader/`, `build-hardware-probe/`, `build-sdk/`)
 - SDK (headers, library, examples, templates, tests)
 - Linker scripts, board profiles, demo modules
-- 47 documentation files
-- Test suite (32 C sources/harnesses + 42 Python test modules)
-- CLI (`fbr34ker`, completions)
+- 52 documentation files
+- Test suite (31 C harnesses + 51 Python test modules)
+- CLI (`fbr34ker`, `scripts/B34ST`, completions)
 - **Excludes**: `kernel/`, `arch/`, and `platform/` firmware source. Required
   public host-side runtime tools are included so the packaged CLI remains
   functional.
@@ -1314,6 +1320,7 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 |------|---------|
 | docs/ARCHITECTURE.md | System architecture and trust model |
 | docs/EXPLOIT_CHAIN.md | USBliter8 exploit chain for A12+ |
+| docs/USBLITER8_HARDWARE_GUIDE.md | USBliter8 hardware guide and setup |
 | docs/QUICK_START.md | Quick-start guide |
 | docs/A12_A13_IRECOVERY.md | A12/A13 recovery workflow |
 | docs/A12_A13_HARDWARE_BRINGUP.md | A12/A13 hardware bring-up procedure |
@@ -1341,10 +1348,13 @@ Loader pointers/callbacks and built-in native code are privileged. External FMOD
 | docs/HOST_PROTOCOL.md | Host protocol specification |
 | docs/DEPLOYMENT_PROTOCOL.md | Deployment protocol specification |
 | docs/TRANSPORT_DEPLOYMENT.md | Transport deployment guide |
-| docs/BYTESTREAM.md | BYTESTREAM operation code format |
+| docs/BYTECODE.md | FMBC bytecode format and instruction set |
 | docs/MODULE_FORMAT.md | FMOD/FMBC module format specification |
 | docs/RUNTIME_ARCHITECTURE.md | Runtime architecture detailed design |
 | docs/RUNTIME_VALIDATION.md | Runtime validation methodology |
+| docs/SEP_RESEARCH_PIPELINE.md | SEP research pipeline methodology |
+| docs/SEP_KEY_FUZZER.md | SEP key fuzzer for evidence-gated vulnerability discovery |
+| docs/SEP_DEPLOYMENT_TRANSPORT.md | SEP deployment transport specification |
 | docs/PLATFORM_SERVICES.md | Platform services specification |
 | docs/INTERRUPTS.md | Interrupt handling design |
 | docs/FRAMEBUFFER_CONSOLE.md | Framebuffer console specification |

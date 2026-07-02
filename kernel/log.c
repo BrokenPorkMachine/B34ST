@@ -8,6 +8,7 @@
 #define LOG_TEXT_SIZE 160U
 #define LOG_DEFAULT_LEVEL LOG_LEVEL_INFO
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct {
     u64 timestamp_ms;
     log_level_t level;

@@ -17,6 +17,7 @@
 #define BYTECODE_MAX_TEXT 1024U
 #define BYTECODE_MAX_KEY 23U
 
+// SPDX-License-Identifier: BSD-2-Clause
 extern const fbr34ker_module_descriptor_t hello_module_descriptor;
 
 static const fbr34ker_module_descriptor_t *const built_in_modules[] = {

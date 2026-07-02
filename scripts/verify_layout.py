@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Validate FBR34KER's freestanding AArch64 ELF layout."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

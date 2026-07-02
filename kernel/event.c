@@ -2,6 +2,7 @@
 #include "fbr34ker/fault.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct {
     u64 mask;
     fbr34ker_event_callback_t callback;

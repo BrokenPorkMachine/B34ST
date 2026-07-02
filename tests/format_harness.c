@@ -1,6 +1,7 @@
 #include "fbr34ker/format.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 int main(void)
 {
     char buffer[160];

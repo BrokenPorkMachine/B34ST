@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+// SPDX-License-Identifier: BSD-2-Clause
 static uint32_t irq_ack(void *context) { (void)context; return 0U; }
 static void irq_complete(uint32_t value, void *context) { (void)value; (void)context; }
 static bool irq_enabled(uint32_t value, bool enabled, void *context) {

@@ -1,5 +1,6 @@
 """Test harness for USB family host fuzzing campaigns.
 
+# SPDX-License-Identifier: BSD-2-Clause
 iPhone as USB host fuzzing:
 - Emulating malicious or malformed peripherals
 - HID
@@ -605,8 +606,10 @@ def test_payload(payload_path):
         data = f.read()
 
     try:
-        # Process payload as USB descriptor/endpoint data
-        # TODO: Submit to device via USB transport
+        # Process payload as USB descriptor/endpoint data.
+        # TODO: Submit to device via USB transport. Currently generates honggfuzz
+        # corpora. Direct device submission is future work once USB transport
+        # abstraction is integrated.
         return True
     except Exception:
         print("Error: <exception in generated template>")

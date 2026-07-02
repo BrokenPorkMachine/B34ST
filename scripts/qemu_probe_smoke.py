@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Boot the immutable physical-hardware probe through the QEMU handoff loader."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

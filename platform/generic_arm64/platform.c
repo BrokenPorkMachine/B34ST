@@ -6,6 +6,7 @@
 #include "fbr34ker/device_tree.h"
 #include "fbr34ker/service_guard.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static const fbr34ker_handoff_t *handoff;
 static const fbr34ker_platform_services_t *services;
 static memory_region_t regions[FBR34KER_HANDOFF_MAX_REGIONS + 1U];

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Build a B34ST device-specific capability and firmware dashboard."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Verify that active FBR34KER release surfaces use one version."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

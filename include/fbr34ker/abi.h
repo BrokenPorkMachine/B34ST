@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 
 /* Public interface versions frozen for the 0.2.x developer-preview line. */
 #define FBR34KER_PUBLIC_ABI_EPOCH 1U

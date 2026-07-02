@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """Authorized first-stage adapter contract and deterministic simulator."""
 from __future__ import annotations
 

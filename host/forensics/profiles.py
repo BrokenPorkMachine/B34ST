@@ -1,5 +1,6 @@
 """Acquisition profiles defining forensic data collection scope.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Pre-built profiles for common scenarios (quick triage, full acquisition,
 memory-only, storage-only) and profile loading/serialization.
 """

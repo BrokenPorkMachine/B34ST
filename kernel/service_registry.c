@@ -3,6 +3,7 @@
 #include "fbr34ker/fault.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static fbr34ker_service_info_t services[FBR34KER_SERVICE_CAPACITY];
 static usize service_count;
 static bool initialized;

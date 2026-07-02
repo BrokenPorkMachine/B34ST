@@ -8,6 +8,7 @@
 
 #define KERNEL_BASE APPLE_IOS_KERNEL_BASE
 
+// SPDX-License-Identifier: BSD-2-Clause
 static kernel_patches_status_t state;
 static u16 active_cpid;
 static u64 kernel_base;

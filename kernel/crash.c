@@ -9,6 +9,7 @@
 #define CRASH_MAGIC 0x43525348U
 #define CRASH_VERSION 1U
 
+// SPDX-License-Identifier: BSD-2-Clause
 extern u8 __stack_bottom[];
 extern u8 __stack_top[];
 

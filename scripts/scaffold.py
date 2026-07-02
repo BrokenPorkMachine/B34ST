@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Create bounded FBR34KER board, driver, module, or transport templates."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

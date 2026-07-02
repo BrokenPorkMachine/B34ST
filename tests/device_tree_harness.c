@@ -3,6 +3,7 @@
 #include "fbr34ker/types.h"
 #include <stdarg.h>
 
+// SPDX-License-Identifier: BSD-2-Clause
 int fm_printf(const char *format, ...)
 {
     (void)format;

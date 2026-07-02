@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Tests for B34ST CVE database, exploit chain planner, and fuzzer modules."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

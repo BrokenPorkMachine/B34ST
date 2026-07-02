@@ -4,6 +4,7 @@
 #include "fbr34ker/protocol.h"
 #include "fbr34ker/version.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 STATIC_ASSERT(sizeof(FBR34KER_MONITOR_NAME) <= 16U,
               "monitor name exceeds build metadata field");
 STATIC_ASSERT(sizeof(FBR34KER_MONITOR_VERSION) <= 24U,

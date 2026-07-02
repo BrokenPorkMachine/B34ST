@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Run bounded parallel Clang static analysis over FBR34KER translation units."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

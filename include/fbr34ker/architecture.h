@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/types.h"
 
 #define FBR34KER_ARCH_CAP_TRACE (1ULL << 0)

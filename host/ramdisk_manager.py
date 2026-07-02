@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Build, inspect, plan, and externally load bounded FBR34KER ramdisk bundles."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

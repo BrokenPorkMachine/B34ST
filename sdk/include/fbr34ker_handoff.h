@@ -33,6 +33,7 @@
 #define FBR34KER_PAGE_GRANULE_16K 16384U
 #define FBR34KER_PAGE_GRANULE_64K 65536U
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef void (*fbr34ker_early_putc_fn)(char, void *);
 typedef int (*fbr34ker_runtime_getc_fn)(void *);
 typedef uint64_t (*fbr34ker_timer_read_fn)(void *);

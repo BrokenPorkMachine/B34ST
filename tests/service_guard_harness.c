@@ -1,4 +1,5 @@
 #include "fbr34ker/service_guard.h"
+// SPDX-License-Identifier: BSD-2-Clause
 int main(void)
 {
     service_guard_init();

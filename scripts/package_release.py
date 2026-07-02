@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Create deterministic FBR34KER release ZIP archives.
+# SPDX-License-Identifier: BSD-2-Clause
 
 Archive kinds:
   source      — Full source tree (excludes build artifacts)

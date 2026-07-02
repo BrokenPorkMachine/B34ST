@@ -15,6 +15,7 @@
 #define FBR34KER_SERVICE_WATCHDOG_KICK         (1ULL << 6)
 #define FBR34KER_SERVICE_FLAGS_SUPPORTED       0x7fULL
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef size_t (*fbr34ker_console_write_fn)(const char *, size_t, void *);
 typedef size_t (*fbr34ker_console_read_fn)(char *, size_t, void *);
 typedef void (*fbr34ker_console_flush_fn)(void *);

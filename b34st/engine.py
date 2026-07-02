@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """B34ST (B34KER/STAR) Validation Engine
+# SPDX-License-Identifier: BSD-2-Clause
 
 Core validation logic for B34ST runtime authentication.
 Implements deterministic validation, profile maturity enforcement,

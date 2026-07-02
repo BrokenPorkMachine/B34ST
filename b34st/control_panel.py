@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Interactive B34ST control plane for FBR34KER workflows."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 
@@ -1276,7 +1278,11 @@ def _external_hardware(session: Session) -> None:
                 session,
                 ["bringup", "run"],
                 label="Authorized first-stage bring-up",
-                example="--state-dir runtime-artifacts/device --device-info device.json --profile profiles/apple-a13-iphone-recovery.json --image build-apple/a13/boot.img --bridge-command '...' --authorized-session --authorization-id SESSION --acknowledge-unsigned-code --evidence session.zip",
+                example="--state-dir runtime-artifacts/device --device-info device.json "
+                "--profile profiles/apple-a13-iphone-recovery.json "
+                "--image build-apple/a13/boot.img --bridge-command '...' "
+                "--authorized-session --authorization-id SESSION "
+                "--acknowledge-unsigned-code --evidence session.zip",
                 interactive=True,
             )
         elif choice == "8":

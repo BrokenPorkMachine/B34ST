@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """SEP Key Fuzzer — differential key-wrapper testing for Secure Enclave forensics.
+# SPDX-License-Identifier: BSD-2-Clause
 
 Apple’s Secure Enclave Processor (SEP) generates and wraps P-256 signing
 keys whose dataRepresentation is opaque, device-bound, and policy-enforced.

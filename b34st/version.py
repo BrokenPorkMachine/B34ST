@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """B34ST (B34KER/STAR) - Version Management
+# SPDX-License-Identifier: BSD-2-Clause
 
 Defines version information for B34ST and provides version-related utilities.
 """

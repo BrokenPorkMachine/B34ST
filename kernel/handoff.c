@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/handoff.h"
 
 #define HANDOFF_V1_SIZE ((u32)__builtin_offsetof(fbr34ker_handoff_t, flags))

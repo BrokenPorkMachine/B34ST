@@ -4,6 +4,7 @@
 #include "fbr34ker/log.h"
 #include "fbr34ker/event.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static mmu_status_t state;
 
 static u64 page_table_alloc(void)

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Compare two deterministic FBR34KER archives without extracting them."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

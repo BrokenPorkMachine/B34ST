@@ -1,6 +1,7 @@
 #include "fbr34ker/mmio.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static fbr34ker_mmio_window_t windows[FBR34KER_MMIO_MAX_WINDOWS];
 static fbr34ker_mmio_stats_t statistics;
 static fbr34ker_mmio_backend_read_t backend_read;

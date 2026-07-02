@@ -1,5 +1,6 @@
 """Multi-device jailbreak orchestrator.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Auto-detects an Apple device in DFU mode, selects the correct BootROM
 exploit (limera1n, checkm8, or DWC3 USBliter8), sends the exploit payload,
 and returns a uniform JailbreakResult dict.

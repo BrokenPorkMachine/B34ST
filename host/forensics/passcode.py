@@ -1,5 +1,6 @@
 """Passcode management: on/off/change via SEP and exploit chain.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Provides passcode state query, passcode removal, passcode setting,
 and passcode change operations through the FBR34KER exploit
 infrastructure and SEP communication.

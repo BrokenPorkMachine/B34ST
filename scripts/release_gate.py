@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Run the FBR34KER release gate and preserve evidence on every outcome."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

@@ -24,6 +24,7 @@
 #define FBR34KER_SDK_ALIGNED(x)
 #endif
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct FBR34KER_SDK_PACKED {
     uint64_t base;
     uint64_t size;

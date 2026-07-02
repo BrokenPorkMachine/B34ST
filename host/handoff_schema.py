@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Validate hardware-neutral FBR34KER handoff-v4 design documents.
+# SPDX-License-Identifier: BSD-2-Clause
 
 This utility validates metadata only. It does not deliver a payload, alter a
 boot chain, or contain device-specific offsets.

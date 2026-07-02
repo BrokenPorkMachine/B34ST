@@ -1,5 +1,6 @@
 """Forensic imaging with per-block integrity hashing and sparse support.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Produces sector-level images with cryptographic hash chains suitable
 for court-admissible evidence acquisition.
 """

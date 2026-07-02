@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Boot the generic image through the QEMU handoff loader and capture evidence."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

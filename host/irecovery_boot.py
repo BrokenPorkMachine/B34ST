@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Query and send FBR34KER boot images through an authorized irecovery session."""
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import argparse

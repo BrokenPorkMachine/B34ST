@@ -2,6 +2,7 @@
 #include "fbr34ker/fault.h"
 #include "fbr34ker/service_registry.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 int main(void)
 {
     fault_injection_init();

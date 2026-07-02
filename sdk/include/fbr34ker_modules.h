@@ -10,6 +10,7 @@
 #define FBR34KER_BOOT_MODULE_TYPE_FMOD 1U
 #define FBR34KER_BOOT_MODULE_MAX_FMOD_SIZE (64U * 1024U)
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct FBR34KER_SDK_PACKED {
     const void *base;
     uint64_t size;

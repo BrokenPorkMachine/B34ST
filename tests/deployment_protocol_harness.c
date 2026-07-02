@@ -1,5 +1,6 @@
 #include "fbr34ker/deployment_protocol.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 int main(void)
 {
     if (sizeof(fbr34ker_deploy_header_t) != 20U) {

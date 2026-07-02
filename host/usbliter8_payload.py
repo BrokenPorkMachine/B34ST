@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """Experimental USBliter8 DWC3 transfer corpus for A12+ devices.
 
 Transfer completion does not establish exploitation. Callers must verify the

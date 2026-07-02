@@ -1,5 +1,6 @@
 #include "fbr34ker/crc32.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 int main(void)
 {
     static const char text[] = "123456789";

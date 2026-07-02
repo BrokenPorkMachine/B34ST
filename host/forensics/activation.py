@@ -1,5 +1,6 @@
 """Activation, baseband, mobileactivationd, and FMI (Find My) operations.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Provides activation lock bypass, baseband management (unlock/IMEI),
 mobileactivationd interaction, and FMI state control via the
 FBR34KER exploit chain and SEP communication.

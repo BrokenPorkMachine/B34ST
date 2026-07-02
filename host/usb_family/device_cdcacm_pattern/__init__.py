@@ -1,4 +1,5 @@
 """
+# SPDX-License-Identifier: BSD-2-Clause
 USB family device fuzzing campaign.
 
 iPhone as USB device fuzzing:
@@ -476,7 +477,9 @@ def test_payload(payload_path):
         fuzzer = USBFamilyDeviceFuzzer()
         packet = USBRequestPacket.from_bytes(data[:1024])
 
-        # TODO: Submit packet to actual device via USB Serial
+        # TODO: Submit packet to actual device via USB Serial.
+        # This pattern currently generates honggfuzz corpora only. Direct device
+        # submission (via pyusb / libusbmuxd) requires USB transport integration.
         # usb_transport.send_usb_packet(packet)
 
         return True

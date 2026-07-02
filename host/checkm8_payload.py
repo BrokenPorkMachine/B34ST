@@ -1,5 +1,6 @@
 """Experimental checkm8 transfer planner for A7–A11 and T2 devices.
 
+# SPDX-License-Identifier: BSD-2-Clause
 The generated corpus is not sufficient evidence of exploitation. Callers must
 verify a PWNDFU marker after transfer and fail closed when it is absent.
 

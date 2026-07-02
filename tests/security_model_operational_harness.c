@@ -9,6 +9,7 @@
 #define TEST_BASE 0x00100000ULL
 #define TEST_SIZE 0x02000000ULL
 
+// SPDX-License-Identifier: BSD-2-Clause
 static bool fail_writes;
 static u64 last_write_address;
 static u64 last_write_value;

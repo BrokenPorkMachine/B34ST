@@ -1,5 +1,6 @@
 #include "fbr34ker_sdk.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static bool valid_range(uint64_t base, uint64_t size) {
     return size != 0U && base <= UINT64_MAX - size;
 }

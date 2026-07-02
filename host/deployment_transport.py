@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Transport adapters for the bounded FBR34KER deployment protocol."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

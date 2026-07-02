@@ -16,6 +16,7 @@
 #define LC_SEGMENT_64 0x19U
 #define LC_MAIN       0x80000028U
 
+// SPDX-License-Identifier: BSD-2-Clause
 static jailbreak_status_t status;
 static jailbreak_progress_callback_t progress_cb;
 static void *progress_ctx;

@@ -1,6 +1,7 @@
 #include "fbr34ker/trace.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static bool contains(const char *text, const char *needle)
 {
     const usize needle_length = fm_strlen(needle);

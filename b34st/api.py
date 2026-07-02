@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """B34ST API Interface Module
+# SPDX-License-Identifier: BSD-2-Clause
 
 Provides FBR34KER-compatible CLI interface for B34ST validation operations.
 Implements fbr34kctl.py with B34ST-specific commands and options.
@@ -267,7 +269,13 @@ def main(argv: list[str] | None = None) -> int:
         prog="fbr34kctl.py",
         description="FBR34kER control utility with B34ST extension",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""\nAvailable commands:\n  validate-bundle     Validate a session bundle\n  physical-validation  Perform physical validation operations\n  hardware-prepare    Read-only hardware preparation\n  help               Show help information\n        """,
+        epilog="""\
+\nAvailable commands:\n\
+  validate-bundle       Validate a session bundle\n\
+  physical-validation    Perform physical validation operations\n\
+  hardware-prepare      Read-only hardware preparation\n\
+  help                  Show help information\n\
+        """,
     )
 
     parser.add_argument("--version", action="store_true", help="Show version and exit")

@@ -1,5 +1,6 @@
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 void *fm_memset(void *destination, int value, usize count)
 {
     if (destination == NULL || count == 0U) {

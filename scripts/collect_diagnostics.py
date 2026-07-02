@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Collect a privacy-conscious FBR34KER build and runtime diagnostics bundle."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

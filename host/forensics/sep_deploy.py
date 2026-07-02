@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Deployment transport adapters for SEP research & fuzzing modules.
+# SPDX-License-Identifier: BSD-2-Clause
 
 Bridges the abstract ``api_fn`` (``Callable[[str], str]``) and ``submit``
 (``Callable[[bytes, dict], dict]``) interfaces used by the SEP research

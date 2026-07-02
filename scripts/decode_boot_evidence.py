@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Decode a raw FBR34KER .boot_evidence memory record."""
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import argparse

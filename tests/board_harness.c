@@ -3,6 +3,7 @@
 #include "fbr34ker/platform.h"
 #include "fbr34ker/types.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static const memory_region_t regions[] = {
     {.base=0x40000000ULL,.size=0x10000000ULL,.type=MEMORY_REGION_USABLE,.name="ram"},
     {.base=0x08000000ULL,.size=0x01000000ULL,.type=MEMORY_REGION_MMIO,.name="gic"},

@@ -18,6 +18,7 @@
 #define EVENT_SOURCE_SIZE 24U
 #define EVENT_MESSAGE_SIZE 112U
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef struct {
     u64 timestamp_ms;
     char source[EVENT_SOURCE_SIZE];

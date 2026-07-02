@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """
 Analysis script to identify missing menu capabilities in B34ST.
 Identifies features from the original FBR34KER system that are not exposed.

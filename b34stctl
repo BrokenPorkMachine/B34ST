@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+# SPDX-License-Identifier: BSD-2-Clause
 set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 -m b34st.control_panel "$@"
+exec python3 -m b34st.b34st "$@"

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Compatibility entry point for the canonical root FBR34KER command line."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 import argparse

@@ -1,5 +1,6 @@
 #include "fbr34ker/exception.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 u64 cpu_current_el(void)
 {
     u64 value;

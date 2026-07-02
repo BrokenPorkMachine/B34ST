@@ -23,4 +23,9 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 *.pyc
+*.o
+*.d
+*.map
+.cache/
+test_make_targets/
 .DS_Store

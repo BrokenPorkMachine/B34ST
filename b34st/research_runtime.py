@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Evidence-gated research-runtime orchestration for B34ST.
+# SPDX-License-Identifier: BSD-2-Clause
 
 This module automates the repository's bounded validation and authorized
 first-stage contracts. Target-specific exploit, kernel-patch, trust-cache, and

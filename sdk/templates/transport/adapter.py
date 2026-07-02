@@ -1,5 +1,6 @@
 """Authorized FBDP transport adapter template.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Replace TRANSPORT_NAME and TRANSPORT_NAME_UPPER with the target transport name,
 then implement the exchange() method using the actual transport mechanism.
 """

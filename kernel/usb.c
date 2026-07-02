@@ -24,6 +24,7 @@
 #define DWC3_EP0_PHYS 0U
 #define DWC3_EP0_MAX_PACKET 64U
 
+// SPDX-License-Identifier: BSD-2-Clause
 STATIC_ASSERT(sizeof(usb_device_descriptor_t) == 18, "bad device desc size");
 STATIC_ASSERT(sizeof(usb_config_descriptor_t) == 9, "bad config desc size");
 STATIC_ASSERT(sizeof(usb_interface_descriptor_t) == 9, "bad iface desc size");

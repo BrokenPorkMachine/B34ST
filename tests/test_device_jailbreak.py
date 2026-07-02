@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-2-Clause
 from __future__ import annotations
 
 import unittest
@@ -7,7 +8,6 @@ ROOT = None
 
 try:
     from host import device_jailbreak as dj
-    from host.chipset_db import CHIPSET_DB
 except ImportError:
     import pathlib
     import sys
@@ -15,7 +15,6 @@ except ImportError:
     ROOT = pathlib.Path(__file__).resolve().parents[1]
     sys.path.insert(0, str(ROOT / "host"))
     import device_jailbreak as dj
-    from chipset_db import CHIPSET_DB
 
 
 class LookupExploitForCpidTests(unittest.TestCase):

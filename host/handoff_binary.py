@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """Relocatable FBR34KER handoff-v4 binary design format.
 
 The FBHB container is an address-neutral loader contract. Pointers in its

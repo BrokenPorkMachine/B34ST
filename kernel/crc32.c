@@ -1,5 +1,6 @@
 #include "fbr34ker/crc32.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 u32 crc32_begin(void)
 {
     return 0xffffffffU;

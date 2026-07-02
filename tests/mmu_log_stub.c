@@ -4,6 +4,7 @@
 #include "fbr34ker/mmu.h"
 #include "fbr34ker/types.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static bool stub_mmu_ready;
 
 void log_write(log_level_t level, const char *format, ...)

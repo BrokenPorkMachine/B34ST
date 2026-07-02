@@ -6,6 +6,7 @@
 #define FBR34KER_SDK_MAX_REGIONS 32U
 #define FBR34KER_SDK_MAX_MODULES 8U
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef enum {
     FBR34KER_SDK_OK = 0,
     FBR34KER_SDK_ERR_ARGUMENT,

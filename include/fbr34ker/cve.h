@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/types.h"
 #include "fbr34ker/log.h"
 #include "fbr34ker/mmio.h"

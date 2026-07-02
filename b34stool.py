@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """B34ST unified interactive multi-tool for FBR34KER workflows."""
 
 from __future__ import annotations

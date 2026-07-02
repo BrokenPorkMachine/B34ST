@@ -31,6 +31,7 @@
 #include "fbr34ker/mmu.h"
 #include "fbr34ker/apple_platform.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 extern u8 __image_start[];
 extern u8 __image_end[];
 

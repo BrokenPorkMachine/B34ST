@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """
+# SPDX-License-Identifier: BSD-2-Clause
 One-shot expansion: add iOS 4.0+ CVEs, checkm8/limera1n/blackbird fixes,
 T2/M1/M2 support, device-aware metadata, and generate all new exploit files.
 """

@@ -7,6 +7,7 @@
 
 #include <stdarg.h>
 
+// SPDX-License-Identifier: BSD-2-Clause
 bool event_bus_publish(fbr34ker_event_type_t type, const char *source,
                        u64 value0, u64 value1)
 {

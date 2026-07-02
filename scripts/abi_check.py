@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Validate FBR34KER public interface versions and compatibility manifests."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 import argparse

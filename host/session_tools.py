@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Inspect and replay deterministic FBR34KER hardware-integration sessions."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

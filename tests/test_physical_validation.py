@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BSD-2-Clause
 import importlib.util
 import json
 import pathlib

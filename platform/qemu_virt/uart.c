@@ -18,6 +18,7 @@
 #define UART_CR_TXE (1U << 8)
 #define UART_CR_RXE (1U << 9)
 
+// SPDX-License-Identifier: BSD-2-Clause
 static volatile u32 *uart_register(u32 offset)
 {
     return (volatile u32 *)(usize)(PL011_BASE + offset);

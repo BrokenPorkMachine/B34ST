@@ -2,6 +2,7 @@
 #include "fbr34ker/console.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 typedef void (*emit_fn)(char value, void *context);
 
 typedef struct {

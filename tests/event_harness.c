@@ -1,6 +1,7 @@
 #include "fbr34ker/event.h"
 #include "fbr34ker/fault.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static u64 callbacks;
 static void callback(const fbr34ker_event_t *event, void *context)
 {

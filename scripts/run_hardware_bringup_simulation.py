@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Generate deterministic success, failure, and recovered bring-up evidence."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/types.h"
 
 #define FBR34KER_PROTOCOL_MAGIC 0x334d461eU /* bytes: 1e 'F' 'M' '3' */

@@ -1,4 +1,5 @@
 #pragma once
+// SPDX-License-Identifier: BSD-2-Clause
 #include "fbr34ker/types.h"
 
 typedef bool (*interrupt_handler_fn)(u32 interrupt_id, void *context);

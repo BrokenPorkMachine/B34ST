@@ -1,5 +1,6 @@
 """Memory acquisition for forensic capture of RAM contents.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Supports region-based acquisition with page-level hashing via
 USB vendor requests or wire protocol commands.
 """

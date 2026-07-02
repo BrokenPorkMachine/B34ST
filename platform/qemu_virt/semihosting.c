@@ -1,5 +1,6 @@
 #include "fbr34ker/platform.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 bool platform_semihosting_available(void)
 {
     return true;

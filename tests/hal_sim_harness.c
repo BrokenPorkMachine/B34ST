@@ -2,6 +2,7 @@
 #include "fbr34ker/platform.h"
 #include "fbr34ker/string.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 int main(void)
 {
     const u64 features = PLATFORM_FEATURE_CONSOLE_OUTPUT | PLATFORM_FEATURE_TIMER |

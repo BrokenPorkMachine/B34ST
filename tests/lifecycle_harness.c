@@ -1,6 +1,7 @@
 #include "fbr34ker/lifecycle.h"
 #include "fbr34ker/trace.h"
 
+// SPDX-License-Identifier: BSD-2-Clause
 static bool first_started;
 static bool second_started;
 static u32 stop_order[4];

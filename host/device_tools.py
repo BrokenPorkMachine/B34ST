@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-2-Clause
 """List, watch, and diagnose authorized A12/A13 recovery-mode devices."""
 
 from __future__ import annotations

@@ -1,5 +1,6 @@
 """iCloud, Keychain, and Keybag acquisition via SEP and kernel exploit.
 
+# SPDX-License-Identifier: BSD-2-Clause
 Provides iCloud token extraction, encrypted Keychain dump, Keybag
 (protection-class key) extraction via SEP mailbox communication,
 and SEP unlock operations through the FBR34KER exploit chain.

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 """Check whether the host can build and run FBR34KER."""
+# SPDX-License-Identifier: BSD-2-Clause
 
 from __future__ import annotations
 

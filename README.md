@@ -87,7 +87,7 @@ After installation, `B34ST` is available as a system command.
 | One-off automation or scripts | `./fbr34ker <command>` |
 | Quick setup + validation | `./scripts/automate.sh build-and-validate` |
 | Evidence collection | `python3 scripts/collect-evidence.py <operation>` |
-| Smoke tests | `./scripts/smoke-test-runner.sh` |
+| Smoke tests | `./scripts/smoke-test-runner.py` |
 
 **Shell completion:** Source `completions/bash_completion.sh` for tab-completion of `B34ST` and `automate` commands.
 

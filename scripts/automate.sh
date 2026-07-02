@@ -32,6 +32,7 @@ Commands:
     build-and-validate          Build and validate workflow
     run-exploit-chain [args]    Run USBliter8 exploit chain with evidence
     run-guided-workflow [args]  Launch guided research runtime
+    run-smoke-tests [args]      Run automated smoke tests
     collect-evidence <operation> Collect evidence from another tool
     session info                 Print session information
     session logs [operation]    Show session logs
@@ -108,6 +109,18 @@ run_exploit_with_evidence() {
     fi
 }
 
+# Helper: Run automated smoke tests
+run_smoke_tests() {
+    local extra_args="$@"
+
+    if [ -f "$SCRIPT_DIR/smoke-test-runner.py" ]; then
+        python3 "$SCRIPT_DIR/smoke-test-runner.py" "$extra_args"
+    else
+        echo "Error: smoke-test-runner.py not found at $SCRIPT_DIR/smoke-test-runner.py"
+        exit 1
+    fi
+}
+
 # Helper: Run guided workflow
 run_guided_workflow() {
     local extra_args="$@"
@@ -170,6 +183,10 @@ main() {
 
         run-guided-workflow)
             run_guided_workflow "$@"
+            ;;
+
+        run-smoke-tests)
+            run_smoke_tests "$@"
             ;;
 
         collect-evidence)

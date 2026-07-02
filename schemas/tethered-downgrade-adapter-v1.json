@@ -10,6 +10,7 @@
     "operation": {"const": "tethered-downgrade"},
     "arguments": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "product",
         "ipsw_path",
@@ -22,9 +23,14 @@
         "product": {"type": "string", "minLength": 1},
         "ipsw_path": {"type": "string", "minLength": 1},
         "ipsw_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-        "version": {"type": ["string", "null"]},
-        "build": {"type": ["string", "null"]},
-        "ecid": {"type": ["string", "null"]},
+        "version": {"type": "string", "minLength": 1},
+        "build": {"type": "string", "minLength": 1},
+        "ecid": {
+          "oneOf": [
+            {"type": "string", "minLength": 1},
+            {"type": "null"}
+          ]
+        },
         "tethered": {"const": true}
       }
     }

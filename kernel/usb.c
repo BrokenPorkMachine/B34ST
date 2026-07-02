@@ -5,7 +5,8 @@
 #include "fbr34ker/event.h"
 #include "fbr34ker/platform.h"
 #include "fbr34ker/timer.h"
-#include "fbr34ker/usbliter8_exploit.h"
+#include "fbr34ker/usbliter8_v1_exploit.h"
+#include "fbr34ker/usbliter8_v2_exploit.h"
 
 #define USB_SERIAL_BUF_SIZE 4096U
 #define USB_SERIAL_RX_BUF 2048U
@@ -562,8 +563,8 @@ static void dfu_handle_getstatus(u8 *data)
         if (ctx.dfu_img_size > 0U) {
             log_info("DFU: manifest complete, auto-executing %llu byte image",
                      (u64)ctx.dfu_img_size);
-            usbliter8_load_dfu_image(ctx.dfu_img_buf, ctx.dfu_img_size, 0U);
-            usbliter8_execute(0U);
+            usbliter8_v2_load_dfu_image(ctx.dfu_img_buf, ctx.dfu_img_size, 0U);
+            usbliter8_v2_execute(0U);
         }
     }
 }

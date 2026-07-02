@@ -111,9 +111,9 @@ B34ST/
 │   ├── run_exploit.py        # USBliter8 exploit chain orchestrator
 │   ├── guided_research_runtime.py  # Wrapper for guided orchestrator
 │   ├── doctor.py             # Toolchain verification
-│   ├── run_exploit.py        # USBliter8 exploit chain orchestrator
-│   ├── guided_research_runtime.py  # Wrapper for guided orchestrator
-│   ├── doctor.py             # Toolchain verification
+│   ├── automate.sh           # Unified automation helper
+│   ├── collect-evidence.py    # Evidence collection standardization
+│   └── smoke-test-runner.sh  # Automated smoke testing
 │   └── ...                   # qemu_smoke.py, release_gate.py, etc.
 ├── host/                     # Host-side tooling (Python)
 │   ├── boot_image.py         # FBRI boot image construction/inspection

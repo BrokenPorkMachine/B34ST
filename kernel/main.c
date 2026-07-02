@@ -24,7 +24,8 @@
 #include "fbr34ker/version.h"
 #include "fbr34ker/watchdog.h"
 #include "fbr34ker/usb.h"
-#include "fbr34ker/usbliter8_exploit.h"
+#include "fbr34ker/usbliter8_v1_exploit.h"
+#include "fbr34ker/usbliter8_v2_exploit.h"
 #include "fbr34ker/trust_cache.h"
 #include "fbr34ker/jailbreak.h"
 #include "fbr34ker/jbinit.h"
@@ -146,7 +147,8 @@ NORETURN void kernel_main(const void *boot_context)
     secure_boot_bypass_init();
     persistence_init();
     trust_cache_init();
-    usbliter8_exploit_init();
+    usbliter8_v1_exploit_init();
+    usbliter8_v2_exploit_init();
     jbinit_init();
     jbinit_run_all();
     jailbreak_init();

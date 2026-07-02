@@ -1,5 +1,5 @@
 python3 scripts/check_sources.py
-source syntax validation passed (181 Python files, 23 shell files)
+source syntax validation passed (196 Python files, 23 shell files)
 python3 scripts/check_version_consistency.py --expected 0.6.2b
 version consistency passed (0.6.2b-beta, 35 release surfaces)
 rm -rf build/install-test
@@ -19,58 +19,209 @@ removed FBR34KER from ./build/install-test/usr/local
 public ABI compatibility check passed
 env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL -u TARGET \
 		python3 scripts/run_host_tests.py --timeout 300 --module-timeout 60
-[host-tests] isolated modules: 50, total-timeout=300s, module-timeout=60s
-[PASS   ] tests.test_b34st_cve: 121 tests, 0 skipped, 1.46s
-[PASS   ] tests.test_b34st_environment: 9 tests, 0 skipped, 0.56s
-[PASS   ] tests.test_b34st_forensics: 163 tests, 0 skipped, 0.99s
-[PASS   ] tests.test_b34st_version: 4 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_b34stool: 3 tests, 0 skipped, 0.34s
-[PASS   ] tests.test_boot_evidence_decoder: 2 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_boot_image: 3 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_boot_image_negative_corpus: 1 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_bridge_protocol: 2 tests, 0 skipped, 0.18s
-[PASS   ] tests.test_build_modes: 2 tests, 0 skipped, 0.28s
-[PASS   ] tests.test_checkm8_payload: 26 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_deployment: 10 tests, 0 skipped, 0.24s
-[PASS   ] tests.test_deployment_profile: 2 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_deployment_stream: 2 tests, 0 skipped, 0.18s
-[PASS   ] tests.test_device_dashboard: 2 tests, 0 skipped, 0.50s
-[PASS   ] tests.test_device_jailbreak: 28 tests, 0 skipped, 4.17s
-[PASS   ] tests.test_device_tools: 3 tests, 0 skipped, 0.34s
-[PASS   ] tests.test_evidence_compare: 1 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_fbr34kctl: 19 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_fbr34kdeploy: 3 tests, 0 skipped, 0.29s
-[PASS   ] tests.test_first_stage_adapter: 4 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_handoff_binary: 2 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_handoff_schema: 7 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_hardware_bringup: 3 tests, 0 skipped, 0.54s
-[PASS   ] tests.test_hardware_profile: 4 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_hardware_workflow: 2 tests, 0 skipped, 0.39s
-[PASS   ] tests.test_ipsw_manager: 10 tests, 0 skipped, 0.81s
-[PASS   ] tests.test_irecovery_boot: 5 tests, 0 skipped, 0.50s
-[PASS   ] tests.test_launcher: 17 tests, 0 skipped, 1.67s
-[PASS   ] tests.test_limera1n_payload: 29 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_loader_simulator: 3 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_physical_profiles: 3 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_physical_validation: 6 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_process_support: 1 tests, 0 skipped, 0.07s
-[PASS   ] tests.test_profile_import: 1 tests, 0 skipped, 0.07s
-[PASS   ] tests.test_qemu_boot: 3 tests, 3 skipped, 0.12s
-[PASS   ] tests.test_qemu_generic_loader: 1 tests, 1 skipped, 0.13s
-[PASS   ] tests.test_qemu_launcher: 2 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_ramdisk_manager: 10 tests, 0 skipped, 0.40s
-[PASS   ] tests.test_release_tools: 17 tests, 0 skipped, 4.55s
-[PASS   ] tests.test_research_runtime: 5 tests, 0 skipped, 0.12s
-[PASS   ] tests.test_sdk_conformance: 1 tests, 0 skipped, 0.07s
-[PASS   ] tests.test_session_bundle: 1 tests, 0 skipped, 0.07s
-[PASS   ] tests.test_session_tools: 1 tests, 0 skipped, 0.29s
-[PASS   ] tests.test_target_identity: 3 tests, 0 skipped, 0.08s
-[PASS   ] tests.test_tether_adapter_example: 2 tests, 0 skipped, 0.18s
-[PASS   ] tests.test_tethered_downgrade_control_panel: 2 tests, 0 skipped, 0.07s
-[PASS   ] tests.test_tls_support: 2 tests, 0 skipped, 0.13s
-[PASS   ] tests.test_usbliter8_workflow: 3 tests, 0 skipped, 0.12s
-[PASS   ] tests.test_wire_protocol: 3 tests, 0 skipped, 0.07s
-isolated host tests passed (559 tests, 4 skipped, 21.69s)
-python3 -m pytest -q test_enhanced_menu.py test_menu_enhancement.py test_final_menu_coverage.py
-......................                                                   [100%]
-22 passed in 0.28s
+[host-tests] isolated modules: 51, total-timeout=300s, module-timeout=60s
+[FAIL   ] tests.test_b34st_cve: 121 tests, 0 skipped, 1.50s
+test_all_goals_are_exploit_goal_instances (tests.test_b34st_cve.TestBuiltinGoals.test_all_goals_are_exploit_goal_instances) ... ok
+test_has_all_expected_entries (tests.test_b34st_cve.TestBuiltinGoals.test_has_all_expected_entries) ... ok
+test_jailbreak_remote_is_extreme (tests.test_b34st_cve.TestBuiltinGoals.test_jailbreak_remote_is_extreme) ... ok
+test_jailbreak_requires_correct_subgoals (tests.test_b34st_cve.TestBuiltinGoals.test_jailbreak_requires_correct_subgoals) ... ok
+test_userland_jailbreak_subgoals (tests.test_b34st_cve.TestBuiltinGoals.test_userland_jailbreak_subgoals) ... ok
+test_chain_jailbreak_16_5 (tests.test_b34st_cve.TestCVECLI.test_chain_jailbreak_16_5) ... ok
+test_chain_no_results (tests.test_b34st_cve.TestCVECLI.test_chain_no_results) ... ok
+test_chain_unknown_goal (tests.test_b34st_cve.TestCVECLI.test_chain_unknown_goal) ... ERROR: Chain planning failed: Unknown goal: nonexistent-goal. Available: jailbreak, jailbreak-from-app, jailbreak-remote, userland-jailbreak, tethered-jailbreak, extraction, activation-bypass, passcode-bypass, forensics-ready, initial-footing, lpe-root, persistent-jailbreak, checkm8-jailbreak, s5-jailbreak, t2-compromise, m1-m2-compromise
+ok
+test_fuzz_list (tests.test_b34st_cve.TestCVECLI.test_fuzz_list) ... ok
+test_goals (tests.test_b34st_cve.TestCVECLI.test_goals) ... ok
+test_query_16_5 (tests.test_b34st_cve.TestCVECLI.test_query_16_5) ... ok
+test_query_no_results (tests.test_b34st_cve.TestCVECLI.test_query_no_results) ... ok
+test_search_no_results (tests.test_b34st_cve.TestCVECLI.test_search_no_results) ... ok
+test_search_webkit (tests.test_b34st_cve.TestCVECLI.test_search_webkit) ... ok
+test_stats (tests.test_b34st_cve.TestCVECLI.test_stats) ... ok
+test_suggest_16_5 (tests.test_b34st_cve.TestCVECLI.test_suggest_16_5) ... ok
+test_suggest_no_results (tests.test_b34st_cve.TestCVECLI.test_suggest_no_results) ... ok
+test_add_and_count (tests.test_b34st_cve.TestCVEDatabase.test_add_and_count) ... ok
+test_add_duplicate_id_overwrites (tests.test_b34st_cve.TestCVEDatabase.test_add_duplicate_id_overwrites) ... ok
+test_add_from_dict (tests.test_b34st_cve.TestCVEDatabase.test_add_from_dict) ... ok
+test_add_from_dict_minimal (tests.test_b34st_cve.TestCVEDatabase.test_add_from_dict_minimal) ... ok
+test_compute_stats_structure (tests.test_b34st_cve.TestCVEDatabase.test_compute_stats_structure) ... ok
+test_empty_database (tests.test_b34st_cve.TestCVEDatabase.test_empty_database) ... ok
+test_filter_by_components (tests.test_b34st_cve.TestCVEDatabase.test_filter_by_components) ... ok
+test_filter_by_exploit_types (tests.test_b34st_cve.TestCVEDatabase.test_filter_by_exploit_types) ... ok
+test_filter_by_goals (tests.test_b34st_cve.TestCVEDatabase.test_filter_by_goals) ... ok
+test_filter_by_version (tests.test_b34st_cve.TestCVEDatabase.test_filter_by_version) ... ok
+test_filter_exploit_available (tests.test_b34st_cve.TestCVEDatabase.test_filter_exploit_available) ... ok
+test_filter_min_severity_critical (tests.test_b34st_cve.TestCVEDatabase.test_filter_min_severity_critical) ... ok
+test_filter_min_severity_high_includes_critical (tests.test_b34st_cve.TestCVEDatabase.test_filter_min_severity_high_includes_critical) ... ok
+test_filter_multiple_criteria (tests.test_b34st_cve.TestCVEDatabase.test_filter_multiple_criteria) ... ok
+test_filter_no_match (tests.test_b34st_cve.TestCVEDatabase.test_filter_no_match) ... ok
+test_load_json_from_real_file (tests.test_b34st_cve.TestCVEDatabase.test_load_json_from_real_file) ... ok
+test_query_by_component (tests.test_b34st_cve.TestCVEDatabase.test_query_by_component) ... ok
+test_query_by_component_no_match (tests.test_b34st_cve.TestCVEDatabase.test_query_by_component_no_match) ... ok
+test_query_by_component_with_version (tests.test_b34st_cve.TestCVEDatabase.test_query_by_component_with_version) ... ok
+test_query_by_goal_no_match (tests.test_b34st_cve.TestCVEDatabase.test_query_by_goal_no_match) ... ok
+test_query_by_goal_with_version (tests.test_b34st_cve.TestCVEDatabase.test_query_by_goal_with_version) ... ok
+test_query_by_goal_without_version (tests.test_b34st_cve.TestCVEDatabase.test_query_by_goal_without_version) ... ok
+test_query_by_severity (tests.test_b34st_cve.TestCVEDatabase.test_query_by_severity) ... ok
+test_query_by_severity_no_match (tests.test_b34st_cve.TestCVEDatabase.test_query_by_severity_no_match) ... ok
+test_query_by_version_no_results (tests.test_b34st_cve.TestCVEDatabase.test_query_by_version_no_results) ... ok
+test_query_by_version_real_data (tests.test_b34st_cve.TestCVEDatabase.test_query_by_version_real_data) ... ok
+test_query_exploit_available (tests.test_b34st_cve.TestCVEDatabase.test_query_exploit_available) ... ok
+test_query_exploit_available_with_version (tests.test_b34st_cve.TestCVEDatabase.test_query_exploit_available_with_version) ... ok
+test_save_json_roundtrip (tests.test_b34st_cve.TestCVEDatabase.test_save_json_roundtrip) ... ok
+test_save_json_roundtrip_with_multiple (tests.test_b34st_cve.TestCVEDatabase.test_save_json_roundtrip_with_multiple) ... ok
+test_search_by_description_keyword (tests.test_b34st_cve.TestCVEDatabase.test_search_by_description_keyword) ... ok
+test_search_by_id (tests.test_b34st_cve.TestCVEDatabase.test_search_by_id) ... ok
+test_search_no_match (tests.test_b34st_cve.TestCVEDatabase.test_search_no_match) ... ok
+test_to_dict_roundtrip (tests.test_b34st_cve.TestCVEDatabase.test_to_dict_roundtrip) ... ok
+test_add_from_dict_missing_optional_fields (tests.test_b34st_cve.TestCVEDatabaseEdgeCases.test_add_from_dict_missing_optional_fields) ... ok
+test_compute_stats_empty (tests.test_b34st_cve.TestCVEDatabaseEdgeCases.test_compute_stats_empty) ... ok
+test_filter_with_falsy_version_not_applied (tests.test_b34st_cve.TestCVEDatabaseEdgeCases.test_filter_with_falsy_version_not_applied) ... ok
+test_create_full_cve (tests.test_b34st_cve.TestCVEDataclass.test_create_full_cve) ... ok
+test_create_minimal_cve (tests.test_b34st_cve.TestCVEDataclass.test_create_minimal_cve) ... ok
+test_import_cve_db (tests.test_b34st_cve.TestCVEImports.test_import_cve_db) ... ok
+test_import_exploit_chain (tests.test_b34st_cve.TestCVEImports.test_import_exploit_chain) ... ok
+test_import_fuzzer (tests.test_b34st_cve.TestCVEImports.test_import_fuzzer) ... ok
+test_module_all (tests.test_b34st_cve.TestCVEImports.test_module_all) ... ok
+test_chain_to_dict_serialization (tests.test_b34st_cve.TestChainPlanner.test_chain_to_dict_serialization) ... ok
+test_find_all_possible_chains (tests.test_b34st_cve.TestChainPlanner.test_find_all_possible_chains) ... ok
+test_find_all_possible_chains_no_matches (tests.test_b34st_cve.TestChainPlanner.test_find_all_possible_chains_no_matches) ... ok
+test_find_chains_extraction (tests.test_b34st_cve.TestChainPlanner.test_find_chains_extraction) ... ok
+test_find_chains_jailbreak_16_5 (tests.test_b34st_cve.TestChainPlanner.test_find_chains_jailbreak_16_5) ... ok
+test_find_chains_jailbreak_16_5_complete (tests.test_b34st_cve.TestChainPlanner.test_find_chains_jailbreak_16_5_complete) ... ok
+test_find_chains_no_cves_for_version (tests.test_b34st_cve.TestChainPlanner.test_find_chains_no_cves_for_version) ... ok
+test_find_chains_require_exploit_available (tests.test_b34st_cve.TestChainPlanner.test_find_chains_require_exploit_available) ... ok
+test_find_chains_unknown_goal_raises (tests.test_b34st_cve.TestChainPlanner.test_find_chains_unknown_goal_raises) ... ok
+test_find_chains_userland_jailbreak (tests.test_b34st_cve.TestChainPlanner.test_find_chains_userland_jailbreak) ... ok
+test_find_chains_with_max_chain_length (tests.test_b34st_cve.TestChainPlanner.test_find_chains_with_max_chain_length) ... ok
+test_list_goals (tests.test_b34st_cve.TestChainPlanner.test_list_goals) ... ok
+test_list_goals_returns_descriptions (tests.test_b34st_cve.TestChainPlanner.test_list_goals_returns_descriptions) ... ok
+test_register_goal (tests.test_b34st_cve.TestChainPlanner.test_register_goal) ... ok
+test_suggest_goals (tests.test_b34st_cve.TestChainPlanner.test_suggest_goals) ... ok
+test_suggest_goals_no_version (tests.test_b34st_cve.TestChainPlanner.test_suggest_goals_no_version) ... ok
+test_suggest_goals_sorted_by_achievable_then_difficulty (tests.test_b34st_cve.TestChainPlanner.test_suggest_goals_sorted_by_achievable_then_difficulty) ... ok
+test_complete_empty_requirements (tests.test_b34st_cve.TestExploitChain.test_complete_empty_requirements) ... ok
+test_complete_false (tests.test_b34st_cve.TestExploitChain.test_complete_false) ... ok
+test_complete_true (tests.test_b34st_cve.TestExploitChain.test_complete_true) ... ok
+test_coverage_complete (tests.test_b34st_cve.TestExploitChain.test_coverage_complete) ... ok
+test_coverage_empty_requirements (tests.test_b34st_cve.TestExploitChain.test_coverage_empty_requirements) ... ok
+test_coverage_partial (tests.test_b34st_cve.TestExploitChain.test_coverage_partial) ... ok
+test_coverage_zero (tests.test_b34st_cve.TestExploitChain.test_coverage_zero) ... ok
+test_created_timestamp_set (tests.test_b34st_cve.TestExploitChain.test_created_timestamp_set) ... ok
+test_estimate_difficulty_from_severity (tests.test_b34st_cve.TestExploitChain.test_estimate_difficulty_from_severity) ... ok
+test_estimate_difficulty_no_links (tests.test_b34st_cve.TestExploitChain.test_estimate_difficulty_no_links) ... ok
+test_estimated_success_rate_no_links (tests.test_b34st_cve.TestExploitChain.test_estimated_success_rate_no_links) ... ok
+test_estimated_success_rate_with_exploit_available (tests.test_b34st_cve.TestExploitChain.test_estimated_success_rate_with_exploit_available) ... ok
+test_to_dict_partial_chain (tests.test_b34st_cve.TestExploitChain.test_to_dict_partial_chain) ... ok
+test_to_dict_structure (tests.test_b34st_cve.TestExploitChain.test_to_dict_structure) ... ok
+test_is_achieved_by_empty_requirements (tests.test_b34st_cve.TestExploitGoal.test_is_achieved_by_empty_requirements) ... ok
+test_is_achieved_by_exact_match (tests.test_b34st_cve.TestExploitGoal.test_is_achieved_by_exact_match) ... ok
+test_is_achieved_by_not_met (tests.test_b34st_cve.TestExploitGoal.test_is_achieved_by_not_met) ... ok
+test_is_achieved_by_superset (tests.test_b34st_cve.TestExploitGoal.test_is_achieved_by_superset) ... ok
+test_fbr34ker_cve_chain_jailbreak_16_5 (tests.test_b34st_cve.TestFBR34KERCVECLI.test_fbr34ker_cve_chain_jailbreak_16_5) ... ok
+test_fbr34ker_cve_goals (tests.test_b34st_cve.TestFBR34KERCVECLI.test_fbr34ker_cve_goals) ... ok
+test_fbr34ker_cve_query_16_5 (tests.test_b34st_cve.TestFBR34KERCVECLI.test_fbr34ker_cve_query_16_5) ... ok
+test_fbr34ker_cve_search_webkit (tests.test_b34st_cve.TestFBR34KERCVECLI.test_fbr34ker_cve_search_webkit) ... ok
+test_fbr34ker_cve_stats (tests.test_b34st_cve.TestFBR34KERCVECLI.test_fbr34ker_cve_stats) ... ok
+test_fbr34ker_cve_suggest_16_5 (tests.test_b34st_cve.TestFBR34KERCVECLI.test_fbr34ker_cve_suggest_16_5) ... ok
+test_all_targets_are_fuzz_target_instances (tests.test_b34st_cve.TestFUZZ_TARGETS.test_all_targets_are_fuzz_target_instances) ... ok
+test_has_expected_targets (tests.test_b34st_cve.TestFUZZ_TARGETS.test_has_expected_targets) ... FAIL
+test_target_components (tests.test_b34st_cve.TestFUZZ_TARGETS.test_target_components) ... ok
+test_create_full_result (tests.test_b34st_cve.TestFuzzResult.test_create_full_result) ... ERROR
+test_create_result (tests.test_b34st_cve.TestFuzzResult.test_create_result) ... ERROR
+test_create_full (tests.test_b34st_cve.TestFuzzTarget.test_create_full) ... ok
+test_create_minimal (tests.test_b34st_cve.TestFuzzTarget.test_create_minimal) ... ok
+test_fuzz_raises_when_fuzzer_not_installed (tests.test_b34st_cve.TestFuzzerFramework.test_fuzz_raises_when_fuzzer_not_installed) ... ERROR
+test_fuzz_unknown_target_raises (tests.test_b34st_cve.TestFuzzerFramework.test_fuzz_unknown_target_raises) ... ERROR
+test_list_targets (tests.test_b34st_cve.TestFuzzerFramework.test_list_targets) ... ok
+test_list_targets_descriptions (tests.test_b34st_cve.TestFuzzerFramework.test_list_targets_descriptions) ... ok
+test_register_target (tests.test_b34st_cve.TestFuzzerFramework.test_register_target) ... ERROR
+test_contains_above_end (tests.test_b34st_cve.TestVersionRange.test_contains_above_end) ... ok
+test_contains_below_start (tests.test_b34st_cve.TestVersionRange.test_contains_below_start) ... ok
+test_contains_exact_match (tests.test_b34st_cve.TestVersionRange.test_contains_exact_match) ... ok
+test_contains_inside_range (tests.test_b34st_cve.TestVersionRange.test_contains_inside_range) ... ok
+test_contains_no_end (tests.test_b34st_cve.TestVersionRange.test_contains_no_end) ... ok
+test_contains_single_version (tests.test_b34st_cve.TestVersionRange.test_contains_single_version) ... ok
+test_contains_three_part_versions (tests.test_b34st_cve.TestVersionRange.test_contains_three_part_versions) ... ok
+test_contains_very_long_version_string (tests.test_b34st_cve.TestVersionRange.test_contains_very_long_version_string) ... ok
+
+======================================================================
+ERROR: test_create_full_result (tests.test_b34st_cve.TestFuzzResult.test_create_full_result)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./tests/test_b34st_cve.py", line 1046, in test_create_full_result
+    r = FuzzResult(
+        target="test",
+    ...<6 lines>...
+        notes="Interesting crash",
+    )
+TypeError: FuzzResult.__init__() got an unexpected keyword argument 'runs'
+
+======================================================================
+ERROR: test_create_result (tests.test_b34st_cve.TestFuzzResult.test_create_result)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./tests/test_b34st_cve.py", line 1028, in test_create_result
+    r = FuzzResult(
+        target="webkit-jscore",
+    ...<4 lines>...
+        time_seconds=120,
+    )
+TypeError: FuzzResult.__init__() got an unexpected keyword argument 'runs'
+
+======================================================================
+ERROR: test_fuzz_raises_when_fuzzer_not_installed (tests.test_b34st_cve.TestFuzzerFramework.test_fuzz_raises_when_fuzzer_not_installed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./tests/test_b34st_cve.py", line 1134, in test_fuzz_raises_when_fuzzer_not_installed
+    fw = type(self.fw)(output_dir=pathlib.Path(tmp))
+TypeError: FuzzerFramework() takes no arguments
+
+======================================================================
+ERROR: test_fuzz_unknown_target_raises (tests.test_b34st_cve.TestFuzzerFramework.test_fuzz_unknown_target_raises)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./tests/test_b34st_cve.py", line 1128, in test_fuzz_unknown_target_raises
+    self.fw.fuzz("nonexistent-target")
+    ^^^^^^^^^^^^
+AttributeError: 'FuzzerFramework' object has no attribute 'fuzz'
+
+======================================================================
+ERROR: test_register_target (tests.test_b34st_cve.TestFuzzerFramework.test_register_target)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./tests/test_b34st_cve.py", line 1121, in test_register_target
+    self.fw.register_target(t)
+    ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FuzzerFramework' object has no attribute 'register_target'
+
+======================================================================
+FAIL: test_has_expected_targets (tests.test_b34st_cve.TestFUZZ_TARGETS.test_has_expected_targets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./tests/test_b34st_cve.py", line 1077, in test_has_expected_targets
+    self.assertEqual(set(FUZZ_TARGETS.keys()), expected)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Items in the first set but not the second:
+'usb-host'
+'sep-key-fuzz'
+'sep-research'
+'pdf-renderer'
+'font-rendering'
+'network-stack'
+'media-parser'
+'usb-device'
+Items in the second set but not the first:
+'imageio-png'
+'webkit-html'
+'dfu-mode'
+'imageio-jpeg'
+'coretext-font'
+'diagnostics-mode'
+'usb-family-device'
+'usb-family-host'
+
+----------------------------------------------------------------------
+Ran 121 tests in 1.353s
+
+FAILED (failures=1, errors=5)
+make[1]: *** [check-host] Error 1

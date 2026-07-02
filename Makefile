@@ -152,12 +152,13 @@ COMMON_C_SOURCES := \
     kernel/string.c \
     kernel/trace.c \
     kernel/watchdog.c \
-    kernel/apple_platform.c \
-    kernel/usb.c \
-    kernel/usbliter8_exploit.c \
-    kernel/trust_cache.c \
-    kernel/jailbreak.c \
-    kernel/jbinit.c \
+kernel/apple_platform.c \
+     kernel/usb.c \
+     kernel/usbliter8_v1_exploit.c \
+     kernel/usbliter8_v2_exploit.c \
+     kernel/trust_cache.c \
+     kernel/jailbreak.c \
+     kernel/jbinit.c \
     modules/hello/hello.c \
     platform/gic.c
 

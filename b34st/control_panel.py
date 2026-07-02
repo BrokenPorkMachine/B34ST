@@ -1768,7 +1768,7 @@ def _evidence_and_release(session: Session) -> None:
 def _usbliter8_hardware_guide(session: Session) -> None:
     _clear()
     _header(session, "USBliter8 Hardware Guide")
-    print("Recommended hardware: Waveshare RP2350 USB-A")
+    print("Recommended hardware: Waveshare RP2350 USB-A (v2)")
     print("  - RP2350 dual-core Cortex-M33/RISC-V")
     print("  - Native USB-A host port — no adapter needed")
     print("  - USB 2.0 High Speed (480 Mbps)")
@@ -1797,66 +1797,74 @@ def _usbliter8_hardware_guide(session: Session) -> None:
     _pause()
 
 
-def _usbliter8_prepare_hardware(session: Session) -> int:
-    _clear()
-    _header(session, "USBliter8 Hardware & Firmware Preparation")
-    print("Guided preparation checklist. Each item can be skipped if already done.\n")
+    def _usbliter8_prepare_hardware(session: Session) -> int:
+        _clear()
+        _header(session, "USBliter8 Hardware & Firmware Preparation")
+        print("Guided preparation checklist. Each item can be skipped if already done.\n")
 
-    items = [
-        ("Host USB controller", "Check xHCI/ASMedia/RP2350"),
-        ("Cable and power", "Data cable, adequate power"),
-        ("Device in DFU mode", "Verify A12+ device in DFU"),
-        ("pyusb/libusb", "Host dependencies installed"),
-        ("Operational image", "build-exploit/fbr34ker-operational.bin"),
-    ]
+        # Determine target chipset from session args if available
+        target_chipset = "A12+"  # Default
+        if hasattr(session, 'chipset'):
+            target_chipset = session.chipset
+        
+        print(f"Target chipset: {target_chipset}\n")
 
-    statuses = {}
-    for i, (item, desc) in enumerate(items, 1):
-        skip = _prompt(f"  [{i}/{len(items)}] {item} ({desc}) — done? (Y/skip)", "Y")
-        if skip.lower() in ("s", "skip"):
-            statuses[item] = "skipped"
-            print("    -> Skipped")
+        items = [
+            ("Host USB controller", "Check xHCI/ASMedia/RP2350"),
+            ("Cable and power", "Data cable, adequate power"),
+            ("Device in DFU mode", f"Verify {target_chipset} device in DFU"),
+            ("pyusb/libusb", "Host dependencies installed"),
+            ("Operational image", "build-exploit/fbr34ker-operational.bin"),
+        ]
+
+        statuses = {}
+        for i, (item, desc) in enumerate(items, 1):
+            skip = _prompt(f"  [{i}/{len(items)}] {item} ({desc}) — done? (Y/skip)", "Y")
+            if skip.lower() in ("s", "skip"):
+                statuses[item] = "skipped"
+                print("    -> Skipped")
+            else:
+                statuses[item] = "done"
+                print("    -> Done")
+
+        prep_record = session.directory / "hardware-prep.json"
+        import json
+
+        prep_record.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "stage": "hardware_preparation",
+                    "status": "completed",
+                    "items": [{"item": k, "status": v} for k, v in statuses.items()],
+                    "session": str(session.directory),
+                    "target_chipset": target_chipset,
+                },
+                indent=2,
+            )
+        )
+        session.record(f"Hardware preparation record: {prep_record}")
+
+        build_skip = _prompt("Build operational image? (Y/skip)", "Y")
+        if build_skip.lower() not in ("s", "skip"):
+            session.run_command(
+                ["make", "build-operational"], label="Build operational image"
+            )
         else:
-            statuses[item] = "done"
-            print("    -> Done")
+            session.record("Operational image build skipped by user")
+            print("Skipped build. Ensure build-exploit/fbr34ker-operational.bin exists.")
 
-    prep_record = session.directory / "hardware-prep.json"
-    import json
-
-    prep_record.write_text(
-        json.dumps(
-            {
-                "schema_version": 1,
-                "stage": "hardware_preparation",
-                "status": "completed",
-                "items": [{"item": k, "status": v} for k, v in statuses.items()],
-                "session": str(session.directory),
-            },
-            indent=2,
-        )
-        + "\n"
-    )
-    session.record(f"Hardware preparation record: {prep_record}")
-
-    build_skip = _prompt("Build operational image? (Y/skip)", "Y")
-    if build_skip.lower() not in ("s", "skip"):
-        session.run_command(
-            ["make", "build-operational"], label="Build operational image"
-        )
-    else:
-        session.record("Operational image build skipped by user")
-        print("Skipped build. Ensure build-exploit/fbr34ker-operational.bin exists.")
-
-    print(f"\nPreparation record saved: {prep_record.relative_to(ROOT)}")
-    session.record("Hardware preparation completed")
-    _pause()
-    return 0
+        print(f"\nPreparation record saved: {prep_record.relative_to(ROOT)}")
+        session.record("Hardware preparation completed")
+        _pause()
+        return 0
 
 
 def _usbliter8_jailbreak(session: Session) -> int:
     _clear()
-    _header(session, "A12+ USBliter8 Jailbreak")
-    print("Targets A12+ devices (CPID 0x8015 and above) in DFU mode.")
+    _header(session, "A14/A15/M1/M2 USBliter8 Jailbreak (v2)")
+    print("""Targets A14 (CPID 0x8002-0x800E), A15 (0x8015-0x801D),
+      M1 (0x8103-0x8105), and M2 (0x8106-0x8109) devices in DFU mode.")""")
     print("Exploit: DWC3 USB controller firmware patch (USBliter8)")
     print("Payload: FBR34KER monitor + full post-exploit chain")
     print()

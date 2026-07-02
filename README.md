@@ -83,6 +83,7 @@ After installation, `B34ST` is available as a system command.
 | Goal | Command |
 |------|---------|
 | Guided menus | `./scripts/B34ST` |
+| FBR34KER console | `./scripts/B34ST neo` |
 | One-off automation or scripts | `./fbr34ker <command>` |
 | Quick setup + validation | `./scripts/automate.sh build-and-validate` |
 | Evidence collection | `python3 scripts/collect-evidence.py <operation>` |

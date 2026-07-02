@@ -29,3 +29,13 @@ __pycache__/
 .cache/
 test_make_targets/
 .DS_Store
+
+# Temporary/corpus files
+Makefile.new
+downloads/
+examples/tether_adapters/
+exploits/
+schemas/tether-transfer-corpus-v1.json
+tests/exploit_chain_harness.c
+tests/exploit_stubs.c
+tests/test_tether_adapter_preflight.py

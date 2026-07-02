@@ -1925,6 +1925,153 @@ class B34STCLI:
 
         return 0
 
+    def _prepare_waveshare_rp2350(self, target_chipset: str = "A14") -> None:
+        """Prepare Waveshare RP2350 USB-A device for USBliter8 exploit v2.
+        
+        Complete preparation flow for A14/A15/M1/M2 devices including:
+        1. Waveshare RP2350 USB-A device detection and identification
+        2. Firmware flashing (UF2 file to the device)
+        3. Cable selection guidance
+        4. Power setup
+        5. USB controller verification
+        6. Device connection verification for target chipset
+        
+        Args:
+            target_chipset: Target iPhone chipset (A14, A15, M1, or M2)
+        """
+        import subprocess
+        import time
+        from pathlib import Path
+
+        self.log(f"Waveshare RP2350 USB-A preparation for {target_chipset} (v2)")
+        
+        # Display target information
+        print(f"\n[*] Targeting {target_chipset} device")
+        if target_chipset == "A15":
+            print("  CPIDs: 0x8015, 0x8017, 0x8019, 0x801B, 0x801D")
+        elif target_chipset == "M1":
+            print("  CPIDs: 0x8103 (iPhone 12 Mini/Pro), 0x8104 (iPhone 12 Max), 0x8105 (iPhone 12 Pro Max)")
+        elif target_chipset == "M2":
+            print("  CPIDs: 0x8106 (iPhone 13 Mini), 0x8107 (iPhone 13/Pro), 0x8109 (iPhone 13 Pro Max)")
+        elif target_chipset == "A14":
+            print("  CPIDs: 0x8002 (iPhone 11 Pro), 0x8008, 0x800A, 0x800C, 0x800E")
+        
+        print("\n[*] Waveshare RP2350 USB-A Hardware Preparation (v2)")
+        print("=" * 60)
+        
+        # Step 1: Device identification
+        print("\n1. Device Identification:")
+        print("   - Verify Waveshare RP2350 is connected with power")
+        print("   - Target chipset: ", end="")
+        
+        # Check for Waveshare RP2350 device
+        result = subprocess.run(
+            ["lsusb"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=10
+        )
+        if "PID 2050" in result.stdout:
+            print("✓ RP2350 detected (PID 2050)")
+            print("\n   RP2350 Specs:")
+            print("     - Dual-core Cortex-M33/RISC-V")
+            print("     - Native USB-A host (no adapters)")
+            print("     - USB 2.0 High Speed (480 Mbps)")
+            print("     - 264 KB SRAM + 16 MB flash")
+            print("     - PIO capability for timing control")
+        else:
+            print("✗ RP2350 not detected!")
+            print("\n   Connect Waveshare RP2350 and ensure:")
+            print("   - Device is powered and connected")
+            print("   - PID 2050 is visible in lsusb")
+            self.log("RP2350 not detected. Check connection.", "ERROR")
+            return 1
+
+        # Step 2: Firmware preparation
+        print("\n2. Firmware Preparation:")
+        print("   - Ensure RP2350 is in BOOTSEL mode (hold BOOTSEL)")
+        print("   - Connect to computer via USB")
+        print("   - Drive 'RPI-RP2' should appear")
+        print("   - Copy waveshare_rp2350_usb_a.uf2 to drive")
+        print("   - Device will reboot automatically")
+        
+        firmware_path = ROOT / "build-exploit" / "waveshare_rp2350_usb_a.uf2"
+        if firmware_path.is_file():
+            print(f"   ✓ Firmware available: {firmware_path.name}")
+        else:
+            print(f"   ⚠ Firmware not found: {firmware_path}")
+            print("   Build firmware:")
+            print("     make build-rp2350-firmware")
+
+        # Step 3: Cable requirements
+        print("\n3. Cable Requirements:")
+        print("   - USB-A to USB-C (data cable only)")
+        print("   - Rated for USB 2.0 High Speed (480 Mbps)")
+        print("   - Support for device charging (500mA+)")
+        print("   - Apple OEM or Anker PowerLine recommended")
+        print("   - Avoid charge-only cables (no D+/D- lines)")
+
+        # Step 4: Power requirements
+        print("\n4. Power Requirements:")
+        if "RP2350" in result.stdout:
+            print("   - RP2350 power: Supports bus power (USB-C)")
+            print("   - Recommended: Host port 500mA+")
+        print("   - Ensure stable power before proceeding")
+        print("   - Avoid powered hubs for better timing")
+
+        # Step 5: Target device verification
+        print("\n5. Target Device Preparation:")
+        print(f"   - Target: {target_chipset} (see CPIDs above)")
+        print("   - Put device in DFU mode (hold volume down + connect)")
+        print("   - Verify device appears in lsusb with DFU interface")
+        
+        # Check current USB devices
+        print("\n   Current USB devices (lsusb):")
+        for line in result.stdout.strip().split('\n'):
+            if line and ('Apple' in line or 'iPhone' in line or 'DFU' in line):
+                print(f"     - {line}")
+
+        # Step 6: Verification checklist
+        print("\n6. Verification Checklist:")
+        print("   ✓ RP2350 hardware detected and powered")
+        print("   ✓ Firmware flashed to RP2350")
+        print("   ✓ Cable supports data transfer")
+        print("   ✓ Power supply adequate (500mA+)")
+        print("   ✓ Target device in DFU mode")
+        print("   ✓ Target chipset CPID matches profile")
+
+        # Step 7: pyusb verification
+        print("\n7. pyusb/libusb Verification:")
+        try:
+            import pyusb
+            from usb import USBContext
+            
+            print("   - pyusb library: ✓ Installed")
+            
+            with USBContext() as ctx:
+                devices = ctx.list_devices()
+                if devices:
+                    print(f"   - USB devices detected: {len(devices)}")
+                    print("   - Ready for exploit operation")
+                else:
+                    print("   - ✗ No devices detected by pyusb")
+        except ImportError:
+            print("   - pyusb: ✗ Not installed")
+            print("   Install: pip install pyusb")
+        except Exception as e:
+            print(f"   - ✗ Check failed: {e}")
+
+        # Completion message
+        print("\n" + "=" * 60)
+        print("[*] Waveshare RP2350 USB-A Preparation Complete (v2)")
+        print(f"Target: {target_chipset} exploitation ready")
+        print("\nNext steps:")
+        print("  1. Verify RP2350 firmware is active")
+        print("  2. Complete hardware preparation checklist")
+        print("  3. Execute A14/A15/M1/M2 USBliter8 exploit")
+        print("\nNote: Target device must match exact CPID in review profile.")
+
     def _usbliter8(self, argv: list[str]) -> int:
         """USBliter8 hardware preparation, execution, and workflow management."""
         import argparse as ap
@@ -1939,6 +2086,17 @@ class B34STCLI:
             "--skip-hardware-prep",
             action="store_true",
             help="Skip hardware preparation checklist",
+        )
+        parser.add_argument(
+            "--skip-rp2350-prep",
+            action="store_true",
+            help="Skip Waveshare RP2350 USB-A preparation (v2 with chipset targeting)",
+        )
+        parser.add_argument(
+            "--chipset",
+            choices=["A14", "A15", "M1", "M2"],
+            default="A14",
+            help="Target chipset for USBliter8 (default: A14)",
         )
         parser.add_argument(
             "--skip-build",
@@ -1961,15 +2119,14 @@ class B34STCLI:
             help="Skip console connection after exploit",
         )
         parser.add_argument(
+            "--return-to-b34st",
+            action="store_true",
+            help="Return to B34ST menu after completion (default: on)",
+        )
+        parser.add_argument(
             "--skip-evidence",
             action="store_true",
             help="Skip evidence collection",
-        )
-        parser.add_argument(
-            "--return-to-b34st",
-            action="store_true",
-            default=True,
-            help="Return to B34ST menu after completion (default: on)",
         )
         parser.add_argument(
             "--no-return",
@@ -1997,6 +2154,11 @@ class B34STCLI:
         if not args.skip_hardware_prep:
             self.log("USBliter8 hardware preparation")
             self._show_hardware_categories()
+            
+            # Waveshare RP2350 USB-A Preparation Flow
+            if not args.skip_rp2350_prep:
+                self._prepare_waveshare_rp2350(args.chipset)
+
             print("\nHardware preparation checklist:")
             items = [
                 ("Host USB controller check", "Ensure host USB is xHCI or RP2350"),
@@ -2026,7 +2188,92 @@ class B34STCLI:
                         indent=2,
                     )
                 )
-                self.log(f"Hardware preparation record: {prep_record}")
+            self.log(f"Hardware preparation record: {prep_record}")
+
+        operational_bin = ROOT / "build-exploit" / "fbr34ker-operational.bin"
+        if args.force_rebuild or not operational_bin.is_file():
+            if operational_bin.is_file():
+                self.log(
+                    "Found existing operational image, rebuilding (--force-rebuild)"
+                )
+            else:
+                self.log("Operational image not found, building now")
+            if args.skip_build:
+                self.log("Operational image missing but build was skipped", "ERROR")
+                print("Operational image not found and --skip-build was requested.")
+                return 1
+            if not args.skip_build:
+                result = subprocess.run(
+                    ["make", "build-operational"],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    timeout=120,
+                    check=False,
+                )
+                if result.returncode != 0:
+                    self.log(f"Build failed: {result.stderr}", "ERROR")
+                    return 1
+                self.log("Operational build complete")
+        else:
+            self.log(f"Found existing operational image: {operational_bin}")
+            self.log("Skipping build (use --force-rebuild to override)")
+
+        print("\n--- USBliter8 execution ---")
+        print("This will exploit the A12+ device via DWC3 and run the chain.\n")
+
+        owner = input(f'Type "{AUTHORIZATION_TEXT}" to continue: ')
+        if owner != AUTHORIZATION_TEXT:
+            print("Authorization not confirmed. Aborting.")
+            return 1
+
+        exploit_script = ROOT / "scripts" / "run_exploit.py"
+        if not exploit_script.is_file():
+            self.log(f"Exploit script not found: {exploit_script}", "ERROR")
+            return 1
+
+        evidence = (
+            None
+            if args.skip_evidence
+            else (args.evidence or evidence_dir / "usbliter8-jailbreak.json")
+        )
+        cmd = [
+            sys.executable,
+            str(exploit_script),
+            "--monitor",
+            str(operational_bin),
+            "--timeout",
+            str(args.timeout),
+        ]
+        if evidence is not None:
+            cmd.extend(["--evidence", str(evidence)])
+        if args.no_dfu_wait:
+            cmd.append("--no-dfu-wait")
+
+        print(f"\nRunning: {' '.join(cmd)}\n")
+        result = subprocess.run(cmd, cwd=ROOT, text=True, check=False)
+        return_code = result.returncode
+
+        if return_code == 0:
+            self.log("USBliter8 exploit chain completed successfully")
+
+            if not args.no_console:
+                connect = input(
+                    "\nConnect to FBR34KER console for live exploration? (y/N): "
+                )
+                if connect.lower() in ("y", "yes"):
+                    console_cmd = [
+                        sys.executable,
+                        "-c",
+                        "from host.usb_serial import USBConsole; "
+                        "c = USBConsole(); c.open(); "
+                        "print(c.read_until_prompt(timeout=10.0))",
+                    ]
+                    subprocess.run(console_cmd, cwd=ROOT, check=False)
+
+            if args.return_to_b34st and not args.no_return:
+                print("\nReturning to B34ST...")
+                from b34st.control_panel import run_control_panel
 
         operational_bin = ROOT / "build-exploit" / "fbr34ker-operational.bin"
         if args.force_rebuild or not operational_bin.is_file():

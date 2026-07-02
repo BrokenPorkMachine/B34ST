@@ -99,6 +99,66 @@ operator should configure as a working downgrade backend. A real adapter must
 replace the rejection path with reviewed, exact-target device operations and
 must still return the JSON result described below.
 
+The modules under `examples/tether_adapters/` are fail-closed IPSW preflight
+helpers for the repository's A12+ profiles. They validate the request, archive
+digest, exact product/version/build, matching BuildIdentity, and boot-component
+paths. They do not exploit a device, send an IPSW through `irecovery`, or report
+execution success. The experimental USBliter8 transfer corpus is not accepted
+as evidence that a boot chain executed.
+
+### Select an experimental transfer corpus
+
+The fail-closed preflight can record either the bundled experimental corpus or
+a bounded corpus loaded from disk:
+
+```sh
+python3 examples/tether_adapters/bootstrap.py \
+  --transfer-corpus builtin
+
+python3 examples/tether_adapters/bootstrap.py \
+  --transfer-corpus /absolute/path/to/corpus.json
+```
+
+When B34ST launches the preflight as an adapter, put the option in the adapter
+command:
+
+```sh
+export B34ST_TETHER_ADAPTER='python3 /path/to/bootstrap.py --transfer-corpus /path/to/corpus.json'
+```
+
+Selection validates and records the corpus but does not execute its USB
+transfers. A selected corpus is always marked `experimental: true` and
+`executed: false` in the JSON response. This prevents corpus selection from
+being mistaken for PWNDFU or boot evidence.
+
+Disk corpora must match
+[`schemas/tether-transfer-corpus-v1.json`](../schemas/tether-transfer-corpus-v1.json).
+The file is limited to 1 MiB, 4096 transfers, and 32768 data bytes per transfer.
+Each transfer contains `bm_request_type`, `b_request`, optional `w_value` and
+`w_index`, and exactly one of `data_hex` or `read_length`:
+
+```json
+{
+  "schema_version": 1,
+  "name": "lab-corpus",
+  "supported_cpids": ["0x8020"],
+  "transfers": [
+    {
+      "bm_request_type": 64,
+      "b_request": 1,
+      "w_value": 0,
+      "w_index": 0,
+      "data_hex": "0000000008000000"
+    },
+    {
+      "bm_request_type": 192,
+      "b_request": 2,
+      "read_length": 4
+    }
+  ]
+}
+```
+
 ## Before starting
 
 Have the following ready:

@@ -12,6 +12,7 @@ typedef __INT64_TYPE__  i64;
 typedef __SIZE_TYPE__   usize;
 typedef __PTRDIFF_TYPE__ isize;
 typedef _Bool bool;
+typedef double f64;
 
 #ifndef true
 #define true 1

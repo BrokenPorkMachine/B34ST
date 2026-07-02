@@ -1,5 +1,5 @@
 {
-  "cve_count": 1119,
+  "cve_count": 1155,
   "cves": [
     {
       "affected_components": [
@@ -44216,7 +44216,7 @@
       ],
       "description": "IORegistryIterator info leak allowing kernel memory read",
       "exploit_available": true,
-      "exploit_path": "iokit/CVE-2022-32866.c",
+      "exploit_path": "kernel/CVE-2022-32866.c",
       "exploit_type": [
         "local",
         "info-leak"
@@ -44248,7 +44248,7 @@
       "credits": [],
       "description": "IORegistryIterator out-of-bounds read info leak",
       "exploit_available": true,
-      "exploit_path": "iokit/CVE-2023-27941.c",
+      "exploit_path": "kernel/CVE-2023-27941.c",
       "exploit_type": [
         "local",
         "info-leak"
@@ -44279,7 +44279,7 @@
       "credits": [],
       "description": "IOKit kernel info leak via IOSurface",
       "exploit_available": true,
-      "exploit_path": "iokit/CVE-2023-32433.c",
+      "exploit_path": "kernel/CVE-2023-32433.c",
       "exploit_type": [
         "local",
         "info-leak"
@@ -44310,7 +44310,7 @@
       "credits": [],
       "description": "FairPlay asset extraction via FPClient IPC",
       "exploit_available": true,
-      "exploit_path": "fairplay/CVE-2024-27872.c",
+      "exploit_path": "other/CVE-2024-27872.c",
       "exploit_type": [
         "local",
         "bypass"
@@ -44343,7 +44343,7 @@
       "credits": [],
       "description": "Keybag extraction via kernel r/w class delta offset",
       "exploit_available": true,
-      "exploit_path": "keybag/CVE-2022-42874.c",
+      "exploit_path": "kernel/CVE-2022-42874.c",
       "exploit_type": [
         "local",
         "lpe"
@@ -44375,7 +44375,7 @@
       "credits": [],
       "description": "FileVault keybag decryption via kernel task port",
       "exploit_available": true,
-      "exploit_path": "keybag/CVE-2023-32420.c",
+      "exploit_path": "kernel/CVE-2023-32420.c",
       "exploit_type": [
         "local",
         "lpe"
@@ -44440,7 +44440,7 @@
       "credits": [],
       "description": "DTrace kernel info leak via DOF data uninitialized memory",
       "exploit_available": true,
-      "exploit_path": "dtrace/CVE-2022-32832.c",
+      "exploit_path": "kernel/CVE-2022-32832.c",
       "exploit_type": [
         "local",
         "info-leak"
@@ -44471,7 +44471,7 @@
       "credits": [],
       "description": "DTrace KASLR bypass via dtrace_get_kernel_info",
       "exploit_available": true,
-      "exploit_path": "dtrace/CVE-2023-27959.c",
+      "exploit_path": "kernel/CVE-2023-27959.c",
       "exploit_type": [
         "local",
         "info-leak"
@@ -46021,7 +46021,7 @@
       ],
       "description": "T2 bridgeOS firmware downgrade prevention bypass allowing unsigned boot.",
       "exploit_available": true,
-      "exploit_path": "kernel/CVE-2020-9811.c",
+      "exploit_path": "sep/CVE-2020-9811.c",
       "exploit_type": [
         "local",
         "lpe"
@@ -46445,7 +46445,7 @@
       "chainable_with": [],
       "description": "iMessage memory corruption for RCE via crafted iMessage on iOS 4.3-5.1.1",
       "exploit_available": true,
-      "exploit_path": "kernel/CVE-2011-3246.c",
+      "exploit_path": "imessage/CVE-2011-3246.c",
       "exploit_type": [
         "remote",
         "rce"
@@ -46495,7 +46495,7 @@
       "chainable_with": [],
       "description": "CoreGraphics integer overflow for RCE on iOS 5.0-5.1.1",
       "exploit_available": true,
-      "exploit_path": "kernel/CVE-2012-0674.c",
+      "exploit_path": "coregraphics/CVE-2012-0674.c",
       "exploit_type": [
         "remote",
         "rce"
@@ -46775,7 +46775,7 @@
       ],
       "description": "AppleKeyStore privilege escalation for keychain extraction on iOS 7.0-7.1.2",
       "exploit_available": true,
-      "exploit_path": "keybag/CVE-2014-1341.c",
+      "exploit_path": "applekeystore/CVE-2014-1341.c",
       "exploit_type": [
         "local",
         "bypass"
@@ -46891,7 +46891,7 @@
       ],
       "description": "AppleKeyStore sandbox bypass for keychain access on iOS 8.0-8.4",
       "exploit_available": true,
-      "exploit_path": "kernel/CVE-2015-1090.c",
+      "exploit_path": "sandbox/CVE-2015-1090.c",
       "exploit_type": [
         "local",
         "bypass"
@@ -47065,7 +47065,7 @@
       ],
       "description": "CoreGraphics memory corruption via TIFF image for RCE on iOS 9.0-9.3.5",
       "exploit_available": true,
-      "exploit_path": "kernel/CVE-2016-1764.c",
+      "exploit_path": "imageio/CVE-2016-1764.c",
       "exploit_type": [
         "remote",
         "rce"
@@ -47228,7 +47228,7 @@
       ],
       "description": "ImageIO memory corruption via TIFF processing for RCE on iOS 5.0-5.1.1",
       "exploit_available": true,
-      "exploit_path": "kernel/CVE-2012-3715.c",
+      "exploit_path": "imageio/CVE-2012-3715.c",
       "exploit_type": [
         "remote",
         "rce"
@@ -47287,7 +47287,7 @@
       ],
       "description": "Accounts framework privilege escalation allowing data access on iOS 6.0-6.1.3",
       "exploit_available": true,
-      "exploit_path": "kernel/CVE-2013-0988.c",
+      "exploit_path": "accounts/CVE-2013-0988.c",
       "exploit_type": [
         "local",
         "bypass"
